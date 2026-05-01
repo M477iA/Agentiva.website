@@ -2031,6 +2031,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 <script>
   // Servicios card deck
   function srvActivate(targetIdx) {
@@ -2096,10 +2097,12 @@
     const src = 'https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8';
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = src;
+      video.play().catch(() => {});
     } else if (window.Hls && Hls.isSupported()) {
       const hls = new Hls({ autoStartLoad: true, startLevel: -1 });
       hls.loadSource(src);
       hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
     }
   })();
 
@@ -2163,7 +2166,6 @@
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -2413,6 +2415,53 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
     attachToWidget();
   }
   setTimeout(attachToWidget, 1000);
+}());
+</script>
+
+<script>
+(function patchWidget() {
+  var el = document.querySelector('elevenlabs-convai');
+  if (!el || !el.shadowRoot || !el.shadowRoot.innerHTML) {
+    return setTimeout(patchWidget, 300);
+  }
+
+  var TRANSLATIONS = {
+    'Need help?':        '¿Necesitás ayuda?',
+    'Start a call':      'Habla con un agente',
+    'Send a message...': 'Enviá un mensaje...'
+  };
+
+  function patch(root) {
+    // Hide "Powered by" container (parent of the ElevenLabs link)
+    root.querySelectorAll('a[href*="eleven"]').forEach(function(a) {
+      if (a.parentElement) a.parentElement.style.setProperty('display', 'none', 'important');
+    });
+    if (!root.querySelector('#hide-branding')) {
+      var style = document.createElement('style');
+      style.id = 'hide-branding';
+      style.textContent = '[class*="powered"],[class*="branding"],[class*="footer"],[class*="badge"]{display:none!important}';
+      root.appendChild(style);
+    }
+    // Translate text nodes
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var node;
+    while ((node = walker.nextNode())) {
+      var t = node.textContent;
+      if (TRANSLATIONS[t]) node.textContent = TRANSLATIONS[t];
+    }
+    // Translate placeholder attributes (textarea / input)
+    root.querySelectorAll('[placeholder]').forEach(function(input) {
+      if (TRANSLATIONS[input.placeholder]) input.placeholder = TRANSLATIONS[input.placeholder];
+    });
+  }
+
+  patch(el.shadowRoot);
+  setTimeout(function(){ patch(el.shadowRoot); }, 800);
+  setTimeout(function(){ patch(el.shadowRoot); }, 2000);
+
+  // Re-apply on any DOM change (popup open/close re-renders nodes)
+  new MutationObserver(function() { patch(el.shadowRoot); })
+    .observe(el.shadowRoot, { childList: true, subtree: true });
 }());
 </script>
 
