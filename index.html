@@ -1312,6 +1312,132 @@
   .int-section-dark .int:hover { background:rgba(45,212,191,0.08); color:#F5F2EC; }
   .int-section-dark .int .sq { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.12); color:rgba(245,242,236,0.6); }
 
+  /* ═══════════════════════════════════════
+     MOBILE OPTIMISATION
+     ═══════════════════════════════════════ */
+
+  /* Hamburger button – hidden on desktop */
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 9px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    z-index: 51;
+    position: relative;
+  }
+  .nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--bone);
+    border-radius: 2px;
+    transition: transform 0.28s ease, opacity 0.2s ease;
+    pointer-events: none;
+  }
+  body.theme-bright .nav-toggle span { background: var(--graphite); }
+
+  @media (max-width: 720px) {
+
+    /* Nav height reduction */
+    .nav-inner { height: 64px; }
+    .nav-toggle { display: flex; }
+
+    /* Nav-links become a full-screen slide-in overlay */
+    .nav-links {
+      position: fixed;
+      top: 64px; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--hairline);
+      flex-direction: column;
+      align-items: stretch;
+      padding: 24px 28px 48px;
+      gap: 0;
+      z-index: 40;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.theme-bright .nav-links { background: #fff; }
+
+    /* All links visible in the overlay */
+    .nav-links a:not(.cta) {
+      display: block !important;
+      font-size: 26px;
+      font-family: var(--display-font);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--hairline);
+      color: var(--bone);
+    }
+    body.theme-bright .nav-links a:not(.cta) { color: var(--graphite); }
+    .nav-links #nav-signin { display: block !important; }
+    .nav-links .sep { display: none !important; }
+    .nav-links .cta {
+      margin-top: 28px !important;
+      width: 100%;
+      box-sizing: border-box;
+      justify-content: center;
+      min-height: 52px;
+    }
+
+    /* Open state */
+    nav.nav-open .nav-links { transform: translateX(0); }
+    /* Hamburger → X */
+    nav.nav-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    nav.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
+    nav.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Typography */
+    h1 { font-size: clamp(34px, 9.5vw, 88px); }
+    h2 { font-size: clamp(26px, 7vw, 56px); }
+    .hero-sub { font-size: 16px; }
+    .section-head .lead { font-size: 16px; }
+    .section-pad { padding: 72px 0; }
+
+    /* Hero */
+    .hero-meta .num,
+    .hero-meta--inline .num { font-size: 24px; }
+    .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+    .hero-actions .cta { justify-content: center; min-height: 48px; }
+    .corner-mark { display: none !important; }
+
+    /* Services card deck — disable absolute stack on mobile */
+    .srv-card-stack { min-height: 0; }
+    .srv-crd {
+      position: relative !important;
+      top: auto !important; left: auto !important; right: auto !important;
+      height: auto !important;
+      transform: none !important;
+      opacity: 1 !important;
+      display: none;
+    }
+    .srv-crd.active { display: block; }
+
+    /* Footer — single column */
+    .foot-grid { grid-template-columns: 1fr !important; gap: 32px; }
+    .foot-contact-group { flex-direction: column; }
+    .foot-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+
+  /* Extra-small phones (≤ 480px) */
+  @media (max-width: 480px) {
+    h1 { font-size: clamp(30px, 10vw, 88px); }
+    h2 { font-size: clamp(22px, 8vw, 56px); }
+    .wrap { padding: 0 16px; }
+    .section-pad { padding: 56px 0; }
+    .int-grid { grid-template-columns: 1fr !important; }
+    .cta-card { padding: 40px 20px; }
+    .srv-crd-layout { padding: 24px 20px !important; }
+  }
+
   /* Voice agent section highlight */
   @keyframes agent-pulse {
     0%   { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.45); }
@@ -1392,6 +1518,9 @@
     <a href="#" class="brand" aria-label="Agentiva">
       <img src="assets/images/logos/Agentiva Logo esteso.png" alt="" class="logo-img">
     </a>
+    <button class="nav-toggle" aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <div class="nav-links">
       <a href="#capabilities">Servicios</a>
       <a href="#clients">Partners</a>
@@ -2161,6 +2290,25 @@
       next.querySelector('.meta').textContent = 'running…';
       activeIdx++;
     }, 3200);
+  })();
+
+  // Mobile hamburger menu
+  (function () {
+    var nav = document.querySelector('nav.nav');
+    var toggle = document.querySelector('.nav-toggle');
+    if (!nav || !toggle) return;
+    toggle.addEventListener('click', function () {
+      var open = nav.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    document.querySelectorAll('.nav-links a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        nav.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      });
+    });
   })();
 </script>
 
