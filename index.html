@@ -33,6 +33,7 @@
   .cta, .int .sq, .wf-card { border-radius: var(--radius); }
   .hero h1 { font-size: clamp(calc(48px * var(--hero-scale)), calc(7vw * var(--hero-scale)), calc(88px * var(--hero-scale))); }
   body.theme-bright { --bg: #FFFFFF; --bone: #0A0A0A; --graphite: #F4F4F2; --hairline: #E6E4DF; --hairline-strong: #C9C6BE; --slate: #6B7280; }
+  body.theme-bright .hero { --bg: #0A0A0A; --bone: #F5F2EC; --graphite: #1F1F1F; --hairline: #2A2A2A; --hairline-strong: #3A3A3A; --slate: #6B7280; }
   body.theme-bright .hero-grade { background: linear-gradient(90deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.30) 38%, rgba(255,255,255,0.05) 70%, rgba(255,255,255,0.00) 100%), linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.00) 30%, rgba(255,255,255,0.00) 70%, rgba(255,255,255,0.55) 100%); }
   body.theme-bright .nav { background: rgba(255,255,255,0.72); border-bottom-color: rgba(10,10,10,0.06); }
   body.theme-bright .hero-copy h1, body.theme-bright .hero-copy .hero-eyebrow, body.theme-bright .hero-copy .hero-sub, body.theme-bright .hero-copy .hero-meta { text-shadow: 0 1px 2px rgba(255,255,255,0.55); }
@@ -1455,7 +1456,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
-<body data-screen-label="Agentiva — landing">
+<body class="theme-bright" data-screen-label="Agentiva — landing">
 
 <!-- ───── Auth Modal ───── -->
 <div id="auth-modal" class="auth-modal" role="dialog" aria-modal="true" aria-label="Acceso a cuenta">
@@ -2323,7 +2324,7 @@
 <script type="text/babel">
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "accent": "#2DD4BF",
-  "theme": "",
+  "theme": "bright",
   "displayFont": "Inter",
   "bodyFont": "Inter",
   "monoFont": "JetBrains Mono",
