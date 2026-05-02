@@ -39,12 +39,16 @@
   body.theme-bright .nav { background: rgba(255,255,255,0.72); border-bottom-color: rgba(10,10,10,0.06); }
   body.theme-bright .hero-copy h1, body.theme-bright .hero-copy .hero-eyebrow, body.theme-bright .hero-copy .hero-sub, body.theme-bright .hero-copy .hero-meta { text-shadow: 0 1px 2px rgba(255,255,255,0.55); }
   body.theme-bright .hero-sub { color: #111; opacity: 1; }
+  body.theme-bright .hero .hero-sub { color: rgba(245,242,236,0.80); opacity: 1; text-shadow: none; }
   body.theme-bright .hero .corner-mark { color: rgba(245,242,236,0.65); }
   body.theme-bright .hero .corner-mark .tick { color: var(--teal); }
   body.theme-bright .hero .hero-eyebrow { color: rgba(245,242,236,0.80); }
   body.theme-bright .hero h1 .accent { color: var(--bone); border-bottom: 2px solid var(--accent); }
   body.theme-bright .cta.ghost { color: var(--bone); border-color: rgba(10,10,10,0.18); }
   body.theme-bright .cta.ghost:hover { border-color: var(--bone); }
+  body.theme-bright .hero .cta.ghost { color: #F5F2EC; border-color: rgba(245,242,236,0.45); }
+  body.theme-bright .hero .cta.ghost:hover { border-color: #F5F2EC; }
+  body.theme-bright .hero .cta:not(.ghost):hover { box-shadow: 0 0 0 2px #fff, 0 0 14px rgba(255,255,255,0.35); }
   body.theme-bright .cta-card { background: linear-gradient(180deg, #FAFAF8, #F4F4F2); }
   body.theme-bright .step p, body.theme-bright .wf-card-head .title, body.theme-bright .foot-grid li { color: var(--slate); }
   body.theme-bright .wf-card { background: #FAFAF8; }
@@ -1553,7 +1557,7 @@
 
   <div class="wrap hero-inner">
     <div class="hero-copy">
-      <div class="eyebrow hero-eyebrow">IA que trabaja por vos.</div>
+      <div class="eyebrow hero-eyebrow">Agentes de IA a tu servicio.</div>
       <h1>
         Automatizá tus procesos,<span class="accent"> bajá tus costos.</span>
       </h1>
