@@ -1429,19 +1429,20 @@
     }
     .srv-crd.active { display: block; }
 
-    /* Hero schematic — re-enable as small bottom-right absolute overlay */
+    /* Hero — hide video on mobile; schematic becomes the hero visual */
+    .hero-video { display: none; }
     .hero-schematic {
       display: flex;
       position: absolute;
-      bottom: 24px;
-      right: 0;
-      width: 190px;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 260px;
       min-height: 0;
-      opacity: 0.35;
+      opacity: 0.55;
       pointer-events: none;
+      z-index: -1;
     }
-    /* Video — shift frame right so we see more scene, less tight face-crop */
-    .hero-video { object-position: 65% center; }
 
     /* Footer — single column */
     .foot-grid { grid-template-columns: 1fr !important; gap: 32px; }
