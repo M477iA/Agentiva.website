@@ -767,6 +767,7 @@
     flex-shrink: 0;
   }
   .int.featured .sq { background: var(--teal); color: var(--bg); border-color: var(--teal); }
+  .int-logo-img { display: none; }
 
   /* ───── Quote ───── */
 
@@ -1431,6 +1432,19 @@
     .srv-nav { display: grid; grid-template-columns: 1fr 1fr; }
     .srv-nav-btn { justify-content: center; white-space: normal; text-align: center; }
 
+    /* Integrations — 2-column logo grid */
+    .int-grid { grid-template-columns: 1fr 1fr; }
+    .int { flex-direction: column; align-items: center; text-align: center; padding: 20px 12px; gap: 10px; }
+    .int-logo-img { display: block; width: 48px; height: 48px; object-fit: contain; border-radius: 10px; }
+    .int .sq { display: none; width: 48px; height: 48px; border-radius: 10px; font-size: 14px; }
+    .int.logo-failed .int-logo-img { display: none; }
+    .int.logo-failed .sq { display: grid; }
+    .int-mobile-hide { display: none !important; }
+    .int-name { font-size: 12px; line-height: 1.3; }
+    .int-y-mas { grid-column: 1 / -1; flex-direction: row; justify-content: center; padding: 16px 24px; gap: 10px; color: rgba(45,212,191,0.85); }
+    .int-y-mas .sq { display: grid; width: 28px; height: 28px; border-radius: 6px; font-size: 11px; background: rgba(45,212,191,0.15); border-color: rgba(45,212,191,0.35); color: var(--teal); }
+    .int-y-mas .int-name { font-size: 13px; }
+
     /* Hero — hide video on mobile; schematic becomes the hero visual */
     .hero-video { display: none; }
     .hero-schematic {
@@ -1458,7 +1472,7 @@
     h2 { font-size: clamp(22px, 8vw, 56px); }
     .wrap { padding: 0 16px; }
     .section-pad { padding: 56px 0; }
-    .int-grid { grid-template-columns: 1fr !important; }
+    .int-grid { grid-template-columns: 1fr 1fr !important; }
     .cta-card { padding: 40px 20px; }
     .srv-crd-layout { padding: 24px 20px !important; }
   }
@@ -1966,22 +1980,38 @@
       <p class="lead">Somos expertos en integración de sistemas — desde herramientas argentinas como ARCA, Tango y Colppy hasta plataformas globales. ¿Usás algo que no está en esta lista? Lo sumamos igual.</p>
     </div>
     <div class="int-grid">
-      <div class="int"><span class="sq" style="background:#25D366;color:#fff;border-color:#25D366">WB</span>WhatsApp Business</div>
-      <div class="int"><span class="sq" style="background:#1E6BB8;color:#fff;border-color:#1E6BB8">AF</span>AFIP Comprobantes</div>
-      <div class="int"><span class="sq" style="background:#13B5EA;color:#fff;border-color:#13B5EA">XR</span>Xero</div>
-      <div class="int"><span class="sq" style="background:#EA4335;color:#fff;border-color:#EA4335">GM</span>Gmail</div>
-      <div class="int"><span class="sq" style="background:#F97316;color:#fff;border-color:#F97316">TG</span>Tango Gestión</div>
-      <div class="int"><span class="sq" style="background:#0078D4;color:#fff;border-color:#0078D4">OL</span>Outlook</div>
-      <div class="int"><span class="sq" style="background:#8B5CF6;color:#fff;border-color:#8B5CF6">CP</span>Colppy</div>
-      <div class="int"><span class="sq" style="background:#4285F4;color:#fff;border-color:#4285F4">GD</span>Google Drive</div>
-      <div class="int"><span class="sq" style="background:#475569;color:#fff;border-color:#475569">CT</span>Contabilium</div>
-      <div class="int"><span class="sq" style="background:#059669;color:#fff;border-color:#059669">FD</span>Fudo</div>
-      <div class="int"><span class="sq" style="background:#0D9488;color:#fff;border-color:#0D9488">TR</span>Tango Restô</div>
-      <div class="int"><span class="sq" style="background:#0061FF;color:#fff;border-color:#0061FF">DB</span>Dropbox</div>
-      <div class="int"><span class="sq" style="background:#E11D48;color:#fff;border-color:#E11D48">MX</span>Maxirest</div>
-      <div class="int"><span class="sq" style="background:#1F2937;color:#fff;border-color:#1F2937">NT</span>Notion</div>
-      <div class="int"><span class="sq" style="background:#7C3AED;color:#fff;border-color:#7C3AED">ZB</span>Zoho Books</div>
-      <div class="int"><span class="sq">+</span>Y 224 más</div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/whatsapp.com" alt="WhatsApp Business" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#25D366;color:#fff;border-color:#25D366">WB</span><span class="int-name">WhatsApp Business</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/afip.gob.ar" alt="AFIP Comprobantes" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#1E6BB8;color:#fff;border-color:#1E6BB8">AF</span><span class="int-name">AFIP Comprobantes</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/xero.com" alt="Xero" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#13B5EA;color:#fff;border-color:#13B5EA">XR</span><span class="int-name">Xero</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/gmail.com" alt="Gmail" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#EA4335;color:#fff;border-color:#EA4335">GM</span><span class="int-name">Gmail</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/tangosoftware.com.ar" alt="Tango Gestión" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#F97316;color:#fff;border-color:#F97316">TG</span><span class="int-name">Tango Gestión</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/outlook.com" alt="Outlook" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#0078D4;color:#fff;border-color:#0078D4">OL</span><span class="int-name">Outlook</span></div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/colppy.com" alt="Colppy" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#8B5CF6;color:#fff;border-color:#8B5CF6">CP</span><span class="int-name">Colppy</span></div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#4285F4;color:#fff;border-color:#4285F4">GD</span>Google Drive</div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#475569;color:#fff;border-color:#475569">CT</span>Contabilium</div>
+      <div class="int">
+        <img class="int-logo-img" src="https://logo.clearbit.com/fudo.com.ar" alt="Fudo" onerror="this.onerror=null;this.parentElement.classList.add('logo-failed');">
+        <span class="sq" style="background:#059669;color:#fff;border-color:#059669">FD</span><span class="int-name">Fudo</span></div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#0D9488;color:#fff;border-color:#0D9488">TR</span>Tango Restô</div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#0061FF;color:#fff;border-color:#0061FF">DB</span>Dropbox</div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#E11D48;color:#fff;border-color:#E11D48">MX</span>Maxirest</div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#1F2937;color:#fff;border-color:#1F2937">NT</span>Notion</div>
+      <div class="int int-mobile-hide"><span class="sq" style="background:#7C3AED;color:#fff;border-color:#7C3AED">ZB</span>Zoho Books</div>
+      <div class="int int-y-mas"><span class="sq">+</span><span class="int-name">Y 224 más</span></div>
     </div>
   </div>
 </section>
