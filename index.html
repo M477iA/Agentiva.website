@@ -1418,12 +1418,12 @@
     .corner-mark { display: none !important; }
 
     /* Services card deck — restore fan/stack on mobile with visuals */
-    .srv-card-stack { min-height: 640px; }
-    .srv-crd { display: block; }
+    /* height:360px + overflow:hidden clips the illustration on single-column layout */
+    .srv-card-stack { min-height: 580px; }
+    .srv-crd { display: block; height: auto; }
     .srv-crd.peek-1 { transform: rotate(3deg) translate(12px, -18px); }
     .srv-crd.peek-2 { transform: rotate(6deg) translate(20px, -32px); }
     .srv-crd.peek-3 { transform: rotate(9deg) translate(28px, -46px); }
-    /* Fix height:100% collapsing on iOS Safari — let card size to its content */
     .srv-crd-layout { height: auto; }
     .srv-crd-visual { height: auto; }
     .srv-crd-visual svg { max-width: 180px; }
