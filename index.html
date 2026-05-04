@@ -1417,17 +1417,13 @@
     .hero-actions .cta { justify-content: center; min-height: 48px; }
     .corner-mark { display: none !important; }
 
-    /* Services card deck — disable absolute stack on mobile */
-    .srv-card-stack { min-height: 0; }
-    .srv-crd {
-      position: relative !important;
-      top: auto !important; left: auto !important; right: auto !important;
-      height: auto !important;
-      transform: none !important;
-      opacity: 1 !important;
-      display: none;
-    }
-    .srv-crd.active { display: block; }
+    /* Services card deck — restore fan/stack on mobile, hide visuals for compact height */
+    .srv-card-stack { min-height: 500px; }
+    .srv-crd { display: block; }
+    .srv-crd.peek-1 { transform: rotate(3deg) translate(12px, -18px); }
+    .srv-crd.peek-2 { transform: rotate(6deg) translate(20px, -32px); }
+    .srv-crd.peek-3 { transform: rotate(9deg) translate(28px, -46px); }
+    .srv-crd-visual { display: none; }
 
     /* Hero — hide video on mobile; schematic becomes the hero visual */
     .hero-video { display: none; }
