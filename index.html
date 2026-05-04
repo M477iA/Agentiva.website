@@ -1417,13 +1417,15 @@
     .hero-actions .cta { justify-content: center; min-height: 48px; }
     .corner-mark { display: none !important; }
 
-    /* Services card deck — restore fan/stack on mobile with capped visuals */
-    .srv-card-stack { min-height: 660px; }
+    /* Services card deck — restore fan/stack on mobile with visuals */
+    .srv-card-stack { min-height: 640px; }
     .srv-crd { display: block; }
     .srv-crd.peek-1 { transform: rotate(3deg) translate(12px, -18px); }
     .srv-crd.peek-2 { transform: rotate(6deg) translate(20px, -32px); }
     .srv-crd.peek-3 { transform: rotate(9deg) translate(28px, -46px); }
-    .srv-crd-visual { max-height: 160px; overflow: hidden; }
+    /* Fix height:100% collapsing on iOS Safari — let card size to its content */
+    .srv-crd-layout { height: auto; }
+    .srv-crd-visual { height: auto; }
     .srv-crd-visual svg { max-width: 180px; }
     /* Service nav pills — symmetric 2×2 grid */
     .srv-nav { display: grid; grid-template-columns: 1fr 1fr; }
