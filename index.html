@@ -1429,6 +1429,20 @@
     }
     .srv-crd.active { display: block; }
 
+    /* Hero schematic — re-enable as small bottom-right absolute overlay */
+    .hero-schematic {
+      display: flex;
+      position: absolute;
+      bottom: 24px;
+      right: 0;
+      width: 190px;
+      min-height: 0;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    /* Video — shift frame right so we see more scene, less tight face-crop */
+    .hero-video { object-position: 65% center; }
+
     /* Footer — single column */
     .foot-grid { grid-template-columns: 1fr !important; gap: 32px; }
     .foot-contact-group { flex-direction: column; }
