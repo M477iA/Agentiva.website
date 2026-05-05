@@ -2660,7 +2660,7 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
       var n;
       while ((n = walker2.nextNode())) {
         var txt = n.textContent.trim();
-        if (txt === 'Need help?' || txt === '¿Necesitás ayuda?') {
+        if (txt === 'Need help?' || txt === '¿Necesitás ayuda?' || txt === 'Hablemos' || txt === 'Start a call') {
           var container = n.parentElement;
           while (container && container.parentElement && container.parentElement !== root) {
             if (container.parentElement.children.length > 1) break; // found sibling = this is the preview card
