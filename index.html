@@ -2675,6 +2675,11 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
     }
   }
 
+  // On mobile: remove action-text so only the launcher orb is shown (no preview card)
+  if (window.innerWidth <= 720) {
+    el.removeAttribute('action-text');
+  }
+
   patch(el.shadowRoot);
   setTimeout(function(){ patch(el.shadowRoot); }, 800);
   setTimeout(function(){ patch(el.shadowRoot); }, 2000);
