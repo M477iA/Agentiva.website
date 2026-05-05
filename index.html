@@ -2524,7 +2524,7 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
   agent-id="agent_0101kqe5t2hxf2gtf5y60pe4jtm7"
   avatar-orb-color-1="#2DD4BF"
   avatar-orb-color-2="#0A0A0A"
-  action-text="¿Hablemos?"
+  action-text="Hablemos"
   start-call-text="Iniciar conversación"
   end-call-text="Finalizar"
 ></elevenlabs-convai>
@@ -2624,7 +2624,7 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
 
   var TRANSLATIONS = {
     'Need help?':        '¿Necesitás ayuda?',
-    'Start a call':      'Habla con un agente',
+    'Start a call':      'Hablemos',
     'Send a message...': 'Enviá un mensaje...'
   };
 
@@ -2636,7 +2636,8 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
     if (!root.querySelector('#hide-branding')) {
       var style = document.createElement('style');
       style.id = 'hide-branding';
-      style.textContent = '[class*="powered"],[class*="branding"],[class*="footer"],[class*="badge"]{display:none!important}';
+      style.textContent = '[class*="powered"],[class*="branding"],[class*="footer"],[class*="badge"]{display:none!important}' +
+        '@media(max-width:720px){button,span,p{color:#0a0a0a!important}}';
       root.appendChild(style);
     }
     // Translate text nodes
