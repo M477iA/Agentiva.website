@@ -2644,7 +2644,12 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
     var node;
     while ((node = walker.nextNode())) {
       var t = node.textContent;
-      if (TRANSLATIONS[t]) node.textContent = TRANSLATIONS[t];
+      if (t in TRANSLATIONS) {
+        node.textContent = TRANSLATIONS[t];
+        if (TRANSLATIONS[t] === '' && node.parentElement) {
+          node.parentElement.style.setProperty('display', 'none', 'important');
+        }
+      }
     }
     // Translate placeholder attributes (textarea / input)
     root.querySelectorAll('[placeholder]').forEach(function(input) {
