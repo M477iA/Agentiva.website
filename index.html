@@ -1358,15 +1358,16 @@
     .nav-inner { height: 64px; }
     .nav-toggle { display: flex; }
 
-    /* Nav-links: overlay below nav bar, high z-index covers hero */
+    /* Nav-links: full-screen overlay, right-aligned Pacifican-style */
     .nav-links {
+      display: flex !important;
       position: fixed;
       top: 64px; left: 0; right: 0; bottom: 0;
       background: #0a0a0a;
-      border-top: 1px solid rgba(255,255,255,0.08);
       flex-direction: column;
-      align-items: stretch;
-      padding: 32px 32px 48px;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 40px 64px;
       gap: 0;
       z-index: 9000;
       overflow-y: auto;
@@ -1381,37 +1382,30 @@
     nav.nav { position: relative; z-index: 9001; }
     nav.nav-open { background: #0a0a0a !important; }
 
-    /* All links */
+    /* All links — right-aligned, large */
     .nav-links a:not(.cta) {
       display: block !important;
-      font-size: 38px;
+      font-size: 44px;
       font-family: var(--display-font);
       font-weight: 500;
       letter-spacing: -0.02em;
-      padding: 20px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 16px 0;
+      text-align: right;
       color: #f5f2ec;
       transition: color 0.2s ease;
     }
     .nav-links a:not(.cta):hover,
     .nav-links a:not(.cta):active { color: var(--teal); }
     body.theme-bright .nav-links a:not(.cta) { color: #f5f2ec; }
-    .nav-links #nav-signin { display: block !important; }
+    .nav-links #nav-signin { display: block !important; text-align: right; }
     .nav-links .sep { display: none !important; }
-    .nav-links .cta {
-      margin-top: 28px !important;
-      width: 100%;
-      box-sizing: border-box;
-      justify-content: center;
-      min-height: 52px;
-    }
+    .nav-links .cta { display: none !important; }
 
     /* Open state */
     nav.nav-open .nav-links {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transform: none;
     }
     /* Hamburger → X */
     nav.nav-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
