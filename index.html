@@ -2636,7 +2636,8 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
     if (!root.querySelector('#hide-branding')) {
       var style = document.createElement('style');
       style.id = 'hide-branding';
-      style.textContent = '[class*="powered"],[class*="branding"],[class*="footer"],[class*="badge"]{display:none!important}';
+      style.textContent = '[class*="powered"],[class*="branding"],[class*="footer"],[class*="badge"]{display:none!important}' +
+        '@media(max-width:720px){div{max-width:200px!important;min-width:0!important}}';
       root.appendChild(style);
     }
     // Translate text nodes
