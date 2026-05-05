@@ -1362,31 +1362,33 @@
     .nav-links {
       position: fixed;
       top: 64px; left: 0; right: 0; bottom: 0;
-      background: var(--bg);
-      border-top: 1px solid var(--hairline);
+      background: #0a0a0a;
+      border-top: 1px solid rgba(255,255,255,0.08);
       flex-direction: column;
       align-items: stretch;
-      padding: 24px 28px 48px;
+      padding: 36px 32px 48px;
       gap: 0;
       z-index: 40;
       overflow-y: auto;
       transform: translateX(100%);
       transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    body.theme-bright .nav-links { background: #fff; }
+    body.theme-bright .nav-links { background: #0a0a0a; }
 
     /* All links visible in the overlay */
     .nav-links a:not(.cta) {
       display: block !important;
-      font-size: 26px;
+      font-size: 34px;
       font-family: var(--display-font);
       font-weight: 500;
-      letter-spacing: -0.01em;
-      padding: 18px 0;
-      border-bottom: 1px solid var(--hairline);
-      color: var(--bone);
+      letter-spacing: -0.02em;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #f5f2ec;
+      transition: color 0.2s ease;
     }
-    body.theme-bright .nav-links a:not(.cta) { color: var(--graphite); }
+    .nav-links a:not(.cta):hover { color: var(--teal); }
+    body.theme-bright .nav-links a:not(.cta) { color: #f5f2ec; }
     .nav-links #nav-signin { display: block !important; }
     .nav-links .sep { display: none !important; }
     .nav-links .cta {
