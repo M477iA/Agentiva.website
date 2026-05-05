@@ -1358,27 +1358,34 @@
     .nav-inner { height: 64px; }
     .nav-toggle { display: flex; }
 
-    /* Nav-links become a full-screen slide-in overlay */
+    /* Nav-links: full-screen dark takeover (fade, not slide) */
     .nav-links {
       position: fixed;
-      top: 64px; left: 0; right: 0; bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: #0a0a0a;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: none;
       flex-direction: column;
       align-items: stretch;
-      padding: 36px 32px 48px;
+      padding: 88px 32px 48px;
       gap: 0;
-      z-index: 40;
+      z-index: 9000;
       overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: none;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
     }
     body.theme-bright .nav-links { background: #0a0a0a; }
 
-    /* All links visible in the overlay */
+    /* Nav bar stays above overlay so logo + X remain visible */
+    .nav-inner { position: relative; z-index: 9001; }
+    nav.nav-open .nav-inner { background: #0a0a0a; }
+
+    /* All links */
     .nav-links a:not(.cta) {
       display: block !important;
-      font-size: 34px;
+      font-size: 38px;
       font-family: var(--display-font);
       font-weight: 500;
       letter-spacing: -0.02em;
@@ -1387,7 +1394,8 @@
       color: #f5f2ec;
       transition: color 0.2s ease;
     }
-    .nav-links a:not(.cta):hover { color: var(--teal); }
+    .nav-links a:not(.cta):hover,
+    .nav-links a:not(.cta):active { color: var(--teal); }
     body.theme-bright .nav-links a:not(.cta) { color: #f5f2ec; }
     .nav-links #nav-signin { display: block !important; }
     .nav-links .sep { display: none !important; }
@@ -1400,7 +1408,12 @@
     }
 
     /* Open state */
-    nav.nav-open .nav-links { transform: translateX(0); }
+    nav.nav-open .nav-links {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+    }
     /* Hamburger → X */
     nav.nav-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     nav.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
