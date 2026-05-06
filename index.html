@@ -211,6 +211,7 @@
     .nav-links a:not(.cta) { display: none; }
     .nav-links .sep { display: none; }
   }
+  .nav-mobile-book { display: none; }
 
   .cta {
     display: inline-flex;
@@ -1358,48 +1359,64 @@
     .nav-inner { height: 64px; }
     .nav-toggle { display: flex; }
 
-    /* Nav-links: full-screen overlay, right-aligned Pacifican-style */
+    /* Nav-links: dropdown panel */
     .nav-links {
       display: flex !important;
       position: fixed;
-      top: 64px; left: 0; right: 0; bottom: 0;
-      background: #0a0a0a;
+      top: 64px; left: 0; right: 0; bottom: auto;
+      background: #ffffff;
       flex-direction: column;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 0 40px 64px;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 0 0 16px;
       gap: 0;
       z-index: 9000;
-      overflow-y: auto;
+      overflow-y: visible;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
       transition: opacity 0.25s ease, visibility 0.25s ease;
     }
-    body.theme-bright .nav-links { background: #0a0a0a; }
+    body.theme-bright .nav-links { background: #ffffff; }
 
-    /* Nav bar always above the overlay — logo + X always visible */
+    /* Nav bar always above the dropdown */
     nav.nav { position: relative; z-index: 9001; }
     nav.nav-open { background: #0a0a0a !important; }
 
-    /* All links — right-aligned, large */
-    .nav-links a:not(.cta) {
+    /* All links — left-aligned, readable size */
+    .nav-links a:not(.cta):not(.nav-mobile-book) {
       display: block !important;
-      font-size: 44px;
-      font-family: var(--display-font);
+      font-size: 18px;
+      font-family: var(--body-font);
       font-weight: 500;
-      letter-spacing: -0.02em;
-      padding: 16px 0;
-      text-align: right;
-      color: #f5f2ec;
-      transition: color 0.2s ease;
+      letter-spacing: 0;
+      padding: 16px 24px;
+      text-align: left;
+      color: #0a0a0a;
+      border-bottom: 1px solid #f0ece4;
+      transition: color 0.15s, background 0.15s;
     }
-    .nav-links a:not(.cta):hover,
-    .nav-links a:not(.cta):active { color: var(--teal); }
-    body.theme-bright .nav-links a:not(.cta) { color: #f5f2ec; }
-    .nav-links #nav-signin { display: block !important; text-align: right; }
+    .nav-links a:not(.cta):not(.nav-mobile-book):hover,
+    .nav-links a:not(.cta):not(.nav-mobile-book):active { color: var(--teal); background: #fafafa; }
+    body.theme-bright .nav-links a:not(.cta):not(.nav-mobile-book) { color: #0a0a0a; }
+    .nav-links #nav-signin { display: block !important; text-align: left; }
     .nav-links .sep { display: none !important; }
     .nav-links .cta { display: none !important; }
+    .nav-mobile-book {
+      display: block;
+      margin: 16px 24px 0;
+      padding: 14px 24px;
+      background: var(--teal);
+      color: #0a0a0a !important;
+      font-size: 16px !important;
+      font-weight: 600;
+      text-align: center !important;
+      border-radius: 6px;
+      border-bottom: none !important;
+    }
+    .nav-mobile-book:hover,
+    .nav-mobile-book:active { opacity: 0.85; }
 
     /* Open state */
     nav.nav-open .nav-links {
@@ -1585,6 +1602,7 @@
         Solicitar una demo
         <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
       </a>
+      <a href="#book" class="nav-mobile-book">Reservá tu sesión gratuita</a>
     </div>
   </div>
 </nav>
