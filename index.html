@@ -31,7 +31,7 @@
   h1, h2, h3 { font-family: var(--display-font); }
   .mono, .corner-mark, .hero-meta .num, .wf-card-head .title, .wf-card-head .live, .wf-step .sub, .wf-step .meta, .wf-card-foot, .step .num, .logos .label, .int .sq, .foot-bottom { font-family: var(--mono-font); }
   .cta, .int .sq, .wf-card { border-radius: var(--radius); }
-  .hero h1 { font-size: clamp(calc(48px * var(--hero-scale)), calc(7vw * var(--hero-scale)), calc(88px * var(--hero-scale))); }
+  .hero h1 { font-size: clamp(calc(40px * var(--hero-scale)), calc(5.4vw * var(--hero-scale)), calc(76px * var(--hero-scale))); }
   body.theme-bright { --bg: #FFFFFF; --bone: #0A0A0A; --graphite: #F4F4F2; --hairline: #E6E4DF; --hairline-strong: #C9C6BE; --slate: #6B7280; }
   body.theme-bright .hero { --bg: #0A0A0A; --bone: #F5F2EC; --graphite: #1F1F1F; --hairline: #2A2A2A; --hairline-strong: #3A3A3A; --slate: #6B7280; }
   body.theme-bright .hero-grade { background: linear-gradient(90deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.30) 38%, rgba(255,255,255,0.05) 70%, rgba(255,255,255,0.00) 100%), linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.00) 30%, rgba(255,255,255,0.00) 70%, rgba(255,255,255,0.55) 100%); }
@@ -1624,7 +1624,7 @@
     <div class="hero-copy">
       <div class="eyebrow hero-eyebrow">Agentes de IA a tu servicio.</div>
       <h1>
-        Automatizá tus procesos,<span class="accent"> bajá tus costos.</span>
+        Automatiza tus procesos,<br>organiza tu negocio,<span class="accent"> recupera tu tiempo.</span>
       </h1>
       <p class="hero-sub">
         Agentiva orquesta agentes de IA que leen tus facturas, derivan tus tickets y registran los asientos — en tiempo real, sobre tus datos, con cada paso auditable.
@@ -2412,8 +2412,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "baseFs": 16,
   "radius": 3,
   "heroLayout": "split",
-  "heroHeadline": "Automatizá tus procesos,",
-  "heroAccent": " bajá tus costos.",
+  "heroHeadline": "Automatiza tus procesos,<br>organiza tu negocio,",
+  "heroAccent": " recupera tu tiempo.",
   "ctaPrimary": "Probalo con tus datos",
   "showVideo": true,
   "showGrade": true,
