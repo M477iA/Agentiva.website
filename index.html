@@ -1453,20 +1453,26 @@
     .int-y-mas .sq { display: grid; width: 28px; height: 28px; border-radius: 6px; font-size: 11px; background: rgba(45,212,191,0.15); border-color: rgba(45,212,191,0.35); color: var(--teal); }
     .int-y-mas .int-name { font-size: 13px; }
 
-    /* Hero — hide video on mobile; schematic becomes the hero visual */
-    .hero-video { display: none; }
-    .hero-schematic {
-      display: flex;
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 260px;
-      min-height: 0;
-      opacity: 0.55;
-      pointer-events: none;
-      z-index: -1;
+    /* Hero — video above text on mobile */
+    .hero { padding-top: 0; min-height: unset; }
+    .hero-video {
+      display: block;
+      position: relative;
+      inset: auto;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      z-index: 0;
     }
+    .hero-grade,
+    .hero-noise { display: none; }
+    .hero-inner {
+      min-height: unset;
+      padding-top: 36px;
+      padding-bottom: 48px;
+    }
+    .hero-schematic { display: none; }
 
     /* Footer — single column */
     .foot-grid { grid-template-columns: 1fr !important; gap: 32px; }
