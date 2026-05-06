@@ -2719,6 +2719,10 @@ function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); 
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 function openAuthModal() {
+  var nav = document.querySelector('nav.nav');
+  var toggle = document.querySelector('.nav-toggle');
+  if (nav) { nav.classList.remove('nav-open'); }
+  if (toggle) { toggle.setAttribute('aria-expanded', 'false'); }
   document.getElementById('auth-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   document.getElementById('login-email').focus();
