@@ -382,7 +382,7 @@
   @media (max-width: 720px) {
     .corner-mark.tl, .corner-mark.bl { left: 24px; }
     .corner-mark.tr, .corner-mark.br { right: 24px; }
-    .corner-mark.tr, .corner-mark.br { display: none; }
+    .corner-mark.br { display: none; }
   }
   .corner-mark .tick { color: var(--teal); }
 
@@ -1445,6 +1445,7 @@
     .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
     .hero-actions .cta { justify-content: center; min-height: 48px; }
     .corner-mark { display: none !important; }
+    .corner-mark.tr { display: block !important; top: 72px; right: 24px; font-size: 9px; }
 
     /* Services card deck — restore fan/stack on mobile with visuals */
     /* height:360px + overflow:hidden clips the illustration on single-column layout */
