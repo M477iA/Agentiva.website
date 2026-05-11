@@ -1,14 +1,10 @@
 {
-  "rewrites": [
-    {
-      "source": "/assets/(.*)",
-      "has": [{ "type": "host", "value": "portal.agentiva.com.ar" }],
-      "destination": "/assets/$1"
-    },
+  "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "portal.agentiva.com.ar" }],
-      "destination": "/portal/$1"
+      "has": [{ "type": "host", "value": "portal\\.agentiva\\.com\\.ar" }],
+      "destination": "https://agentiva.com.ar/portal/",
+      "permanent": false
     }
   ]
 }
