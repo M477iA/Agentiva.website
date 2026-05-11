@@ -558,7 +558,11 @@ let currentProfile = null;
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function init() {
   try {
-    const { data: { session }, error } = await sb.auth.getSession();
+    const withTimeout = Promise.race([
+      sb.auth.getSession(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+    ]);
+    const { data: { session }, error } = await withTimeout;
     if (error) throw error;
     hide('loading');
     if (!session) { show('login-view'); return; }
@@ -567,7 +571,9 @@ async function init() {
   } catch (err) {
     hide('loading');
     show('login-view');
-    $('login-error').textContent = 'Error de conexión: ' + (err.message || err);
+    if (err.message !== 'timeout') {
+      $('login-error').textContent = 'Error: ' + err.message;
+    }
     console.error('Portal init error:', err);
   }
 }
