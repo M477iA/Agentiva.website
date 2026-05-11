@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal — Agentiva</title>
+<link rel="icon" href="https://agentiva.com.ar/assets/images/logos/agentiva-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0A0A0A;
+    --surface:  #141414;
+    --graphite: #1F1F1F;
+    --bone:     #F5F2EC;
+    --teal:     #2DD4BF;
+    --teal-dim: rgba(45,212,191,0.10);
+    --slate:    #6B7280;
+    --mist:     #E5E1D8;
+    --hairline: #2A2A2A;
+    --red:      #f87171;
+    --amber:    #fbbf24;
+    --green:    #4ade80;
+    --radius:   8px;
+    --font:     "Inter", system-ui, sans-serif;
+    --display:  "Space Grotesk", system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--bone);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); z-index: 100;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--hairline);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── LOGIN ── */
+  #login-view {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(45,212,191,0.06) 0%, transparent 70%),
+      var(--bg);
+  }
+  .login-card {
+    width: 100%; max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 40px;
+  }
+  .login-logo { height: 26px; margin-bottom: 32px; }
+  .login-eyebrow {
+    font-family: var(--display);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--teal);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .login-eyebrow::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--teal); border-radius: 50%;
+  }
+  .login-title {
+    font-family: var(--display);
+    font-size: 26px; font-weight: 600;
+    color: var(--bone); margin-bottom: 6px;
+  }
+  .login-sub { font-size: 14px; color: var(--slate); margin-bottom: 28px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 13px; font-weight: 500; color: var(--mist); }
+  .field input {
+    background: var(--graphite);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 14px; color: var(--bone);
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input::placeholder { color: var(--slate); opacity: 0.55; }
+  .field input:focus { border-color: var(--teal); }
+
+  .form-error { font-size: 13px; color: var(--red); min-height: 16px; margin-bottom: 4px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px 20px;
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: opacity 0.15s, transform 0.1s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--teal); color: #0A0A0A;
+    width: 100%; margin-top: 4px;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* ── TOP NAV ── */
+  .portal-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,10,0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .portal-nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 24px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { height: 22px; display: block; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-badge {
+    font-size: 11px; font-weight: 500;
+    background: var(--teal-dim); color: var(--teal);
+    border: 1px solid rgba(45,212,191,0.2);
+    border-radius: 4px; padding: 2px 8px;
+  }
+  .nav-name { font-size: 14px; color: var(--mist); }
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--slate); padding: 5px 12px;
+    border-radius: var(--radius);
+    font-size: 13px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    font-family: var(--font);
+  }
+  .btn-logout:hover { border-color: var(--bone); color: var(--bone); }
+
+  /* ── MAIN ── */
+  .portal-main {
+    max-width: 1200px; margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header { margin-bottom: 36px; }
+  .page-eyebrow {
+    font-family: var(--display);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--teal);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .page-eyebrow::before {
+    content: ''; width: 5px; height: 5px;
+    background: var(--teal); border-radius: 50%;
+  }
+  .page-title {
+    font-family: var(--display);
+    font-size: 30px; font-weight: 600;
+    color: var(--bone); margin-bottom: 6px;
+  }
+  .page-sub { font-size: 14px; color: var(--slate); }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px; margin-bottom: 36px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .stat-label {
+    font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--slate); margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: var(--display);
+    font-size: 30px; font-weight: 600;
+    color: var(--bone); line-height: 1;
+  }
+  .stat-value.teal { color: var(--teal); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-size: 12px; color: var(--slate); margin-top: 4px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 40px; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: 15px; font-weight: 600;
+    color: var(--bone);
+  }
+
+  /* ── NEXT PAYMENT BANNER ── */
+  .payment-banner {
+    background: var(--teal-dim);
+    border: 1px solid rgba(45,212,191,0.18);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+  .payment-banner.overdue {
+    background: rgba(248,113,113,0.07);
+    border-color: rgba(248,113,113,0.22);
+  }
+  .banner-left { display: flex; align-items: center; gap: 14px; }
+  .banner-icon {
+    width: 38px; height: 38px;
+    background: rgba(45,212,191,0.12);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .payment-banner.overdue .banner-icon { background: rgba(248,113,113,0.12); }
+  .banner-label {
+    font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--teal); margin-bottom: 2px;
+  }
+  .payment-banner.overdue .banner-label { color: var(--red); }
+  .banner-date {
+    font-family: var(--display);
+    font-size: 18px; font-weight: 600; color: var(--bone);
+  }
+  .banner-sub { font-size: 13px; color: var(--slate); margin-top: 2px; }
+  .banner-amount {
+    font-family: var(--display);
+    font-size: 24px; font-weight: 600; color: var(--teal);
+  }
+  .payment-banner.overdue .banner-amount { color: var(--red); }
+
+  /* ── SERVICE CARDS ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .service-card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    transition: border-color 0.15s;
+  }
+  .service-card:hover { border-color: #3a3a3a; }
+  .service-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 8px; margin-bottom: 10px;
+  }
+  .service-name {
+    font-family: var(--display);
+    font-size: 15px; font-weight: 600; color: var(--bone);
+  }
+  .badge {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .badge-activo   { background: rgba(74,222,128,0.10); color: var(--green);  border: 1px solid rgba(74,222,128,0.2); }
+  .badge-pausado  { background: rgba(251,191,36,0.10);  color: var(--amber);  border: 1px solid rgba(251,191,36,0.2); }
+  .badge-cancelado{ background: rgba(248,113,113,0.10); color: var(--red);    border: 1px solid rgba(248,113,113,0.2); }
+  .badge-pagado   { background: rgba(74,222,128,0.10);  color: var(--green);  border: 1px solid rgba(74,222,128,0.2); }
+  .badge-pendiente{ background: rgba(251,191,36,0.10);  color: var(--amber);  border: 1px solid rgba(251,191,36,0.2); }
+  .badge-vencido  { background: rgba(248,113,113,0.10); color: var(--red);    border: 1px solid rgba(248,113,113,0.2); }
+
+  .service-desc { font-size: 13px; color: var(--slate); margin-bottom: 16px; line-height: 1.5; }
+  .service-meta { display: flex; flex-direction: column; gap: 5px; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 13px; }
+  .meta-label { color: var(--slate); }
+  .meta-value { color: var(--bone); font-weight: 500; }
+  .meta-value.teal { color: var(--teal); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th {
+    background: var(--graphite);
+    text-align: left; padding: 10px 16px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--slate);
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 16px; font-size: 14px;
+    color: var(--mist);
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.018); }
+  .td-primary { font-family: var(--display); font-weight: 600; color: var(--bone); }
+  .td-mono { font-family: var(--display); font-weight: 500; }
+  .td-muted { color: var(--slate); }
+  .empty-state td {
+    text-align: center; padding: 40px 16px;
+    color: var(--slate); font-size: 14px;
+  }
+
+  /* ── ADMIN ACTIONS ── */
+  .btn-mark-paid {
+    background: transparent;
+    border: 1px solid rgba(74,222,128,0.3);
+    color: var(--green);
+    padding: 4px 10px; border-radius: 4px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: var(--font);
+    transition: background 0.15s;
+  }
+  .btn-mark-paid:hover { background: rgba(74,222,128,0.08); }
+  .btn-mark-paid:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── EMPTY PLACEHOLDER ── */
+  .empty-box {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--slate); font-size: 14px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .portal-main { padding: 24px 16px 60px; }
+    .login-card { padding: 28px 20px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .payment-banner { flex-direction: column; align-items: flex-start; }
+    .page-title { font-size: 24px; }
+  }
+  @media (max-width: 380px) {
+    .stats-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading spinner -->
+<div id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── LOGIN ── -->
+<div id="login-view" hidden>
+  <div class="login-card">
+    <img src="https://agentiva.com.ar/assets/images/logos/Agentiva Logo esteso.png"
+         alt="Agentiva" class="login-logo">
+    <div class="login-eyebrow">Portal de Clientes</div>
+    <h1 class="login-title">Bienvenido</h1>
+    <p class="login-sub">Ingresá con tu cuenta para ver tus servicios y pagos.</p>
+    <form id="login-form">
+      <div class="field">
+        <label for="p-email">Email</label>
+        <input type="email" id="p-email" placeholder="tu@email.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="p-pass">Contraseña</label>
+        <input type="password" id="p-pass" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <p class="form-error" id="login-error"></p>
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        Ingresar
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard-view" hidden>
+
+  <nav class="portal-nav">
+    <div class="portal-nav-inner">
+      <a href="https://agentiva.com.ar">
+        <img src="https://agentiva.com.ar/assets/images/logos/Agentiva Logo esteso.png"
+             alt="Agentiva" class="nav-logo">
+      </a>
+      <div class="nav-right">
+        <span class="nav-badge" id="nav-role"></span>
+        <span class="nav-name" id="nav-name"></span>
+        <button class="btn-logout" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="portal-main">
+
+    <!-- ── CLIENT DASHBOARD ── -->
+    <div id="client-view" hidden>
+      <div class="page-header">
+        <div class="page-eyebrow">Mi Cuenta</div>
+        <h1 class="page-title" id="client-greeting">Hola</h1>
+        <p class="page-sub" id="client-empresa"></p>
+      </div>
+
+      <div id="next-payment-container"></div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Mis Servicios</div>
+        </div>
+        <div id="services-container"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Historial de Pagos</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th>Vencimiento</th>
+                <th>Fecha de Pago</th>
+                <th>Monto</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="client-payments-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN DASHBOARD ── -->
+    <div id="admin-view" hidden>
+      <div class="page-header">
+        <div class="page-eyebrow">Admin · Agentiva</div>
+        <h1 class="page-title">Panel de Control</h1>
+        <p class="page-sub">Clientes activos, servicios y cobros.</p>
+      </div>
+
+      <div class="stats-row" id="admin-stats"></div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Cobros Próximos (30 días)</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Vencimiento</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="upcoming-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Todos los Clientes</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Empresa</th>
+                <th>Servicios Activos</th>
+                <th>Próximo Pago</th>
+                <th>MRR (USD)</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="admin-clients-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Historial Completo de Pagos</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Vencimiento</th>
+                <th>Fecha de Pago</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="admin-all-payments-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let currentUser    = null;
+let currentProfile = null;
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  hide('loading');
+  if (!session) { show('login-view'); return; }
+  currentUser = session.user;
+  await loadDashboard();
+}
+
+async function loadDashboard() {
+  const { data: profile, error } = await sb
+    .from('client_profiles')
+    .select('*')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (error || !profile) { show('login-view'); return; }
+
+  currentProfile = profile;
+  $('nav-name').textContent  = profile.nombre;
+  $('nav-role').textContent  = profile.role === 'admin' ? 'Admin' : 'Cliente';
+  show('dashboard-view');
+
+  if (profile.role === 'admin') {
+    await renderAdmin();
+  } else {
+    await renderClient(profile);
+  }
+}
+
+// ── CLIENT VIEW ───────────────────────────────────────────────────────────────
+async function renderClient(profile) {
+  show('client-view');
+  $('client-greeting').textContent = `Hola, ${profile.nombre.split(' ')[0]}`;
+  $('client-empresa').textContent  = profile.empresa || '';
+
+  const [{ data: services }, { data: pagos }] = await Promise.all([
+    sb.from('services')
+      .select('*')
+      .eq('client_id', currentUser.id)
+      .order('fecha_inicio', { ascending: false }),
+    sb.from('pagos')
+      .select('*, services(nombre)')
+      .eq('client_id', currentUser.id)
+      .order('fecha_vencimiento', { ascending: false })
+  ]);
+
+  renderBanner(pagos || []);
+  renderServices(services || []);
+  renderPayments(pagos || [], 'client-payments-body', false);
+}
+
+function renderBanner(pagos) {
+  const today = today_date();
+  const overdue  = pagos.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento < today)
+                        .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+  const upcoming = pagos.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento >= today)
+                        .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+
+  const container = $('next-payment-container');
+
+  if (overdue.length) {
+    const p = overdue[0];
+    container.innerHTML = `
+      <div class="payment-banner overdue">
+        <div class="banner-left">
+          <div class="banner-icon">⚠️</div>
+          <div>
+            <div class="banner-label">Pago Vencido</div>
+            <div class="banner-date">${fmtDate(p.fecha_vencimiento)}</div>
+            <div class="banner-sub">${esc(p.services?.nombre || '—')}</div>
+          </div>
+        </div>
+        <div class="banner-amount">${fmtMonto(p.monto, p.moneda)}</div>
+      </div>`;
+    return;
+  }
+
+  if (upcoming.length) {
+    const p = upcoming[0];
+    const days = daysDiff(today, p.fecha_vencimiento);
+    container.innerHTML = `
+      <div class="payment-banner">
+        <div class="banner-left">
+          <div class="banner-icon">📅</div>
+          <div>
+            <div class="banner-label">Próximo Pago</div>
+            <div class="banner-date">${fmtDate(p.fecha_vencimiento)}
+              <span style="font-size:13px;color:var(--slate);font-weight:400">
+                (en ${days} día${days !== 1 ? 's' : ''})
+              </span>
+            </div>
+            <div class="banner-sub">${esc(p.services?.nombre || '—')}</div>
+          </div>
+        </div>
+        <div class="banner-amount">${fmtMonto(p.monto, p.moneda)}</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+}
+
+function renderServices(services) {
+  const container = $('services-container');
+  if (!services.length) {
+    container.innerHTML = '<div class="empty-box">Todavía no hay servicios registrados. Contactá a Agentiva.</div>';
+    return;
+  }
+  container.innerHTML = `<div class="services-grid">${
+    services.map(s => `
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-name">${esc(s.nombre)}</div>
+          <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
+        </div>
+        ${s.descripcion ? `<p class="service-desc">${esc(s.descripcion)}</p>` : ''}
+        <div class="service-meta">
+          ${s.precio != null ? `
+          <div class="meta-row">
+            <span class="meta-label">Precio mensual</span>
+            <span class="meta-value teal">${fmtMonto(s.precio, s.moneda)}</span>
+          </div>` : ''}
+          ${s.fecha_inicio ? `
+          <div class="meta-row">
+            <span class="meta-label">Activo desde</span>
+            <span class="meta-value">${fmtDate(s.fecha_inicio)}</span>
+          </div>` : ''}
+          ${s.fecha_fin ? `
+          <div class="meta-row">
+            <span class="meta-label">Vence el</span>
+            <span class="meta-value">${fmtDate(s.fecha_fin)}</span>
+          </div>` : ''}
+        </div>
+      </div>`).join('')
+  }</div>`;
+}
+
+function renderPayments(pagos, bodyId, showClient) {
+  const tbody = $(bodyId);
+  const cols = showClient ? 7 : 5;
+  if (!pagos.length) {
+    tbody.innerHTML = `<tr class="empty-state"><td colspan="${cols}">Sin pagos registrados aún.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = pagos.map(p => `
+    <tr>
+      ${showClient ? `<td class="td-primary">${esc(p.client_profiles?.nombre || '—')}</td>` : ''}
+      <td>${esc(p.services?.nombre || '—')}</td>
+      <td>${fmtDate(p.fecha_vencimiento)}</td>
+      <td class="${p.fecha_pago ? '' : 'td-muted'}">${p.fecha_pago ? fmtDate(p.fecha_pago) : '—'}</td>
+      <td class="td-mono">${fmtMonto(p.monto, p.moneda)}</td>
+      <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
+      ${showClient ? `<td>${p.estado === 'pendiente' ? `<button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button>` : ''}</td>` : ''}
+    </tr>`).join('');
+}
+
+// ── ADMIN VIEW ────────────────────────────────────────────────────────────────
+async function renderAdmin() {
+  show('admin-view');
+
+  const [{ data: profiles }, { data: services }, { data: pagos }] = await Promise.all([
+    sb.from('client_profiles').select('*').eq('role', 'client').order('nombre'),
+    sb.from('services').select('*').order('nombre'),
+    sb.from('pagos')
+      .select('*, services(nombre), client_profiles(nombre, empresa)')
+      .order('fecha_vencimiento', { ascending: true })
+  ]);
+
+  const P = profiles || [];
+  const S = services || [];
+  const G = pagos   || [];
+  const today = today_date();
+
+  // Stats
+  const activeS  = S.filter(s => s.estado === 'activo');
+  const mrr      = activeS.reduce((acc, s) => acc + (s.moneda === 'USD' ? (s.precio || 0) : 0), 0);
+  const overdue  = G.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento < today);
+  const pendingG = G.filter(p => p.estado === 'pendiente');
+
+  $('admin-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Clientes</div>
+      <div class="stat-value">${P.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Servicios Activos</div>
+      <div class="stat-value">${activeS.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">MRR en USD</div>
+      <div class="stat-value teal">U$S ${mrr.toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:0})}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Cobros Vencidos</div>
+      <div class="stat-value ${overdue.length ? 'red' : ''}">${overdue.length}</div>
+      ${overdue.length ? '<div class="stat-sub" style="color:var(--red)">Requieren atención</div>' : '<div class="stat-sub">Al día</div>'}
+    </div>`;
+
+  // Upcoming payments (next 30 days + overdue)
+  const in30 = date_plus_days(today, 30);
+  const upcoming = G.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento <= in30)
+                    .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+
+  const upBody = $('upcoming-body');
+  if (!upcoming.length) {
+    upBody.innerHTML = '<tr class="empty-state"><td colspan="6">Sin cobros pendientes en los próximos 30 días.</td></tr>';
+  } else {
+    upBody.innerHTML = upcoming.map(p => {
+      const late = p.fecha_vencimiento < today;
+      return `<tr>
+        <td class="td-primary">${esc(p.client_profiles?.nombre || '—')}</td>
+        <td>${esc(p.services?.nombre || '—')}</td>
+        <td style="color:${late ? 'var(--red)' : 'var(--bone)'}">${fmtDate(p.fecha_vencimiento)}</td>
+        <td class="td-mono">${fmtMonto(p.monto, p.moneda)}</td>
+        <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
+        <td><button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // All clients table
+  const clBody = $('admin-clients-body');
+  if (!P.length) {
+    clBody.innerHTML = '<tr class="empty-state"><td colspan="6">Sin clientes registrados.</td></tr>';
+  } else {
+    clBody.innerHTML = P.map(profile => {
+      const cs = S.filter(s => s.client_id === profile.id);
+      const activeCount = cs.filter(s => s.estado === 'activo').length;
+      const clientMrr   = cs.filter(s => s.estado === 'activo' && s.moneda === 'USD')
+                            .reduce((a, s) => a + (s.precio || 0), 0);
+      const nextPago = G.filter(p => p.client_id === profile.id && p.estado === 'pendiente' && p.fecha_vencimiento >= today)
+                        .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento))[0];
+      const isOverdue = G.some(p => p.client_id === profile.id && p.estado === 'pendiente' && p.fecha_vencimiento < today);
+
+      return `<tr>
+        <td class="td-primary">${esc(profile.nombre)}</td>
+        <td>${esc(profile.empresa || '—')}</td>
+        <td>${activeCount}</td>
+        <td>${nextPago ? fmtDate(nextPago.fecha_vencimiento) : '<span class="td-muted">—</span>'}</td>
+        <td class="td-mono">${clientMrr > 0 ? `U$S ${clientMrr.toLocaleString('es-AR')}` : '<span class="td-muted">—</span>'}</td>
+        <td><span class="badge badge-${isOverdue ? 'vencido' : 'activo'}">${isOverdue ? 'Vencido' : 'Al día'}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // All payments
+  renderPayments(G, 'admin-all-payments-body', true);
+}
+
+async function markPaid(pagoId, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  const todayStr = today_date();
+  const { error } = await sb.from('pagos')
+    .update({ estado: 'pagado', fecha_pago: todayStr })
+    .eq('id', pagoId);
+  if (error) {
+    btn.textContent = 'Error';
+    btn.style.color = 'var(--red)';
+  } else {
+    const row = btn.closest('tr');
+    row.style.transition = 'opacity 0.25s';
+    row.style.opacity = '0.3';
+    setTimeout(() => row.remove(), 300);
+  }
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('p-email').value.trim();
+  const pass  = $('p-pass').value;
+  const btn   = $('login-btn');
+  const err   = $('login-error');
+
+  err.textContent = '';
+  btn.disabled    = true;
+  btn.textContent = 'Ingresando...';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    err.textContent = 'Email o contraseña incorrectos.';
+    btn.disabled    = false;
+    btn.innerHTML   = 'Ingresar <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    return;
+  }
+
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session.user;
+  hide('login-view');
+  show('loading');
+  await loadDashboard();
+  hide('loading');
+});
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; currentProfile = null;
+  hide('dashboard-view'); hide('client-view'); hide('admin-view');
+  show('login-view');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+function show(id) { $(id).hidden = false; }
+function hide(id) { $(id).hidden = true; }
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+function today_date() {
+  return new Date().toISOString().split('T')[0];
+}
+function date_plus_days(iso, n) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+function daysDiff(from, to) {
+  return Math.round((new Date(to+'T00:00:00') - new Date(from+'T00:00:00')) / 86400000);
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+function fmtMonto(monto, moneda) {
+  if (monto == null) return '—';
+  const sym = moneda === 'USD' ? 'U$S' : moneda === 'EUR' ? '€' : '$';
+  return `${sym} ${Number(monto).toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:2})}`;
+}
+
+// ── GO ────────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

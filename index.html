@@ -1553,6 +1553,7 @@
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body class="theme-bright" data-screen-label="Agentiva — landing">
 
@@ -2823,28 +2824,85 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
 
 
 <script>
-// ───── EmailJS ─────
-// Set these up at emailjs.com → connect your no-reply@agentiva.com.ar sending service
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account > API Keys
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services tab
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates tab
-emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+// ── Supabase auth ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const PORTAL_URL   = 'https://portal.agentiva.com.ar';
 
-// ───── Auth System ─────
-const USERS_KEY = 'agentiva_users';
-const SESSION_KEY = 'agentiva_session';
+const { createClient } = supabase;
+const _sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getUsers()   { return JSON.parse(localStorage.getItem(USERS_KEY)   || '[]'); }
-function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-function getSession() { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
-function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
-function clearSession() { localStorage.removeItem(SESSION_KEY); }
+// Nav state: show name + portal link if logged in, else "Ingresar"
+async function updateNavAuth() {
+  const { data: { session } } = await _sb.auth.getSession();
+  const el = document.getElementById('nav-signin');
+  if (session) {
+    const { data } = await _sb.from('client_profiles')
+      .select('nombre').eq('id', session.user.id).single();
+    const nombre = data?.nombre || session.user.email;
+    el.innerHTML = `<span class="nav-user">
+      <a href="${PORTAL_URL}" class="ghost-link" style="opacity:.7">${nombre}</a>
+      <button class="nav-logout" onclick="doLogout()">Salir</button>
+    </span>`;
+  } else {
+    el.innerHTML = `<a href="#" class="ghost-link" style="opacity:.7" onclick="openAuthModal();return false;">Ingresar</a>`;
+  }
+}
 
+async function doLogout() {
+  await _sb.auth.signOut();
+  updateNavAuth();
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    errEl.textContent = 'Email o contraseña incorrectos.';
+    return;
+  }
+  closeAuthModal();
+  window.location.href = PORTAL_URL;
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const email  = document.getElementById('reg-email').value.trim().toLowerCase();
+  const numero = document.getElementById('reg-numero').value.trim();
+  const pass   = document.getElementById('reg-pass').value;
+  const errEl  = document.getElementById('register-error');
+  errEl.textContent = '';
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    errEl.textContent = 'Por favor ingresá un email válido.';
+    return;
+  }
+  const { data, error } = await _sb.auth.signUp({ email, password: pass });
+  if (error) {
+    errEl.textContent = error.message || 'Error al registrarse.';
+    return;
+  }
+  if (data.user) {
+    await _sb.from('client_profiles').insert({
+      id: data.user.id, nombre, email, phone: numero, role: 'client'
+    });
+  }
+  closeAuthModal();
+  window.location.href = PORTAL_URL;
+}
+
+// Modal controls
 function openAuthModal() {
   var nav = document.querySelector('nav.nav');
   var toggle = document.querySelector('.nav-toggle');
-  if (nav) { nav.classList.remove('nav-open'); }
-  if (toggle) { toggle.setAttribute('aria-expanded', 'false'); }
+  if (nav) nav.classList.remove('nav-open');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
   document.getElementById('auth-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   document.getElementById('login-email').focus();
@@ -2864,69 +2922,9 @@ function showRegister() {
   document.getElementById('register-error').textContent = '';
 }
 
-function updateNavAuth() {
-  const session = getSession();
-  const el = document.getElementById('nav-signin');
-  if (session) {
-    el.innerHTML = `<span class="nav-user"><span class="nav-user-name">${session.nombre}</span><button class="nav-logout" onclick="logout()">Salir</button></span>`;
-  } else {
-    el.innerHTML = `<a href="#" class="ghost-link" style="opacity:.7" onclick="openAuthModal();return false;">Ingresar</a>`;
-  }
-}
-
-function logout() { clearSession(); updateNavAuth(); }
-
-function handleLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('login-pass').value;
-  const user  = getUsers().find(u => u.email === email && u.password === pass);
-  if (!user) {
-    document.getElementById('login-error').textContent = 'Email o contraseña incorrectos.';
-    return;
-  }
-  saveSession(user);
-  closeAuthModal();
-  updateNavAuth();
-}
-
-function handleRegister(e) {
-  e.preventDefault();
-  const nombre  = document.getElementById('reg-nombre').value.trim();
-  const email   = document.getElementById('reg-email').value.trim().toLowerCase();
-  const numero  = document.getElementById('reg-numero').value.trim();
-  const pass    = document.getElementById('reg-pass').value;
-  const users   = getUsers();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    document.getElementById('register-error').textContent = 'Por favor ingresá un email válido.';
-    return;
-  }
-  if (users.find(u => u.email === email)) {
-    document.getElementById('register-error').textContent = 'Ya existe una cuenta con ese email.';
-    return;
-  }
-  const newUser = { nombre, email, numero, password: pass };
-  users.push(newUser);
-  saveUsers(users);
-  saveSession(newUser);
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_name:   newUser.nombre,
-    to_email:  newUser.email,
-    from_name: 'Agentiva',
-    reply_to:  'no-reply@agentiva.com.ar'
-  }).catch(() => {});
-  closeAuthModal();
-  updateNavAuth();
-}
-
-// Close on backdrop click
 document.querySelector('.auth-backdrop').addEventListener('click', closeAuthModal);
-
-// Close on Escape
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAuthModal(); });
 
-// Init nav state on page load
 updateNavAuth();
 </script>
 </body></html>
