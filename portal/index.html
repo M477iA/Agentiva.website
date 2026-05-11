@@ -557,11 +557,19 @@ let currentProfile = null;
 
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  hide('loading');
-  if (!session) { show('login-view'); return; }
-  currentUser = session.user;
-  await loadDashboard();
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error) throw error;
+    hide('loading');
+    if (!session) { show('login-view'); return; }
+    currentUser = session.user;
+    await loadDashboard();
+  } catch (err) {
+    hide('loading');
+    show('login-view');
+    $('login-error').textContent = 'Error de conexión: ' + (err.message || err);
+    console.error('Portal init error:', err);
+  }
 }
 
 async function loadDashboard() {
