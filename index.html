@@ -1553,7 +1553,6 @@
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body class="theme-bright" data-screen-label="Agentiva — landing">
 
@@ -2824,22 +2823,28 @@ ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
 
 
 <script>
-// ── Supabase auth ──────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://cyczjwnqrzxbngiqhzcj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
-const PORTAL_URL   = 'https://agentiva.com.ar/portal/';
+// ── Auth (direct Supabase REST — no library) ──────────────────────────────
+const _SB_URL    = 'https://cyczjwnqrzxbngiqhzcj.supabase.co';
+const _SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
+const PORTAL_URL = 'https://agentiva.com.ar/portal/';
+const _SESS_KEY  = 'agentiva_portal_v1';
 
-const { createClient } = supabase;
-const _sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+function _getSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(_SESS_KEY));
+    if (!s || !s.access_token) return null;
+    if (s.expires_at && s.expires_at < Math.floor(Date.now() / 1000)) {
+      localStorage.removeItem(_SESS_KEY); return null;
+    }
+    return s;
+  } catch { return null; }
+}
 
-// Nav state: show name + portal link if logged in, else "Ingresar"
-async function updateNavAuth() {
-  const { data: { session } } = await _sb.auth.getSession();
+function updateNavAuth() {
+  const session = _getSession();
   const el = document.getElementById('nav-signin');
   if (session) {
-    const { data } = await _sb.from('client_profiles')
-      .select('nombre').eq('id', session.user.id).single();
-    const nombre = data?.nombre || session.user.email;
+    const nombre = session.user?.user_metadata?.nombre || session.user?.email || 'Mi cuenta';
     el.innerHTML = `<span class="nav-user">
       <a href="${PORTAL_URL}" class="ghost-link" style="opacity:.7">${nombre}</a>
       <button class="nav-logout" onclick="doLogout()">Salir</button>
@@ -2849,8 +2854,13 @@ async function updateNavAuth() {
   }
 }
 
-async function doLogout() {
-  await _sb.auth.signOut();
+function doLogout() {
+  const s = _getSession();
+  if (s) fetch(`${_SB_URL}/auth/v1/logout`, {
+    method: 'POST',
+    headers: { 'apikey': _SB_KEY, 'Authorization': `Bearer ${s.access_token}` }
+  }).catch(() => {});
+  localStorage.removeItem(_SESS_KEY);
   updateNavAuth();
 }
 
@@ -2860,13 +2870,20 @@ async function handleLogin(e) {
   const pass  = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
-  const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
-  if (error) {
-    errEl.textContent = 'Email o contraseña incorrectos.';
-    return;
+  try {
+    const res  = await fetch(`${_SB_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SB_KEY },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || 'Credenciales incorrectas');
+    localStorage.setItem(_SESS_KEY, JSON.stringify(data));
+    closeAuthModal();
+    window.location.href = PORTAL_URL;
+  } catch (err) {
+    errEl.textContent = err.message || 'Email o contraseña incorrectos.';
   }
-  closeAuthModal();
-  window.location.href = PORTAL_URL;
 }
 
 async function handleRegister(e) {
@@ -2879,22 +2896,33 @@ async function handleRegister(e) {
   errEl.textContent = '';
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    errEl.textContent = 'Por favor ingresá un email válido.';
-    return;
-  }
-  const { data, error } = await _sb.auth.signUp({ email, password: pass });
-  if (error) {
-    errEl.textContent = error.message || 'Error al registrarse.';
-    return;
-  }
-  if (data.user) {
-    await _sb.from('client_profiles').insert({
-      id: data.user.id, nombre, email, phone: numero, role: 'client'
+  if (!emailRegex.test(email)) { errEl.textContent = 'Por favor ingresá un email válido.'; return; }
+
+  try {
+    const res  = await fetch(`${_SB_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SB_KEY },
+      body: JSON.stringify({ email, password: pass })
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.message || 'Error al registrarse');
+    if (data.user) {
+      const token = data.access_token;
+      await fetch(`${_SB_URL}/rest/v1/client_profiles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 'apikey': _SB_KEY,
+          'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ id: data.user.id, nombre, email, phone: numero, role: 'client' })
+      });
+      localStorage.setItem(_SESS_KEY, JSON.stringify(data));
+    }
+    closeAuthModal();
+    window.location.href = PORTAL_URL;
+  } catch (err) {
+    errEl.textContent = err.message || 'Error al registrarse.';
   }
-  closeAuthModal();
-  window.location.href = PORTAL_URL;
 }
 
 // Modal controls

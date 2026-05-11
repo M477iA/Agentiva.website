@@ -542,60 +542,94 @@
   </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://cyczjwnqrzxbngiqhzcj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
+const SB_URL = 'https://cyczjwnqrzxbngiqhzcj.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
+const SESSION_LS = 'agentiva_portal_v1';
 
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── REST HELPERS ──────────────────────────────────────────────────────────────
+function getSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_LS));
+    if (!s || !s.access_token) return null;
+    if (s.expires_at && s.expires_at < Math.floor(Date.now() / 1000)) {
+      localStorage.removeItem(SESSION_LS); return null;
+    }
+    return s;
+  } catch { return null; }
+}
+
+async function sbSignIn(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.message || 'Credenciales incorrectas');
+  localStorage.setItem(SESSION_LS, JSON.stringify(data));
+  return data;
+}
+
+async function sbSignOut(token) {
+  await fetch(`${SB_URL}/auth/v1/logout`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}` }
+  }).catch(() => {});
+  localStorage.removeItem(SESSION_LS);
+}
+
+async function sbQuery(table, params, token) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+  });
+  if (!res.ok) throw new Error(`Error consultando ${table}: ${res.status}`);
+  return res.json();
+}
+
+async function sbUpdate(table, filter, data, token) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SB_KEY, 'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
 
 // ── STATE ────────────────────────────────────────────────────────────────────
+let currentToken   = null;
 let currentUser    = null;
 let currentProfile = null;
 
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  try {
-    const withTimeout = Promise.race([
-      sb.auth.getSession(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000))
-    ]);
-    const { data: { session }, error } = await withTimeout;
-    if (error) throw error;
-    hide('loading');
-    if (!session) { show('login-view'); return; }
-    currentUser = session.user;
-    await loadDashboard();
-  } catch (err) {
-    hide('loading');
-    show('login-view');
-    if (err.message !== 'timeout') {
-      $('login-error').textContent = 'Error: ' + err.message;
-    }
-    console.error('Portal init error:', err);
-  }
+  const session = getSession();
+  hide('loading');
+  if (!session) { show('login-view'); return; }
+  currentToken = session.access_token;
+  currentUser  = session.user;
+  await loadDashboard();
 }
 
 async function loadDashboard() {
-  const { data: profile, error } = await sb
-    .from('client_profiles')
-    .select('*')
-    .eq('id', currentUser.id)
-    .single();
-
-  if (error || !profile) { show('login-view'); return; }
-
-  currentProfile = profile;
-  $('nav-name').textContent  = profile.nombre;
-  $('nav-role').textContent  = profile.role === 'admin' ? 'Admin' : 'Cliente';
-  show('dashboard-view');
-
-  if (profile.role === 'admin') {
-    await renderAdmin();
-  } else {
-    await renderClient(profile);
+  try {
+    const profiles = await sbQuery('client_profiles', `id=eq.${currentUser.id}&limit=1`, currentToken);
+    const profile = profiles[0];
+    if (!profile) { show('login-view'); return; }
+    currentProfile = profile;
+    $('nav-name').textContent = profile.nombre;
+    $('nav-role').textContent = profile.role === 'admin' ? 'Admin' : 'Cliente';
+    show('dashboard-view');
+    if (profile.role === 'admin') { await renderAdmin(); }
+    else { await renderClient(profile); }
+  } catch (err) {
+    console.error('loadDashboard:', err);
+    show('login-view');
+    $('login-error').textContent = 'Error: ' + err.message;
   }
 }
 
@@ -605,15 +639,9 @@ async function renderClient(profile) {
   $('client-greeting').textContent = `Hola, ${profile.nombre.split(' ')[0]}`;
   $('client-empresa').textContent  = profile.empresa || '';
 
-  const [{ data: services }, { data: pagos }] = await Promise.all([
-    sb.from('services')
-      .select('*')
-      .eq('client_id', currentUser.id)
-      .order('fecha_inicio', { ascending: false }),
-    sb.from('pagos')
-      .select('*, services(nombre)')
-      .eq('client_id', currentUser.id)
-      .order('fecha_vencimiento', { ascending: false })
+  const [services, pagos] = await Promise.all([
+    sbQuery('services', `client_id=eq.${currentUser.id}&order=fecha_inicio.desc`, currentToken),
+    sbQuery('pagos', `client_id=eq.${currentUser.id}&select=*,services(nombre)&order=fecha_vencimiento.desc`, currentToken)
   ]);
 
   renderBanner(pagos || []);
@@ -730,12 +758,10 @@ function renderPayments(pagos, bodyId, showClient) {
 async function renderAdmin() {
   show('admin-view');
 
-  const [{ data: profiles }, { data: services }, { data: pagos }] = await Promise.all([
-    sb.from('client_profiles').select('*').eq('role', 'client').order('nombre'),
-    sb.from('services').select('*').order('nombre'),
-    sb.from('pagos')
-      .select('*, services(nombre), client_profiles(nombre, empresa)')
-      .order('fecha_vencimiento', { ascending: true })
+  const [profiles, services, pagos] = await Promise.all([
+    sbQuery('client_profiles', 'role=eq.client&order=nombre', currentToken),
+    sbQuery('services', 'order=nombre', currentToken),
+    sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento', currentToken)
   ]);
 
   const P = profiles || [];
@@ -822,18 +848,15 @@ async function renderAdmin() {
 async function markPaid(pagoId, btn) {
   btn.disabled = true;
   btn.textContent = '...';
-  const todayStr = today_date();
-  const { error } = await sb.from('pagos')
-    .update({ estado: 'pagado', fecha_pago: todayStr })
-    .eq('id', pagoId);
-  if (error) {
-    btn.textContent = 'Error';
-    btn.style.color = 'var(--red)';
-  } else {
+  const ok = await sbUpdate('pagos', `id=eq.${pagoId}`, { estado: 'pagado', fecha_pago: today_date() }, currentToken);
+  if (ok) {
     const row = btn.closest('tr');
     row.style.transition = 'opacity 0.25s';
     row.style.opacity = '0.3';
     setTimeout(() => row.remove(), 300);
+  } else {
+    btn.textContent = 'Error';
+    btn.style.color = 'var(--red)';
   }
 }
 
@@ -849,25 +872,24 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   btn.disabled    = true;
   btn.textContent = 'Ingresando...';
 
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if (error) {
-    err.textContent = 'Email o contraseña incorrectos.';
+  try {
+    const session = await sbSignIn(email, pass);
+    currentToken = session.access_token;
+    currentUser  = session.user;
+    hide('login-view');
+    show('loading');
+    await loadDashboard();
+    hide('loading');
+  } catch (e) {
+    err.textContent = e.message || 'Email o contraseña incorrectos.';
     btn.disabled    = false;
     btn.innerHTML   = 'Ingresar <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-    return;
   }
-
-  const { data: { session } } = await sb.auth.getSession();
-  currentUser = session.user;
-  hide('login-view');
-  show('loading');
-  await loadDashboard();
-  hide('loading');
 });
 
 async function doLogout() {
-  await sb.auth.signOut();
-  currentUser = null; currentProfile = null;
+  if (currentToken) await sbSignOut(currentToken);
+  currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
   show('login-view');
 }
