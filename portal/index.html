@@ -738,6 +738,18 @@
               <label>Fecha de inicio</label>
               <input type="date" id="ac-svc-inicio" required>
             </div>
+            <div class="field">
+              <label>RAM (opcional)</label>
+              <select id="ac-svc-ram">
+                <option value="">— Sin RAM (no es un bot)</option>
+                <option value="512 MB">512 MB</option>
+                <option value="2 GB">2 GB</option>
+                <option value="4 GB">4 GB</option>
+                <option value="8 GB">8 GB</option>
+                <option value="16 GB">16 GB</option>
+                <option value="32 GB">32 GB</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -1225,6 +1237,7 @@ async function submitAddClient(e) {
     const svcPrecio = parseFloat(document.getElementById('ac-svc-precio').value);
     const svcMoneda = document.getElementById('ac-svc-moneda').value;
     const svcInicio = document.getElementById('ac-svc-inicio').value;
+    const svcRam    = document.getElementById('ac-svc-ram').value || null;
     const pagoInicio = document.getElementById('ac-pago-inicio').value;
     const pagoMeses  = parseInt(document.getElementById('ac-pago-meses').value, 10);
 
@@ -1242,7 +1255,8 @@ async function submitAddClient(e) {
       client_id: uid, nombre: svcNombre,
       descripcion: svcDesc || null,
       precio: svcPrecio, moneda: svcMoneda,
-      fecha_inicio: svcInicio, estado: 'activo'
+      fecha_inicio: svcInicio, estado: 'activo',
+      ram_display: svcRam
     }, currentToken);
     const svcId = svcRows[0].id;
 
