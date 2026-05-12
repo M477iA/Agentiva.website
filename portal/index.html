@@ -300,6 +300,17 @@
   .badge-pagado   { background: rgba(74,222,128,0.10);  color: var(--green);  border: 1px solid rgba(74,222,128,0.2); }
   .badge-pendiente{ background: rgba(251,191,36,0.10);  color: var(--amber);  border: 1px solid rgba(251,191,36,0.2); }
   .badge-vencido  { background: rgba(248,113,113,0.10); color: var(--red);    border: 1px solid rgba(248,113,113,0.2); }
+  .badge-cubierto { background: rgba(96,165,250,0.10);  color: #60a5fa;       border: 1px solid rgba(96,165,250,0.2); }
+
+  .service-viewer-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--teal); text-decoration: none;
+    margin-top: 10px; padding: 5px 10px;
+    border: 1px solid rgba(45,212,191,0.25);
+    border-radius: 4px; transition: background 0.15s;
+    font-family: var(--display); font-weight: 500;
+  }
+  .service-viewer-link:hover { background: var(--teal-dim); }
 
   .service-desc { font-size: 13px; color: var(--slate); margin-bottom: 16px; line-height: 1.5; }
   .service-meta { display: flex; flex-direction: column; gap: 5px; }
@@ -535,14 +546,14 @@
         <p class="page-sub" id="client-empresa"></p>
       </div>
 
-      <div id="next-payment-container"></div>
-
       <div class="section">
         <div class="section-header">
           <div class="section-title">Mis Servicios</div>
         </div>
         <div id="services-container"></div>
       </div>
+
+      <div id="next-payment-container"></div>
 
       <div class="section">
         <div class="section-header">
@@ -557,6 +568,7 @@
                 <th>Fecha de Pago</th>
                 <th>Monto</th>
                 <th>Estado</th>
+                <th>Método</th>
               </tr>
             </thead>
             <tbody id="client-payments-body"></tbody>
@@ -632,6 +644,7 @@
                 <th>Fecha de Pago</th>
                 <th>Monto</th>
                 <th>Estado</th>
+                <th>Método</th>
                 <th>Acción</th>
               </tr>
             </thead>
@@ -839,9 +852,17 @@ async function renderClient(profile) {
     sbQuery('pagos', `client_id=eq.${currentUser.id}&select=*,services(nombre)&order=fecha_vencimiento.desc`, currentToken)
   ]);
 
-  renderBanner(pagos || []);
+  const allPagos = pagos || [];
   renderServices(services || []);
-  renderPayments(pagos || [], 'client-payments-body', false);
+  renderBanner(allPagos);
+
+  // Client view: show all non-pending rows + only the next pending row
+  const pending    = allPagos.filter(p => p.estado === 'pendiente')
+                             .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+  const nonPending = allPagos.filter(p => p.estado !== 'pendiente');
+  const clientPagos = [...nonPending, ...(pending.length ? [pending[0]] : [])]
+    .sort((a,b) => b.fecha_vencimiento.localeCompare(a.fecha_vencimiento));
+  renderPayments(clientPagos, 'client-payments-body', false);
 }
 
 function renderBanner(pagos) {
@@ -925,14 +946,24 @@ function renderServices(services) {
             <span class="meta-label">Vence el</span>
             <span class="meta-value">${fmtDate(s.fecha_fin)}</span>
           </div>` : ''}
+          ${s.ram_display ? `
+          <div class="meta-row">
+            <span class="meta-label">RAM</span>
+            <span class="meta-value">${esc(s.ram_display)}</span>
+          </div>` : ''}
         </div>
+        ${s.viewer_url ? `
+        <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+          Ver conversaciones en vivo
+        </a>` : ''}
       </div>`).join('')
   }</div>`;
 }
 
 function renderPayments(pagos, bodyId, showClient) {
   const tbody = $(bodyId);
-  const cols = showClient ? 7 : 5;
+  const cols = showClient ? 8 : 6;
   if (!pagos.length) {
     tbody.innerHTML = `<tr class="empty-state"><td colspan="${cols}">Sin pagos registrados aún.</td></tr>`;
     return;
@@ -945,6 +976,7 @@ function renderPayments(pagos, bodyId, showClient) {
       <td class="${p.fecha_pago ? '' : 'td-muted'}">${p.fecha_pago ? fmtDate(p.fecha_pago) : '—'}</td>
       <td class="td-mono">${fmtMonto(p.monto, p.moneda)}</td>
       <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
+      <td class="td-muted">${esc(p.metodo || '—')}</td>
       ${showClient ? `<td>${p.estado === 'pendiente' ? `<button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button>` : ''}</td>` : ''}
     </tr>`).join('');
 }
