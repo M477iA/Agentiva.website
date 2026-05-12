@@ -312,6 +312,31 @@
   }
   .service-viewer-link:hover { background: var(--teal-dim); }
 
+  /* ── BOT ACTIVE STATE ── */
+  .service-card.is-bot-active {
+    border-color: rgba(96,165,250,0.45);
+    box-shadow: 0 0 0 1px rgba(96,165,250,0.08), 0 0 22px rgba(96,165,250,0.09);
+  }
+  .ai-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #60a5fa;
+    background: rgba(96,165,250,0.10);
+    border: 1px solid rgba(96,165,250,0.22);
+    border-radius: 4px; padding: 2px 7px;
+    flex-shrink: 0;
+  }
+  .ai-dot {
+    width: 5px; height: 5px;
+    background: #60a5fa; border-radius: 50%;
+    animation: pulse-blue 2s ease-in-out infinite;
+  }
+  @keyframes pulse-blue {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.35; transform: scale(0.75); }
+  }
+
   .service-desc { font-size: 13px; color: var(--slate); margin-bottom: 16px; line-height: 1.5; }
   .service-meta { display: flex; flex-direction: column; gap: 5px; }
   .meta-row { display: flex; justify-content: space-between; font-size: 13px; }
@@ -923,10 +948,15 @@ function renderServices(services) {
     return;
   }
   container.innerHTML = `<div class="services-grid">${
-    services.map(s => `
-      <div class="service-card">
+    services.map(s => {
+      const isBotActive = s.viewer_url && s.estado === 'activo';
+      return `
+      <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
         <div class="service-card-header">
-          <div class="service-name">${esc(s.nombre)}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${isBotActive ? `<span class="ai-badge"><span class="ai-dot"></span>AI Agent</span>` : ''}
+            <div class="service-name">${esc(s.nombre)}</div>
+          </div>
           <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
         </div>
         ${s.descripcion ? `<p class="service-desc">${esc(s.descripcion)}</p>` : ''}
@@ -957,7 +987,8 @@ function renderServices(services) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
           Ver conversaciones en vivo
         </a>` : ''}
-      </div>`).join('')
+      </div>`;
+    }).join('')
   }</div>`;
 }
 
