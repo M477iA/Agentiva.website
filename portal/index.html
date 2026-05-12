@@ -373,6 +373,102 @@
   @media (max-width: 380px) {
     .stats-row { grid-template-columns: 1fr; }
   }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%; max-width: 640px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .modal-title {
+    font-family: var(--display);
+    font-size: 20px; font-weight: 600; color: var(--bone);
+  }
+  .btn-icon {
+    background: transparent; border: none;
+    color: var(--slate); cursor: pointer;
+    font-size: 22px; line-height: 1; padding: 2px 6px;
+    transition: color 0.15s; font-family: var(--font);
+  }
+  .btn-icon:hover { color: var(--bone); }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section-title {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--teal); margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--hairline);
+  }
+  .form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .field-full { grid-column: 1 / -1; }
+  .modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--hairline);
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--mist); padding: 8px 16px;
+    border-radius: var(--radius);
+    font-family: var(--display); font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--bone); color: var(--bone); }
+
+  /* ── FORM CONTROLS (modal) ── */
+  .field select,
+  .field input[type="date"],
+  .field input[type="number"] {
+    background: var(--graphite);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 14px; color: var(--bone);
+    font-family: var(--font);
+    outline: none; width: 100%;
+    transition: border-color 0.15s;
+  }
+  .field select:focus,
+  .field input[type="date"]:focus,
+  .field input[type="number"]:focus { border-color: var(--teal); }
+  .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+  .field select option { background: var(--graphite); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 300;
+    background: var(--graphite);
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-size: 14px; color: var(--bone);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .toast.toast-error { border-left-color: var(--red); }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .modal { padding: 20px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -500,6 +596,7 @@
       <div class="section">
         <div class="section-header">
           <div class="section-title">Todos los Clientes</div>
+          <button class="btn btn-secondary" onclick="openAddClientModal()">+ Agregar cliente</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -542,6 +639,99 @@
     </div>
 
   </main>
+</div>
+
+<!-- ── ADD CLIENT MODAL ── -->
+<div id="add-client-modal" hidden>
+  <div class="modal-overlay" onclick="closeAddClientModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Agregar cliente</div>
+        <button class="btn-icon" onclick="closeAddClientModal()">&times;</button>
+      </div>
+      <form id="add-client-form" onsubmit="submitAddClient(event)">
+
+        <div class="modal-section">
+          <div class="modal-section-title">Datos del cliente</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Nombre completo</label>
+              <input type="text" id="ac-nombre" placeholder="Juan García" required>
+            </div>
+            <div class="field">
+              <label>Empresa</label>
+              <input type="text" id="ac-empresa" placeholder="Nombre de la empresa">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="ac-email" placeholder="cliente@empresa.com" required>
+            </div>
+            <div class="field">
+              <label>Contraseña inicial</label>
+              <input type="text" id="ac-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+            </div>
+            <div class="field">
+              <label>Teléfono (opcional)</label>
+              <input type="text" id="ac-phone" placeholder="+54 9 11 ...">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">Servicio</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Nombre del servicio</label>
+              <input type="text" id="ac-svc-nombre" placeholder="Bot WhatsApp" required>
+            </div>
+            <div class="field field-full">
+              <label>Descripción (opcional)</label>
+              <input type="text" id="ac-svc-desc" placeholder="Breve descripción del servicio">
+            </div>
+            <div class="field">
+              <label>Precio mensual</label>
+              <input type="number" id="ac-svc-precio" placeholder="100" min="0" step="0.01" required>
+            </div>
+            <div class="field">
+              <label>Moneda</label>
+              <select id="ac-svc-moneda">
+                <option value="USD">USD (U$S)</option>
+                <option value="ARS">ARS ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Fecha de inicio</label>
+              <input type="date" id="ac-svc-inicio" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">Facturación</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Fecha primer vencimiento</label>
+              <input type="date" id="ac-pago-inicio" required>
+            </div>
+            <div class="field">
+              <label>Meses a generar</label>
+              <input type="number" id="ac-pago-meses" value="3" min="1" max="24" required>
+            </div>
+          </div>
+        </div>
+
+        <p class="form-error" id="add-client-error"></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeAddClientModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="add-client-btn" style="width:auto">
+            Crear cliente
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -894,6 +1084,131 @@ async function doLogout() {
   currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
   show('login-view');
+}
+
+// ── ADD CLIENT ────────────────────────────────────────────────────────────────
+
+async function sbInsert(table, data, token) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY, 'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.hint || `Error en ${table}: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function sbCreateUser(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || data.error_description || 'Error creando usuario');
+  const uid = data.user?.id || data.id;
+  if (!uid) throw new Error('No se recibió el ID del usuario. El email puede estar ya registrado.');
+  return uid;
+}
+
+function openAddClientModal() {
+  document.getElementById('add-client-form').reset();
+  document.getElementById('add-client-error').textContent = '';
+  const btn = document.getElementById('add-client-btn');
+  btn.disabled = false;
+  btn.textContent = 'Crear cliente';
+  const today = today_date();
+  document.getElementById('ac-svc-inicio').value  = today;
+  document.getElementById('ac-pago-inicio').value = today;
+  show('add-client-modal');
+}
+
+function closeAddClientModal() {
+  hide('add-client-modal');
+}
+
+function showToast(msg, isError = false) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' toast-error' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(8px)';
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
+}
+
+async function submitAddClient(e) {
+  e.preventDefault();
+  const btn   = document.getElementById('add-client-btn');
+  const errEl = document.getElementById('add-client-error');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Creando...';
+
+  try {
+    const nombre    = document.getElementById('ac-nombre').value.trim();
+    const empresa   = document.getElementById('ac-empresa').value.trim();
+    const email     = document.getElementById('ac-email').value.trim();
+    const password  = document.getElementById('ac-password').value;
+    const phone     = document.getElementById('ac-phone').value.trim();
+    const svcNombre = document.getElementById('ac-svc-nombre').value.trim();
+    const svcDesc   = document.getElementById('ac-svc-desc').value.trim();
+    const svcPrecio = parseFloat(document.getElementById('ac-svc-precio').value);
+    const svcMoneda = document.getElementById('ac-svc-moneda').value;
+    const svcInicio = document.getElementById('ac-svc-inicio').value;
+    const pagoInicio = document.getElementById('ac-pago-inicio').value;
+    const pagoMeses  = parseInt(document.getElementById('ac-pago-meses').value, 10);
+
+    btn.textContent = 'Creando usuario...';
+    const uid = await sbCreateUser(email, password);
+
+    btn.textContent = 'Guardando perfil...';
+    await sbInsert('client_profiles', {
+      id: uid, nombre, empresa: empresa || null,
+      email, phone: phone || null, role: 'client'
+    }, currentToken);
+
+    btn.textContent = 'Guardando servicio...';
+    const svcRows = await sbInsert('services', {
+      client_id: uid, nombre: svcNombre,
+      descripcion: svcDesc || null,
+      precio: svcPrecio, moneda: svcMoneda,
+      fecha_inicio: svcInicio, estado: 'activo'
+    }, currentToken);
+    const svcId = svcRows[0].id;
+
+    btn.textContent = 'Generando cobros...';
+    const pagosData = [];
+    for (let i = 0; i < pagoMeses; i++) {
+      const d = new Date(pagoInicio + 'T00:00:00');
+      d.setMonth(d.getMonth() + i);
+      pagosData.push({
+        client_id: uid, service_id: svcId,
+        fecha_vencimiento: d.toISOString().split('T')[0],
+        monto: svcPrecio, moneda: svcMoneda, estado: 'pendiente'
+      });
+    }
+    await sbInsert('pagos', pagosData, currentToken);
+
+    closeAddClientModal();
+    showToast(`✓ ${nombre} agregado correctamente`);
+    await renderAdmin();
+
+  } catch (err) {
+    errEl.textContent = err.message || 'Error inesperado. Intentá de nuevo.';
+    btn.disabled = false;
+    btn.textContent = 'Crear cliente';
+  }
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
