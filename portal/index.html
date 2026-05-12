@@ -317,24 +317,17 @@
     border-color: rgba(96,165,250,0.45);
     box-shadow: 0 0 0 1px rgba(96,165,250,0.08), 0 0 22px rgba(96,165,250,0.09);
   }
-  .ai-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: #60a5fa;
-    background: rgba(96,165,250,0.10);
-    border: 1px solid rgba(96,165,250,0.22);
-    border-radius: 4px; padding: 2px 7px;
-    flex-shrink: 0;
+  .ai-icon-wrap {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: rgba(96,165,250,0.12);
+    border: 1px solid rgba(96,165,250,0.3);
+    border-radius: 8px; color: #60a5fa;
+    animation: glow-blue 2.5s ease-in-out infinite;
   }
-  .ai-dot {
-    width: 5px; height: 5px;
-    background: #60a5fa; border-radius: 50%;
-    animation: pulse-blue 2s ease-in-out infinite;
-  }
-  @keyframes pulse-blue {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.35; transform: scale(0.75); }
+  @keyframes glow-blue {
+    0%, 100% { box-shadow: 0 0 5px rgba(96,165,250,0.25);  border-color: rgba(96,165,250,0.3); }
+    50%       { box-shadow: 0 0 14px rgba(96,165,250,0.55); border-color: rgba(96,165,250,0.65); }
   }
 
   .service-desc { font-size: 13px; color: var(--slate); margin-bottom: 16px; line-height: 1.5; }
@@ -954,7 +947,7 @@ function renderServices(services) {
       <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
         <div class="service-card-header">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            ${isBotActive ? `<span class="ai-badge"><span class="ai-dot"></span>AI Agent</span>` : ''}
+            ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : ''}
             <div class="service-name">${esc(s.nombre)}</div>
           </div>
           <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
