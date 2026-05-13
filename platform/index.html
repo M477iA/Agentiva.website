@@ -829,6 +829,17 @@ let _liByInvoice  = {};
 let _productNames = [];
 let _liByPidx     = [];
 
+
+function ivaRateLabel(inv) {
+  if (inv.iva_27 && inv.iva_27 !== 0)   return '27%';
+  if (inv.iva_21 && inv.iva_21 !== 0)   return '21%';
+  if (inv.iva_10_5 && inv.iva_10_5 !== 0) return '10,5%';
+  if (inv.iva_5 && inv.iva_5 !== 0)     return '5%';
+  if (inv.iva_2_5 && inv.iva_2_5 !== 0) return '2,5%';
+  if (inv.otros_tributos && inv.otros_tributos !== 0) return 'otros';
+  return '';
+}
+
 function escAttr(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -870,7 +881,7 @@ function renderFacturasTable(invoices) {
       + '<td><button class="btn-link" data-sup-id="' + i.supplier_id + '">' + escAttr(sup?.name || '—') + '</button></td>'
       + '<td><span class="badge badge-gray">' + escAttr(i.tipo_comprobante || '—') + '</span></td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
-      + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + '</td>'
+      + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + (i.tax_amount ? '<span style="font-size:10px;color:var(--muted);margin-left:4px;">(' + ivaRateLabel(i) + ')</span>' : '') + '</td>'
       + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
       + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
       + '</tr>';
@@ -931,8 +942,9 @@ function toggleInvoiceDetail(row, invoiceId) {
   det.innerHTML = '<td colspan="8"><div class="detail-inner">'
     + '<div class="detail-label">Productos en esta factura</div>'
     + '<table><thead><tr><th>Categoría</th><th>Producto</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
-    + '<tbody>' + subRows + '</tbody></table></div></td>';
-  row.after(det);
+    + '<tbody>' + subRows + '</tbody></table>'
+    + ivaBreakdownHtml
+    + '</div></td>';row.after(det);
 }
 
 function getPidx(name) {
