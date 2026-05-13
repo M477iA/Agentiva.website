@@ -413,6 +413,165 @@ const SB_URL  = 'https://etetlzcsqucujqjkzsvm.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0ZXRsemNzcXVjdWpxamt6c3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTU3MzUsImV4cCI6MjA5NDI3MTczNX0.KMo40WJKxsLMu7OK5ksblxSkg61gTZLjpA4DIJOMJ8c';
 const SESSION_KEY = 'restaurant_platform_v1';
 
+// ── Category metadata (macro + unit) ────────────────────────────────────────
+function catMeta(name) {
+  const key = (name || '').replace(/\s+/g, ' ').trim();
+  return CATEGORY_MAP[key] || { macro: '', medida: '' };
+}
+function fmtNum(n) {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(n);
+}
+const CATEGORY_MAP = {
+  'Aceite Alto Oleico Seda bidon':{'macro':'Almacen','medida':'Litros'},
+  'Aceite de Girasol':{'macro':'Almacen','medida':'Litros'},
+  'Aceite de Oliva':{'macro':'Almacen','medida':'Litros'},
+  'Aceituna':{'macro':'Almacen','medida':'Kg'},
+  'Aceto Balsamico':{'macro':'Almacen','medida':'Litros'},
+  'Ají Molido':{'macro':'Almacen','medida':'Kg'},
+  'Ajinomoto':{'macro':'Almacen','medida':'Kg'},
+  'Ajo':{'macro':'Verduleria','medida':'Kg'},
+  'Ajo en polvo':{'macro':'Almacen','medida':'Kg'},
+  'Albahaca':{'macro':'Verduleria','medida':'Kg'},
+  'Alcaparras':{'macro':'Almacen','medida':'Kg'},
+  'Almendras':{'macro':'Almacen','medida':'Kg'},
+  'Anchoa':{'macro':'Almacen','medida':'Kg'},
+  'Arroz':{'macro':'Almacen','medida':'Kg'},
+  'Asado Banderita':{'macro':'Carniceria','medida':'Kg'},
+  'Azúcar':{'macro':'Almacen','medida':'Kg'},
+  'Batata':{'macro':'Verduleria','medida':'Kg'},
+  'Berenjena':{'macro':'Verduleria','medida':'Kg'},
+  'Bife de chorizo':{'macro':'Carniceria','medida':'Kg'},
+  'Bobina Industrial':{'macro':'Limpieza','medida':'Unidades'},
+  'Bolsa Arranque 25X30':{'macro':'Limpieza','medida':'Unidades'},
+  'Bolsa Arranque 45X60':{'macro':'Limpieza','medida':'Unidades'},
+  'Bolsa Arranque 60X90':{'macro':'Limpieza','medida':'Unidades'},
+  'Bolsa Residuo Negra':{'macro':'Limpieza','medida':'Unidades'},
+  'Bolsa Residuo Verde':{'macro':'Limpieza','medida':'Unidades'},
+  'Bondiola':{'macro':'Fiambre','medida':'Kg'},
+  'Cacao':{'macro':'Almacen','medida':'Kg'},
+  'Capuchina':{'macro':'Verduleria','medida':'Kg'},
+  'Carne Picada':{'macro':'Carniceria','medida':'Kg'},
+  'Cebolla Blanca':{'macro':'Verduleria','medida':'Kg'},
+  'Cebolla Clasica':{'macro':'Verduleria','medida':'Kg'},
+  'Cebolla Deshidratada':{'macro':'Almacen','medida':'kg'},
+  'Cebolla Morada':{'macro':'Verduleria','medida':'Kg'},
+  'Cerveza':{'macro':'Bebidas','medida':'Litros'},
+  'Cheddar':{'macro':'Fiambre','medida':'Kg'},
+  'Cherry':{'macro':'Verduleria','medida':'Kg'},
+  'Choclo':{'macro':'Almacen','medida':'kg'},
+  'Chocolate Semiamargo':{'macro':'Almacen','medida':'kg'},
+  'Chocolinas':{'macro':'Almacen','medida':'kg'},
+  'Chorizo':{'macro':'Carniceria','medida':'Kg'},
+  'Cilantro':{'macro':'Verduleria','medida':'Kg'},
+  'Coca Cola':{'macro':'Bebidas','medida':'Litros'},
+  'Coca cola':{'macro':'Bebidas','medida':'Litros'},
+  'Crema':{'macro':'Fiambre','medida':'Kg'},
+  'Crema De Esencia De Vainilla':{'macro':'Almacen','medida':'kg'},
+  'Desengrasante 5LT':{'macro':'Limpieza','medida':'Unidades'},
+  'Desodorante Piso 5LT':{'macro':'Limpieza','medida':'Unidades'},
+  'Detergente 5LT':{'macro':'Limpieza','medida':'Unidades'},
+  'Dulce De Batata':{'macro':'Almacen','medida':'kg'},
+  'Dulce De Leche':{'macro':'Almacen','medida':'kg'},
+  'Entraña':{'macro':'Carniceria','medida':'Kg'},
+  'Envio Mercaderia':{'macro':'Servicios','medida':'Pedidos'},
+  'Espinaca':{'macro':'Verduleria','medida':'Kg'},
+  'Espinaca Congelada':{'macro':'Almacen','medida':'kg'},
+  'Esponja':{'macro':'Limpieza','medida':'Unidades'},
+  'Fideos':{'macro':'Almacen','medida':'kg'},
+  'Film':{'macro':'Limpieza','medida':'Unidades'},
+  'Folex':{'macro':'Limpieza','medida':'Unidades'},
+  'Francesa':{'macro':'Verduleria','medida':'Kg'},
+  'Fritolin':{'macro':'Almacen','medida':'kg'},
+  'Frutos Rojos':{'macro':'Almacen','medida':'kg'},
+  'Garbanzos':{'macro':'Almacen','medida':'kg'},
+  'Guantes Nitrilo Talle M':{'macro':'Limpieza','medida':'Unidades'},
+  'Hamburguesas':{'macro':'Carniceria','medida':'Kg'},
+  'Harina 0000':{'macro':'Almacen','medida':'kg'},
+  'Harina Leudante':{'macro':'Almacen','medida':'kg'},
+  'Huevos':{'macro':'Almacen','medida':'Maples'},
+  'Jabon en plan blanco':{'macro':'Limpieza','medida':'Unidades'},
+  'Jabon para mano':{'macro':'Limpieza','medida':'Unidades'},
+  'Jamon cocido':{'macro':'Fiambre','medida':'Kg'},
+  'Jamon crudo':{'macro':'Fiambre','medida':'Kg'},
+  'Jugo De Naranja':{'macro':'Bebidas','medida':'Litros'},
+  'Ketchup':{'macro':'Almacen','medida':'kg'},
+  'Ketchup 8g':{'macro':'Almacen','medida':'kg'},
+  'Lavandina':{'macro':'Limpieza','medida':'Unidades'},
+  'Leche':{'macro':'Almacen','medida':'L'},
+  'Lechuga Morada':{'macro':'Verduleria','medida':'Kg'},
+  'Licores':{'macro':'Bebidas','medida':'Litros'},
+  'Limón':{'macro':'Verduleria','medida':'Kg'},
+  'Lomo':{'macro':'Carniceria','medida':'Kg'},
+  'Maicena':{'macro':'Almacen','medida':'kg'},
+  'Maní':{'macro':'Almacen','medida':'kg'},
+  'Manteca':{'macro':'Fiambre','medida':'Kg'},
+  'Mayonesa':{'macro':'Almacen','medida':'kg'},
+  'Mayonesa 8g':{'macro':'Almacen','medida':'kg'},
+  'Membrillo':{'macro':'Almacen','medida':'kg'},
+  'Milanesas de berenjena':{'macro':'Carniceria','medida':'Kg'},
+  'Mollejas':{'macro':'Carniceria','medida':'Kg'},
+  'Morcillas':{'macro':'Carniceria','medida':'Kg'},
+  'Morrón Rojo':{'macro':'Verduleria','medida':'Kg'},
+  'Morrón Verde':{'macro':'Verduleria','medida':'Kg'},
+  'Morron Lata':{'macro':'Almacen','medida':'kg'},
+  'Mostaza':{'macro':'Almacen','medida':'kg'},
+  'Mostaza 8g':{'macro':'Almacen','medida':'kg'},
+  'Muzarella':{'macro':'Fiambre','medida':'Kg'},
+  'Nalga Feteada':{'macro':'Carniceria','medida':'Kg'},
+  'Naranja':{'macro':'Verduleria','medida':'Kg'},
+  'Nueces':{'macro':'Almacen','medida':'kg'},
+  'Nues moscada':{'macro':'Almacen','medida':'kg'},
+  'Ojo de bife':{'macro':'Carniceria','medida':'Kg'},
+  'Orégano':{'macro':'Almacen','medida':'kg'},
+  'Palta':{'macro':'Verduleria','medida':'Kg'},
+  'Pan rallado':{'macro':'Almacen','medida':'kg'},
+  'Papel Higienico':{'macro':'Limpieza','medida':'Unidades'},
+  'Papas':{'macro':'Verduleria','medida':'Kg'},
+  'Pata y Muslo':{'macro':'Carniceria','medida':'Kg'},
+  'Pategras':{'macro':'Fiambre','medida':'Kg'},
+  'Pateras':{'macro':'Fiambre','medida':'Kg'},
+  'Pechuga':{'macro':'Carniceria','medida':'Kg'},
+  'Peras':{'macro':'Verduleria','medida':'Kg'},
+  'Perejil':{'macro':'Verduleria','medida':'Kg'},
+  'Picada Roast Beef':{'macro':'Carniceria','medida':'Kg'},
+  'Pimentón':{'macro':'Almacen','medida':'kg'},
+  'Pimienta en grano':{'macro':'Almacen','medida':'kg'},
+  'Pimienta negra':{'macro':'Almacen','medida':'kg'},
+  'Portobello':{'macro':'Verduleria','medida':'Kg'},
+  'Provoleta':{'macro':'Fiambre','medida':'Kg'},
+  'Puré de tomate':{'macro':'Almacen','medida':'kg'},
+  'Queso Azul':{'macro':'Fiambre','medida':'Kg'},
+  'Queso Fresco':{'macro':'Fiambre','medida':'Kg'},
+  'Queso crema':{'macro':'Fiambre','medida':'Kg'},
+  'Regianito':{'macro':'Fiambre','medida':'Kg'},
+  'Repasador Frances':{'macro':'Limpieza','medida':'Unidades'},
+  'Romero':{'macro':'Verduleria','medida':'Kg'},
+  'Rucula':{'macro':'Verduleria','medida':'Kg'},
+  'Sal fina':{'macro':'Almacen','medida':'kg'},
+  'Sal gruesa':{'macro':'Almacen','medida':'kg'},
+  'Salchicha Parrillera':{'macro':'Carniceria','medida':'Kg'},
+  'Salsa de tomate cubeteado':{'macro':'Almacen','medida':'kg'},
+  'Servilleta':{'macro':'Limpieza','medida':'Unidades'},
+  'Suprema':{'macro':'Carniceria','medida':'Kg'},
+  'Tabasco':{'macro':'Almacen','medida':'unidades'},
+  'Tapa de empanada 12.5 cm':{'macro':'Almacen','medida':'kg'},
+  'Tapa de empanada 13.5 cm':{'macro':'Almacen','medida':'kg'},
+  'Toalla Intercalada':{'macro':'Limpieza','medida':'Unidades'},
+  'Tomate Deshidratado':{'macro':'Almacen','medida':'kg'},
+  'Tomate Perita':{'macro':'Verduleria','medida':'Kg'},
+  'Tomate Triturado':{'macro':'Almacen','medida':'kg'},
+  'Tomillo':{'macro':'Verduleria','medida':'Kg'},
+  'Trapo de piso':{'macro':'Limpieza','medida':'Unidades'},
+  'Vinagre':{'macro':'Almacen','medida':'Litros'},
+  'Vino Blanco':{'macro':'Bebidas','medida':'Litros'},
+  'Vino Tinto':{'macro':'Bebidas','medida':'Litros'},
+  'Vino blanco para cocinar':{'macro':'Almacen','medida':'Litros'},
+  'Vino tinto para cocinar':{'macro':'Almacen','medida':'Litros'},
+  'Wi-Fi':{'macro':'Servicios','medida':'facturas'},
+  'Zanahoria':{'macro':'Verduleria','medida':'Kg'},
+};
+
 // ── Auth helpers ────────────────────────────────────────────────────────────
 function saveSession(data) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(data));
@@ -471,27 +630,24 @@ const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${St
 
 // ── CLIENT VIEW ─────────────────────────────────────────────────────────────
 async function renderClient(token, userId) {
-  // Fetch user's portal profile and restaurant
   const [profile] = await sbGet(token, 'portal_users', { 'id': `eq.${userId}`, 'select': '*' });
   const restaurantId = profile.restaurant_id;
 
   const [restaurant] = await sbGet(token, 'restaurants', { 'id': `eq.${restaurantId}`, 'select': '*' });
   document.getElementById('user-label').textContent = restaurant.name;
 
-  // Fetch all data in parallel
   const [invoices, suppliers, lineItems] = await Promise.all([
     sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '500' }),
     sbGet(token, 'suppliers', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*', 'order': 'name.asc', 'limit': '500' }),
-    sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': 'total,category_id,categories(name)', 'limit': '2000' }),
+    sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,invoices(invoice_date),suppliers(name),categories(name)', 'order': 'created_at.desc', 'limit': '2000' }),
   ]);
 
-  // Compute stats
+  // Stats
   const ms = monthStart();
   const thisMonth = invoices.filter(i => i.invoice_date >= ms);
   const totalThisMonth = thisMonth.reduce((s, i) => s + (i.total || 0), 0);
   const totalAllTime   = invoices.reduce((s, i) => s + (i.total || 0), 0);
 
-  // Top supplier this month
   const supplierSpend = {};
   for (const inv of thisMonth) {
     const name = inv.suppliers?.name || 'Sin proveedor';
@@ -499,16 +655,18 @@ async function renderClient(token, userId) {
   }
   const topSupplier = Object.entries(supplierSpend).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
 
-  // Top category all time
-  const catSpend = {};
+  // Stock aggregation from line_items
+  const stockMap = {};
   for (const li of lineItems) {
-    const name = li.categories?.name || 'Sin categoría';
-    catSpend[name] = (catSpend[name] || 0) + (li.total || 0);
+    const catName = li.categories?.name || 'Sin categoría';
+    if (!stockMap[catName]) stockMap[catName] = { qty: 0, total: 0 };
+    stockMap[catName].qty += li.quantity || 0;
+    stockMap[catName].total += li.total || 0;
   }
-  const catEntries = Object.entries(catSpend).sort((a,b)=>b[1]-a[1]);
-  const topCat = catEntries[0]?.[0] || '—';
+  const stockEntries = Object.entries(stockMap).sort((a,b) => b[1].total - a[1].total);
+  const topCat = stockEntries[0]?.[0] || '—';
 
-  // Supplier invoice counts + spend
+  // Supplier spend for proveedores tab
   const supplierData = {};
   for (const inv of invoices) {
     const sid = inv.supplier_id;
@@ -518,132 +676,100 @@ async function renderClient(token, userId) {
     supplierData[sid].total += inv.total || 0;
   }
 
+  // Sort line items by invoice date desc
+  const sortedLI = [...lineItems].sort((a, b) => {
+    const da = a.invoices?.invoice_date || '';
+    const db = b.invoices?.invoice_date || '';
+    return db.localeCompare(da);
+  });
+
+  // Build HTML using string concatenation (avoids nested template literal issues)
+  const statsHtml = '<div class="stats-row">'
+    + '<div class="stat-card"><div class="stat-label">Gasto este mes</div><div class="stat-value stat-accent">' + fmtARS(totalThisMonth) + '</div><div class="stat-sub">' + thisMonth.length + ' factura' + (thisMonth.length !== 1 ? 's' : '') + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Total histórico</div><div class="stat-value">' + fmtARS(totalAllTime) + '</div><div class="stat-sub">' + invoices.length + ' facturas totales</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Principal proveedor</div><div class="stat-value" style="font-size:16px;margin-top:4px;">' + topSupplier + '</div><div class="stat-sub">este mes</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Categoría top</div><div class="stat-value" style="font-size:16px;margin-top:4px;">' + topCat + '</div><div class="stat-sub">por gasto total</div></div>'
+    + '</div>';
+
+  const tabsHtml = '<div class="tabs">'
+    + '<button class="tab-btn active" data-tab="facturas">Facturas</button>'
+    + '<button class="tab-btn" data-tab="proveedores">Proveedores</button>'
+    + '<button class="tab-btn" data-tab="productos">Productos</button>'
+    + '<button class="tab-btn" data-tab="stock">Stock</button>'
+    + '</div>';
+
+  const facturasRows = invoices.slice(0, 200).map(i =>
+    '<tr>'
+    + '<td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
+    + '<td class="td-mono td-muted" style="font-size:12px;">' + (i.invoice_number || '—') + '</td>'
+    + '<td>' + (i.suppliers?.name || '—') + '</td>'
+    + '<td><span class="badge badge-gray">' + (i.tipo_comprobante || '—') + '</span></td>'
+    + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
+    + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
+    + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
+    + '</tr>'
+  ).join('') || '<tr><td colspan="7" class="empty">Sin facturas registradas.</td></tr>';
+
+  const facturasHtml = '<div id="tab-facturas">'
+    + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta">Últimas ' + Math.min(invoices.length, 200) + ' facturas</div></div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Tipo</th><th>Sin IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
+    + '<tbody>' + facturasRows + '</tbody></table></div></div>';
+
+  const proveedoresRows = suppliers.map(s => {
+    const d = supplierData[s.id] || { count: 0, total: 0 };
+    return '<tr><td>' + s.name + '</td><td class="td-mono td-muted">' + (s.cuit || '—') + '</td><td class="td-mono">' + d.count + '</td><td class="td-mono td-accent">' + fmtARS(d.total) + '</td></tr>';
+  }).join('') || '<tr><td colspan="4" class="empty">Sin proveedores.</td></tr>';
+
+  const proveedoresHtml = '<div id="tab-proveedores" hidden>'
+    + '<div class="section-header"><div class="section-title">Proveedores</div><div class="section-meta">' + suppliers.length + ' proveedor' + (suppliers.length !== 1 ? 'es' : '') + '</div></div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>CUIT</th><th>Facturas</th><th>Gasto total</th></tr></thead>'
+    + '<tbody>' + proveedoresRows + '</tbody></table></div></div>';
+
+  const productosRows = sortedLI.slice(0, 500).map(li =>
+    '<tr>'
+    + '<td class="td-mono td-muted" style="font-size:12px;">' + fmtDate(li.invoices?.invoice_date) + '</td>'
+    + '<td style="font-weight:500;">' + (li.product_name || '—') + '</td>'
+    + '<td class="td-muted">' + (li.categories?.name || '—') + '</td>'
+    + '<td class="td-muted">' + (li.suppliers?.name || '—') + '</td>'
+    + '<td class="td-mono">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
+    + '<td class="td-muted">' + (li.unit || '—') + '</td>'
+    + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
+    + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
+    + '</tr>'
+  ).join('') || '<tr><td colspan="8" class="empty">Sin productos registrados.</td></tr>';
+
+  const productosHtml = '<div id="tab-productos" hidden>'
+    + '<div class="section-header"><div class="section-title">Productos</div><div class="section-meta">' + sortedLI.length + ' registros</div></div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Producto</th><th>Categoría</th><th>Proveedor</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
+    + '<tbody>' + productosRows + '</tbody></table></div></div>';
+
+  const stockRows = stockEntries.map(function(entry) {
+    const name = entry[0]; const d = entry[1];
+    const meta = catMeta(name);
+    return '<tr>'
+      + '<td style="font-weight:500;">' + name + '</td>'
+      + '<td><span class="badge badge-gray">' + (meta.macro || '—') + '</span></td>'
+      + '<td class="td-muted">' + (meta.medida || '—') + '</td>'
+      + '<td class="td-mono">' + fmtNum(d.qty) + '</td>'
+      + '<td class="td-mono td-accent">' + fmtARS(d.total) + '</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">Sin datos de stock.</td></tr>';
+
+  const stockHtml = '<div id="tab-stock" hidden>'
+    + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta">' + stockEntries.length + ' categorías</div></div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Categoría</th><th>Macro Categoría</th><th>Unidad</th><th>Cantidad total</th><th>Total ARS</th></tr></thead>'
+    + '<tbody>' + stockRows + '</tbody></table></div></div>';
+
   const main = document.getElementById('main-content');
-  main.innerHTML = `
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Gasto este mes</div>
-        <div class="stat-value stat-accent">${fmtARS(totalThisMonth)}</div>
-        <div class="stat-sub">${thisMonth.length} factura${thisMonth.length !== 1 ? 's' : ''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total histórico</div>
-        <div class="stat-value">${fmtARS(totalAllTime)}</div>
-        <div class="stat-sub">${invoices.length} facturas totales</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Principal proveedor</div>
-        <div class="stat-value" style="font-size:16px;margin-top:4px;">${topSupplier}</div>
-        <div class="stat-sub">este mes</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Categoría top</div>
-        <div class="stat-value" style="font-size:16px;margin-top:4px;">${topCat}</div>
-        <div class="stat-sub">por gasto total</div>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="facturas">Facturas</button>
-      <button class="tab-btn" data-tab="proveedores">Proveedores</button>
-      <button class="tab-btn" data-tab="categorias">Categorías</button>
-    </div>
-
-    <!-- Facturas tab -->
-    <div id="tab-facturas">
-      <div class="section-header">
-        <div class="section-title">Facturas</div>
-        <div class="section-meta">Últimas ${Math.min(invoices.length, 200)} facturas</div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>N° Comprobante</th>
-              <th>Proveedor</th>
-              <th>Tipo</th>
-              <th>Sin IVA</th>
-              <th>Total</th>
-              <th>Archivo</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${invoices.slice(0,200).map(i => `
-              <tr>
-                <td class="td-mono">${fmtDate(i.invoice_date)}</td>
-                <td class="td-mono td-muted" style="font-size:12px;">${i.invoice_number || '—'}</td>
-                <td>${i.suppliers?.name || '—'}</td>
-                <td><span class="badge badge-gray">${i.tipo_comprobante || '—'}</span></td>
-                <td class="td-mono td-muted">${fmtARS(i.subtotal)}</td>
-                <td class="td-mono td-accent">${fmtARS(i.total)}</td>
-                <td>${i.file_url ? `<a class="file-link" href="${i.file_url}" target="_blank">Ver ↗</a>` : '<span class="td-muted">—</span>'}</td>
-              </tr>
-            `).join('') || '<tr><td colspan="7" class="empty">Sin facturas registradas.</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Proveedores tab -->
-    <div id="tab-proveedores" hidden>
-      <div class="section-header">
-        <div class="section-title">Proveedores</div>
-        <div class="section-meta">${suppliers.length} proveedor${suppliers.length !== 1 ? 'es' : ''}</div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Proveedor</th><th>CUIT</th><th>Facturas</th><th>Gasto total</th></tr>
-          </thead>
-          <tbody>
-            ${suppliers.map(s => {
-              const d = supplierData[s.id] || { count: 0, total: 0 };
-              return `<tr>
-                <td>${s.name}</td>
-                <td class="td-mono td-muted">${s.cuit || '—'}</td>
-                <td class="td-mono">${d.count}</td>
-                <td class="td-mono td-accent">${fmtARS(d.total)}</td>
-              </tr>`;
-            }).join('') || '<tr><td colspan="4" class="empty">Sin proveedores.</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Categorias tab -->
-    <div id="tab-categorias" hidden>
-      <div class="section-header">
-        <div class="section-title">Gasto por categoría</div>
-        <div class="section-meta">Top ${Math.min(catEntries.length, 30)} categorías</div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Categoría</th><th>Gasto total (ARS)</th></tr>
-          </thead>
-          <tbody>
-            ${catEntries.slice(0,30).map(([name, total]) => `
-              <tr>
-                <td>${name}</td>
-                <td class="td-mono td-accent">${fmtARS(total)}</td>
-              </tr>
-            `).join('') || '<tr><td colspan="2" class="empty">Sin datos de categorías.</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
+  main.innerHTML = statsHtml + tabsHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
 
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['facturas','proveedores','categorias'].forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
+      ['facturas','proveedores','productos','stock'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
         if (el) el.hidden = t !== btn.dataset.tab;
       });
     });
