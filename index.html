@@ -2829,6 +2829,12 @@ const _SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const PORTAL_URL = 'https://agentiva.com.ar/portal/';
 const _SESS_KEY  = 'agentiva_portal_v1';
 
+// Restaurant platform clients — authenticated against platform Supabase, redirected to /platform/
+const _PLATFORM_SB_URL  = 'https://etetlzcsqucujqjkzsvm.supabase.co';
+const _PLATFORM_SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0ZXRsemNzcXVjdWpxamt6c3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTU3MzUsImV4cCI6MjA5NDI3MTczNX0.KMo40WJKxsLMu7OK5ksblxSkg61gTZLjpA4DIJOMJ8c';
+const _PLATFORM_SESS    = 'restaurant_platform_v1';
+const _RESTAURANT_EMAILS = new Set(['campasosrl@gmail.com']);
+
 function _getSession() {
   try {
     const s = JSON.parse(localStorage.getItem(_SESS_KEY));
@@ -2870,6 +2876,29 @@ async function handleLogin(e) {
   const pass  = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
+
+  // Restaurant platform clients → validate against platform Supabase, redirect to /platform/
+  if (_RESTAURANT_EMAILS.has(email)) {
+    try {
+      const res = await fetch(`${_PLATFORM_SB_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': _PLATFORM_SB_KEY },
+        body: JSON.stringify({ email, password: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error_description || 'Credenciales incorrectas');
+      localStorage.setItem(_PLATFORM_SESS, JSON.stringify({
+        access_token: data.access_token, user_id: data.user.id, email: data.user.email
+      }));
+      closeAuthModal();
+      window.location.href = '/platform/';
+    } catch (err) {
+      errEl.textContent = err.message || 'Email o contraseña incorrectos.';
+    }
+    return;
+  }
+
+  // Standard portal auth
   try {
     const res  = await fetch(`${_SB_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
