@@ -936,6 +936,29 @@ function toggleInvoiceDetail(row, invoiceId) {
       + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
       + '</tr>';
   }).join('') || '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted);">Sin productos.</td></tr>';
+
+  // IVA breakdown for this invoice
+  const invObj = _invoicesAll.find(i => i.id === invoiceId);
+  let ivaBreakdownHtml = '';
+  if (invObj) {
+    const ivaFields = [
+      { label: 'IVA 27%',        val: invObj.iva_27 },
+      { label: 'IVA 21%',        val: invObj.iva_21 },
+      { label: 'IVA 10,5%',      val: invObj.iva_10_5 },
+      { label: 'IVA 5%',         val: invObj.iva_5 },
+      { label: 'IVA 2,5%',       val: invObj.iva_2_5 },
+      { label: 'Otros tributos', val: invObj.otros_tributos },
+    ].filter(f => f.val && f.val !== 0);
+    if (ivaFields.length) {
+      const ivaRows = ivaFields.map(f =>
+        '<tr><td style="color:var(--muted);padding:4px 8px;">' + f.label + '</td>'
+        + '<td class="td-mono td-accent" style="padding:4px 8px;">' + fmtARS(f.val) + '</td></tr>'
+      ).join('');
+      ivaBreakdownHtml = '<div class="detail-label" style="margin-top:14px;">Detalle de impuestos</div>'
+        + '<table style="width:auto;border-collapse:collapse;"><tbody>' + ivaRows + '</tbody></table>';
+    }
+  }
+
   const det = document.createElement('tr');
   det.id = 'idet-' + invoiceId;
   det.className = 'invoice-detail';
