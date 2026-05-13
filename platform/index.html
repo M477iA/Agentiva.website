@@ -687,7 +687,7 @@ a.file-link:hover { opacity: 1; }
       <div class="chat-ai-dot"></div>
       <div>
         <div class="chat-title">Asistente IA</div>
-        <div class="chat-subtitle">Datos en tiempo real</div>
+        <div class="chat-subtitle">Datos en tiempo real &nbsp;·&nbsp; <span id="chat-usage"></span></div>
       </div>
     </div>
     <button class="chat-close" id="chat-close">&#x2715;</button>
@@ -1569,7 +1569,16 @@ async function sendChat() {
     });
     const data = await res.json();
     typing.remove();
-    appendChatBubble(data.answer || data.error || 'Sin respuesta.', 'ai');
+    if (res.status === 429) {
+      appendChatBubble(data.error, 'ai');
+    } else {
+      appendChatBubble(data.answer || data.error || 'Sin respuesta.', 'ai');
+      if (data.usage) {
+        const rem = data.usage.remaining;
+        const el = document.getElementById('chat-usage');
+        if (el) el.textContent = rem + ' consultas restantes este mes';
+      }
+    }
   } catch (_) {
     typing.remove();
     appendChatBubble('Error al conectar con el asistente. Intentá de nuevo.', 'ai');
