@@ -376,6 +376,148 @@ a.file-link:hover { opacity: 1; }
 @media (max-width: 700px) {
   .charts-row { grid-template-columns: 1fr; }
 }
+
+/* ── Filter bar ─────────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.filter-bar input, .filter-bar select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--font);
+  outline: none;
+  height: 36px;
+}
+.filter-bar input { min-width: 140px; }
+.filter-bar select { min-width: 160px; }
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+.filter-bar input::placeholder { color: var(--muted); }
+.btn-filter {
+  padding: 0 14px;
+  height: 36px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: opacity 0.15s;
+}
+.btn-filter:hover { opacity: 0.85; }
+.btn-filter-clear {
+  padding: 0 14px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-filter-clear:hover { border-color: var(--text); color: var(--text); }
+
+/* ── Expandable rows ─────────────────────────────────────────────────────── */
+.invoice-row { cursor: pointer; }
+.invoice-row:hover td { background: rgba(16,185,129,0.04) !important; }
+.invoice-row.expanded td { background: rgba(16,185,129,0.06) !important; }
+.invoice-detail td { padding: 0 !important; border-bottom: 1px solid var(--border); }
+.detail-inner {
+  background: rgba(16,185,129,0.03);
+  border-top: 1px dashed rgba(16,185,129,0.2);
+  padding: 12px 16px 16px;
+}
+.detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.detail-inner table { width: 100%; border-collapse: collapse; }
+.detail-inner th {
+  text-align: left;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.detail-inner td {
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  background: transparent !important;
+}
+.detail-inner tr:last-child td { border-bottom: none; }
+
+/* ── Inline link button ─────────────────────────────────────────────────── */
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.12s;
+}
+.btn-link:hover { color: var(--accent); text-decoration: underline; }
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  width: 28px; height: 28px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.modal-close:hover { border-color: var(--danger); color: var(--danger); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -434,6 +576,14 @@ a.file-link:hover { opacity: 1; }
     </div>
   </div>
   <div class="main" id="main-content"></div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay" hidden>
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -658,6 +808,195 @@ const fmtARS = n => n == null ? '—' : new Intl.NumberFormat('es-AR', { style: 
 const fmtDate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; };
 
+
+// ── Global state for modals & filters ───────────────────────────────────────
+let _invoicesAll  = [];
+let _suppliersAll = [];
+let _supplierMap  = {};
+let _liByInvoice  = {};
+let _productNames = [];
+let _liByPidx     = [];
+
+function escAttr(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Facturas: filter + render ────────────────────────────────────────────────
+function applyFilters() {
+  const from = document.getElementById('f-from')?.value;
+  const to   = document.getElementById('f-to')?.value;
+  const num  = (document.getElementById('f-num')?.value || '').trim().toLowerCase();
+  const sid  = document.getElementById('f-sup')?.value;
+  const filtered = _invoicesAll.filter(i => {
+    if (from && i.invoice_date < from) return false;
+    if (to   && i.invoice_date > to)   return false;
+    if (num  && !(i.invoice_number || '').toLowerCase().includes(num)) return false;
+    if (sid  && i.supplier_id !== sid) return false;
+    return true;
+  });
+  renderFacturasTable(filtered);
+}
+
+function clearFilters() {
+  ['f-from','f-to','f-num','f-sup'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderFacturasTable(_invoicesAll);
+}
+
+function renderFacturasTable(invoices) {
+  const tbody = document.getElementById('facturas-tbody');
+  const countEl = document.getElementById('facturas-count');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = invoices.length + ' factura' + (invoices.length !== 1 ? 's' : '');
+  tbody.innerHTML = invoices.slice(0, 300).map(i => {
+    const sup = _supplierMap[i.supplier_id];
+    return '<tr class="invoice-row" data-iid="' + i.id + '">'
+      + '<td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
+      + '<td class="td-mono td-muted" style="font-size:12px;">' + escAttr(i.invoice_number || '—') + '</td>'
+      + '<td><button class="btn-link" data-sup-id="' + i.supplier_id + '">' + escAttr(sup?.name || '—') + '</button></td>'
+      + '<td><span class="badge badge-gray">' + escAttr(i.tipo_comprobante || '—') + '</span></td>'
+      + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
+      + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + '</td>'
+      + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
+      + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="8" class="empty">Sin facturas.</td></tr>';
+
+  if (!tbody._hasListeners) {
+    tbody.addEventListener('click', handleFacturasClick);
+    tbody._hasListeners = true;
+  }
+}
+
+function handleFacturasClick(e) {
+  const supBtn = e.target.closest('[data-sup-id]');
+  if (supBtn) { e.stopPropagation(); openProviderModal(supBtn.dataset.supId); return; }
+  const prodBtn = e.target.closest('[data-pidx]');
+  if (prodBtn) { e.stopPropagation(); openProductModal(parseInt(prodBtn.dataset.pidx)); return; }
+  if (e.target.closest('a.file-link')) return;
+  const row = e.target.closest('tr.invoice-row');
+  if (row) toggleInvoiceDetail(row, row.dataset.iid);
+}
+
+// ── Expand / collapse invoice detail ────────────────────────────────────────
+function toggleInvoiceDetail(row, invoiceId) {
+  const existing = document.getElementById('idet-' + invoiceId);
+  if (existing) { existing.remove(); row.classList.remove('expanded'); return; }
+  row.classList.add('expanded');
+  const items = _liByInvoice[invoiceId] || [];
+  const subRows = items.map(li => {
+    const pidx = getPidx(li.product_name || '?');
+    return '<tr>'
+      + '<td>' + escAttr(li.categories?.name || '—') + '</td>'
+      + '<td><button class="btn-link" data-pidx="' + pidx + '">' + escAttr(li.product_name || '—') + '</button></td>'
+      + '<td class="td-mono">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
+      + '<td>' + escAttr(li.unit || '—') + '</td>'
+      + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
+      + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted);">Sin productos.</td></tr>';
+  const det = document.createElement('tr');
+  det.id = 'idet-' + invoiceId;
+  det.className = 'invoice-detail';
+  det.innerHTML = '<td colspan="8"><div class="detail-inner">'
+    + '<div class="detail-label">Productos en esta factura</div>'
+    + '<table><thead><tr><th>Categoría</th><th>Producto</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
+    + '<tbody>' + subRows + '</tbody></table></div></td>';
+  row.after(det);
+}
+
+function getPidx(name) {
+  let idx = _productNames.indexOf(name);
+  if (idx < 0) { idx = _productNames.length; _productNames.push(name); _liByPidx.push(_liByInvoice); }
+  return idx;
+}
+
+// ── Provider modal ───────────────────────────────────────────────────────────
+function openProviderModal(supplierId) {
+  const sup = _supplierMap[supplierId];
+  if (!sup) return;
+  const invs = _invoicesAll.filter(i => i.supplier_id === supplierId)
+    .sort((a,b) => b.invoice_date.localeCompare(a.invoice_date));
+  const total = invs.reduce((s,i) => s+(i.total||0), 0);
+  const rows = invs.slice(0,100).map(i =>
+    '<tr><td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
+    + '<td class="td-mono td-muted" style="font-size:12px;">' + escAttr(i.invoice_number||'—') + '</td>'
+    + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
+    + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
+    + '<td>' + (i.file_url ? '<a class="file-link" href="'+i.file_url+'" target="_blank">Ver ↗</a>' : '—') + '</td>'
+    + '</tr>'
+  ).join('');
+  document.getElementById('modal-body').innerHTML =
+    '<div style="margin-bottom:20px;padding-right:32px;">'
+    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;">' + escAttr(sup.name) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">CUIT: ' + escAttr(sup.cuit||'—') + '</div>'
+    + '</div>'
+    + '<div class="stats-row" style="margin-bottom:20px;">'
+    + '<div class="stat-card"><div class="stat-label">Facturas</div><div class="stat-value">' + invs.length + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Total gastado</div><div class="stat-value stat-accent">' + fmtARS(total) + '</div></div>'
+    + '</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Historial de facturas</div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Sin IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+  showModal();
+}
+
+// ── Product modal ────────────────────────────────────────────────────────────
+function openProductModal(pidx) {
+  const name = _productNames[pidx];
+  if (!name) return;
+  // Find all line items with this product name across all invoices
+  const items = [];
+  for (const invId in _liByInvoice) {
+    for (const li of _liByInvoice[invId]) {
+      if ((li.product_name || '?') === name) items.push(li);
+    }
+  }
+  if (!items.length) return;
+  const sample  = items[0];
+  const unit    = sample.unit || '—';
+  const cat     = sample.categories?.name || '—';
+  const totQty  = items.reduce((s,li) => s+(li.quantity||0), 0);
+  const totARS  = items.reduce((s,li) => s+(li.total||0), 0);
+  items.sort((a,b) => (b.invoices?.invoice_date||'').localeCompare(a.invoices?.invoice_date||''));
+  const rows = items.map(li =>
+    '<tr><td class="td-mono td-muted">' + fmtDate(li.invoices?.invoice_date) + '</td>'
+    + '<td class="td-muted" style="font-size:12px;">' + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
+    + '<td class="td-mono">' + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
+    + '<td>' + escAttr(li.unit||'—') + '</td>'
+    + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
+    + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
+    + '</tr>'
+  ).join('');
+  document.getElementById('modal-body').innerHTML =
+    '<div style="margin-bottom:20px;padding-right:32px;">'
+    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;">' + escAttr(name) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">Categoría: ' + escAttr(cat) + ' &nbsp;·&nbsp; Unidad: ' + escAttr(unit) + '</div>'
+    + '</div>'
+    + '<div class="stats-row" style="margin-bottom:20px;">'
+    + '<div class="stat-card"><div class="stat-label">Compras</div><div class="stat-value">' + items.length + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div class="stat-value">' + fmtNum(totQty) + ' <span style="font-size:14px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
+    + '<div class="stat-card"><div class="stat-label">Total gastado</div><div class="stat-value stat-accent">' + fmtARS(totARS) + '</div></div>'
+    + '</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Historial de compras</div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+  showModal();
+}
+
+function showModal() {
+  const ov = document.getElementById('modal-overlay');
+  ov.hidden = false;
+  ov.onclick = e => { if (e.target === ov) closeModal(); };
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-overlay').hidden = true;
+  document.body.style.overflow = '';
+}
+
 // ── CLIENT VIEW ─────────────────────────────────────────────────────────────
 async function renderClient(token, userId) {
   const [profile] = await sbGet(token, 'portal_users', { 'id': `eq.${userId}`, 'select': '*' });
@@ -760,22 +1099,34 @@ async function renderClient(token, userId) {
 
   const generalHtml = '<div id="tab-general">' + kpiHtml + chartsHtml + '</div>';
 
-  const facturasRows = invoices.slice(0, 200).map(i =>
-    '<tr>'
-    + '<td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
-    + '<td class="td-mono td-muted" style="font-size:12px;">' + (i.invoice_number || '—') + '</td>'
-    + '<td>' + (i.suppliers?.name || '—') + '</td>'
-    + '<td><span class="badge badge-gray">' + (i.tipo_comprobante || '—') + '</span></td>'
-    + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
-    + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
-    + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
-    + '</tr>'
-  ).join('') || '<tr><td colspan="7" class="empty">Sin facturas registradas.</td></tr>';
+  // Store global state for modals and filters
+  _invoicesAll  = invoices;
+  _suppliersAll = suppliers;
+  _supplierMap  = Object.fromEntries(suppliers.map(s => [s.id, s]));
+  _productNames = [];
+  _liByPidx     = [];
+  _liByInvoice  = {};
+  for (const li of lineItems) {
+    if (!_liByInvoice[li.invoice_id]) _liByInvoice[li.invoice_id] = [];
+    _liByInvoice[li.invoice_id].push(li);
+  }
+
+  const supOptions = suppliers.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
 
   const facturasHtml = '<div id="tab-facturas" hidden>'
-    + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta">Últimas ' + Math.min(invoices.length, 200) + ' facturas</div></div>'
-    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Tipo</th><th>Sin IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
-    + '<tbody>' + facturasRows + '</tbody></table></div></div>';
+    + '<div class="filter-bar">'
+    + '<input type="date" id="f-from">'
+    + '<input type="date" id="f-to">'
+    + '<input type="text" id="f-num" placeholder="Buscar N° factura...">'
+    + '<select id="f-sup"><option value="">Todos los proveedores</option>' + supOptions + '</select>'
+    + '<button class="btn-filter" onclick="applyFilters()">Aplicar</button>'
+    + '<button class="btn-filter-clear" onclick="clearFilters()">Limpiar</button>'
+    + '</div>'
+    + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta" id="facturas-count"></div></div>'
+    + '<div class="table-wrap"><table>'
+    + '<thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Tipo</th><th>Sin IVA</th><th>IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
+    + '<tbody id="facturas-tbody"></tbody>'
+    + '</table></div></div>';
 
   const proveedoresRows = suppliers.map(s => {
     const d = supplierData[s.id] || { count: 0, total: 0 };
@@ -824,6 +1175,9 @@ async function renderClient(token, userId) {
 
   const main = document.getElementById('main-content');
   main.innerHTML = tabsHtml + generalHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
+
+  // Populate facturas table (must happen after innerHTML is set)
+  renderFacturasTable(_invoicesAll);
 
   // ── Initialize charts ─────────────────────────────────────────────────────
   Chart.defaults.color = '#64748b';
