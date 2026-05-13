@@ -347,7 +347,37 @@ a.file-link:hover { opacity: 1; }
   .main   { padding: 16px; }
   .stats-row { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── Charts ─────────────────────────────────────────────────────────────── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.chart-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+@media (max-width: 700px) {
+  .charts-row { grid-template-columns: 1fr; }
+}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -647,13 +677,13 @@ async function renderClient(token, userId) {
   const thisMonth = invoices.filter(i => i.invoice_date >= ms);
   const totalThisMonth = thisMonth.reduce((s, i) => s + (i.total || 0), 0);
   const totalAllTime   = invoices.reduce((s, i) => s + (i.total || 0), 0);
+  const avgInvoice     = invoices.length ? totalAllTime / invoices.length : 0;
 
   const supplierSpend = {};
   for (const inv of thisMonth) {
     const name = inv.suppliers?.name || 'Sin proveedor';
     supplierSpend[name] = (supplierSpend[name] || 0) + (inv.total || 0);
   }
-  const topSupplier = Object.entries(supplierSpend).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
 
   // Stock aggregation from line_items
   const stockMap = {};
@@ -664,9 +694,8 @@ async function renderClient(token, userId) {
     stockMap[catName].total += li.total || 0;
   }
   const stockEntries = Object.entries(stockMap).sort((a,b) => b[1].total - a[1].total);
-  const topCat = stockEntries[0]?.[0] || '—';
 
-  // Supplier spend for proveedores tab
+  // Supplier spend
   const supplierData = {};
   for (const inv of invoices) {
     const sid = inv.supplier_id;
@@ -683,20 +712,53 @@ async function renderClient(token, userId) {
     return db.localeCompare(da);
   });
 
-  // Build HTML using string concatenation (avoids nested template literal issues)
-  const statsHtml = '<div class="stats-row">'
-    + '<div class="stat-card"><div class="stat-label">Gasto este mes</div><div class="stat-value stat-accent">' + fmtARS(totalThisMonth) + '</div><div class="stat-sub">' + thisMonth.length + ' factura' + (thisMonth.length !== 1 ? 's' : '') + '</div></div>'
-    + '<div class="stat-card"><div class="stat-label">Total histórico</div><div class="stat-value">' + fmtARS(totalAllTime) + '</div><div class="stat-sub">' + invoices.length + ' facturas totales</div></div>'
-    + '<div class="stat-card"><div class="stat-label">Principal proveedor</div><div class="stat-value" style="font-size:16px;margin-top:4px;">' + topSupplier + '</div><div class="stat-sub">este mes</div></div>'
-    + '<div class="stat-card"><div class="stat-label">Categoría top</div><div class="stat-value" style="font-size:16px;margin-top:4px;">' + topCat + '</div><div class="stat-sub">por gasto total</div></div>'
-    + '</div>';
+  // Chart data: spending timeline grouped by date
+  const timelineMap = {};
+  for (const inv of invoices) {
+    const d = inv.invoice_date;
+    if (!d) continue;
+    timelineMap[d] = (timelineMap[d] || 0) + (inv.total || 0);
+  }
+  const timelineDates  = Object.keys(timelineMap).sort();
+  const timelineValues = timelineDates.map(d => timelineMap[d]);
 
+  // Chart data: top suppliers by total
+  const supplierChartData = Object.entries(supplierData)
+    .map(([sid, d]) => { const s = suppliers.find(x => x.id === sid); return { name: s?.name || '?', total: d.total }; })
+    .sort((a,b) => b.total - a.total).slice(0, 8);
+
+  // Chart data: macro category totals
+  const macroData = {};
+  for (const entry of stockEntries) {
+    const macro = catMeta(entry[0]).macro || 'Otros';
+    macroData[macro] = (macroData[macro] || 0) + entry[1].total;
+  }
+
+  // ── Build HTML ────────────────────────────────────────────────────────────
   const tabsHtml = '<div class="tabs">'
-    + '<button class="tab-btn active" data-tab="facturas">Facturas</button>'
+    + '<button class="tab-btn active" data-tab="general">General</button>'
+    + '<button class="tab-btn" data-tab="facturas">Facturas</button>'
     + '<button class="tab-btn" data-tab="proveedores">Proveedores</button>'
     + '<button class="tab-btn" data-tab="productos">Productos</button>'
     + '<button class="tab-btn" data-tab="stock">Stock</button>'
     + '</div>';
+
+  const kpiHtml = '<div class="stats-row" style="margin-bottom:16px;">'
+    + '<div class="stat-card"><div class="stat-label">Total facturas</div><div class="stat-value">' + invoices.length + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Gasto total</div><div class="stat-value stat-accent">' + fmtARS(totalAllTime) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Promedio por factura</div><div class="stat-value">' + fmtARS(avgInvoice) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Proveedores</div><div class="stat-value">' + suppliers.length + '</div></div>'
+    + '</div>';
+
+  const chartsHtml = '<div class="charts-row">'
+    + '<div class="chart-card full"><div class="chart-title">Gasto a lo largo del tiempo</div><div class="chart-sub">Monto total por fecha de factura</div><canvas id="chart-timeline" height="90"></canvas></div>'
+    + '</div>'
+    + '<div class="charts-row">'
+    + '<div class="chart-card"><div class="chart-title">Gasto por proveedor</div><div class="chart-sub">Top ' + supplierChartData.length + ' proveedores por monto acumulado</div><canvas id="chart-suppliers"></canvas></div>'
+    + '<div class="chart-card"><div class="chart-title">Distribución por macro categoría</div><div class="chart-sub">Por gasto total acumulado</div><canvas id="chart-macro"></canvas></div>'
+    + '</div>';
+
+  const generalHtml = '<div id="tab-general">' + kpiHtml + chartsHtml + '</div>';
 
   const facturasRows = invoices.slice(0, 200).map(i =>
     '<tr>'
@@ -710,7 +772,7 @@ async function renderClient(token, userId) {
     + '</tr>'
   ).join('') || '<tr><td colspan="7" class="empty">Sin facturas registradas.</td></tr>';
 
-  const facturasHtml = '<div id="tab-facturas">'
+  const facturasHtml = '<div id="tab-facturas" hidden>'
     + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta">Últimas ' + Math.min(invoices.length, 200) + ' facturas</div></div>'
     + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Tipo</th><th>Sin IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
     + '<tbody>' + facturasRows + '</tbody></table></div></div>';
@@ -761,14 +823,67 @@ async function renderClient(token, userId) {
     + '<tbody>' + stockRows + '</tbody></table></div></div>';
 
   const main = document.getElementById('main-content');
-  main.innerHTML = statsHtml + tabsHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
+  main.innerHTML = tabsHtml + generalHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
+
+  // ── Initialize charts ─────────────────────────────────────────────────────
+  Chart.defaults.color = '#64748b';
+  Chart.defaults.font  = { family: "system-ui, -apple-system, 'Segoe UI', sans-serif", size: 11 };
+
+  new Chart(document.getElementById('chart-timeline'), {
+    type: 'line',
+    data: {
+      labels: timelineDates.map(d => { const p = d.split('-'); return p[2] + '/' + p[1]; }),
+      datasets: [{ data: timelineValues, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#10b981', pointBorderWidth: 0 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtARS(ctx.raw) } } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 14, maxRotation: 0 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : (v/1000).toFixed(0)+'k') }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chart-suppliers'), {
+    type: 'bar',
+    data: {
+      labels: supplierChartData.map(s => s.name),
+      datasets: [{ data: supplierChartData.map(s => s.total), backgroundColor: '#10b981', borderRadius: 4 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtARS(ctx.raw) } } },
+      scales: {
+        x: { ticks: { callback: v => '$' + (v/1000000).toFixed(1)+'M' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#e2e8f0', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  const MACRO_COLORS = { 'Almacen':'#f59e0b','Carniceria':'#ef4444','Verduleria':'#22c55e','Fiambre':'#fb923c','Limpieza':'#3b82f6','Bebidas':'#10b981','Servicios':'#64748b','Otros':'#94a3b8' };
+  const macroLabels = Object.keys(macroData);
+  new Chart(document.getElementById('chart-macro'), {
+    type: 'doughnut',
+    data: {
+      labels: macroLabels,
+      datasets: [{ data: macroLabels.map(k => macroData[k]), backgroundColor: macroLabels.map(k => MACRO_COLORS[k] || '#94a3b8'), borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#e2e8f0', padding: 14, font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtARS(ctx.raw) } }
+      }
+    }
+  });
 
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['facturas','proveedores','productos','stock'].forEach(t => {
+      ['general','facturas','proveedores','productos','stock'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.hidden = t !== btn.dataset.tab;
       });
