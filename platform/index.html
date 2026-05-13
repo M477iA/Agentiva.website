@@ -414,6 +414,18 @@ a.file-link:hover { opacity: 1; }
   transition: opacity 0.15s;
 }
 .btn-filter:hover { opacity: 0.85; }
+.filter-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.filter-count {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 4px;
+  white-space: nowrap;
+}
 .btn-filter-clear {
   padding: 0 14px;
   height: 36px;
@@ -868,6 +880,22 @@ function renderFacturasTable(invoices) {
     tbody.addEventListener('click', handleFacturasClick);
     tbody._hasListeners = true;
   }
+  // Wire filter buttons via event listeners (more reliable than onclick)
+  const applyBtn = document.getElementById('btn-apply-filter');
+  const clearBtn = document.getElementById('btn-clear-filter');
+  if (applyBtn && !applyBtn._wired) { applyBtn.addEventListener('click', applyFilters); applyBtn._wired = true; }
+  if (clearBtn && !clearBtn._wired) { clearBtn.addEventListener('click', clearFilters); clearBtn._wired = true; }
+  const numEl = document.getElementById('f-num');
+  if (numEl && !numEl._wired) { numEl.addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); }); numEl._wired = true; }
+  const supEl = document.getElementById('f-sup');
+  if (supEl && !supEl._wired) { supEl.addEventListener('change', applyFilters); supEl._wired = true; }
+  // Update filter count display
+  const countEl2 = document.getElementById('filter-count');
+  if (countEl2) {
+    const total = _invoicesAll.length;
+    const shown = Math.min(invoices.length, 300);
+    countEl2.textContent = shown === total ? total + ' facturas' : shown + ' de ' + total + ' facturas';
+  }
 }
 
 function handleFacturasClick(e) {
@@ -1115,12 +1143,13 @@ async function renderClient(token, userId) {
 
   const facturasHtml = '<div id="tab-facturas" hidden>'
     + '<div class="filter-bar">'
-    + '<input type="date" id="f-from">'
-    + '<input type="date" id="f-to">'
+    + '<label class="filter-label">Desde</label><input type="date" id="f-from">'
+    + '<label class="filter-label">Hasta</label><input type="date" id="f-to">'
     + '<input type="text" id="f-num" placeholder="Buscar N° factura...">'
     + '<select id="f-sup"><option value="">Todos los proveedores</option>' + supOptions + '</select>'
-    + '<button class="btn-filter" onclick="applyFilters()">Aplicar</button>'
-    + '<button class="btn-filter-clear" onclick="clearFilters()">Limpiar</button>'
+    + '<button type="button" id="btn-apply-filter" class="btn-filter">Aplicar</button>'
+    + '<button type="button" id="btn-clear-filter" class="btn-filter-clear">Limpiar</button>'
+    + '<span class="filter-count" id="filter-count"></span>'
     + '</div>'
     + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta" id="facturas-count"></div></div>'
     + '<div class="table-wrap"><table>'
