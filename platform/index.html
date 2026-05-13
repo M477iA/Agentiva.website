@@ -10,14 +10,14 @@
 [hidden] { display: none !important; }
 
 :root {
-  --bg:        #0f1117;
-  --surface:   #1a1f2e;
-  --surface2:  #222840;
-  --border:    rgba(255,255,255,0.08);
-  --accent:    #10b981;
-  --accent-bg: rgba(16,185,129,0.1);
-  --text:      #e2e8f0;
-  --muted:     #64748b;
+  --bg:        #ffffff;
+  --surface:   #f8f9fa;
+  --surface2:  #eef0f2;
+  --border:    rgba(0,0,0,0.09);
+  --accent:    #2DD4BF;
+  --accent-bg: rgba(45,212,191,0.10);
+  --text:      #111827;
+  --muted:     #6b7280;
   --danger:    #ef4444;
   --font:      system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
@@ -29,6 +29,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ── Login ──────────────────────────────────────────────────── */
@@ -38,14 +39,16 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  background: linear-gradient(135deg, #f0fdf9 0%, #ffffff 60%);
 }
 .login-card {
   width: 100%;
   max-width: 380px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.10);
   border-radius: 16px;
   padding: 36px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
 }
 .login-brand {
   font-size: 13px;
@@ -79,8 +82,8 @@ body {
 .field input {
   width: 100%;
   padding: 10px 14px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   color: var(--text);
   font-size: 14px;
@@ -211,7 +214,7 @@ body {
   line-height: 1;
 }
 .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.stat-accent { color: var(--accent); }
+.stat-accent { color: #0d9488; }
 
 /* ── Tabs ───────────────────────────────────────────────────── */
 .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
@@ -220,7 +223,7 @@ body {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--muted);
+  color: #374151;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -229,7 +232,7 @@ body {
   transition: color 0.15s, border-color 0.15s;
 }
 .tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn.active { color: #0d9488; border-bottom-color: #2DD4BF; }
 
 /* ── Section header ─────────────────────────────────────────── */
 .section-header {
@@ -256,7 +259,7 @@ thead th {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: #374151;
   background: var(--surface2);
   border-bottom: 1px solid var(--border);
 }
@@ -267,10 +270,10 @@ tbody td {
   color: var(--text);
 }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,0.02); }
+tbody tr:hover { background: rgba(45,212,191,0.04); }
 .td-mono { font-variant-numeric: tabular-nums; }
 .td-muted { color: var(--muted); }
-.td-accent { color: var(--accent); font-weight: 600; }
+.td-accent { color: #0d9488; font-weight: 600; }
 
 /* ── Badge ──────────────────────────────────────────────────── */
 .badge {
@@ -282,16 +285,16 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 }
 .badge-green { background: var(--accent-bg); color: var(--accent); }
 .badge-blue  { background: rgba(59,130,246,0.1); color: #60a5fa; }
-.badge-gray  { background: rgba(255,255,255,0.06); color: var(--muted); }
+.badge-gray  { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
 
 /* ── File link ──────────────────────────────────────────────── */
 a.file-link {
-  color: var(--accent);
+  color: #0d9488;
   text-decoration: none;
   font-size: 12px;
-  opacity: 0.8;
+  font-weight: 500;
 }
-a.file-link:hover { opacity: 1; }
+a.file-link:hover { text-decoration: underline; }
 
 /* ── Empty state ─────────────────────────────────────────────── */
 .empty {
@@ -307,6 +310,7 @@ a.file-link:hover { opacity: 1; }
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background: #ffffff;
   color: var(--muted);
   font-size: 13px;
   gap: 10px;
@@ -314,7 +318,7 @@ a.file-link:hover { opacity: 1; }
 .spinner {
   width: 18px; height: 18px;
   border: 2px solid var(--border);
-  border-top-color: var(--accent);
+  border-top-color: #2DD4BF;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -339,7 +343,7 @@ a.file-link:hover { opacity: 1; }
 }
 .admin-dot {
   width: 6px; height: 6px;
-  background: var(--accent);
+  background: #2DD4BF;
   border-radius: 50%;
 }
 
@@ -388,8 +392,8 @@ a.file-link:hover { opacity: 1; }
   align-items: center;
 }
 .filter-bar input, .filter-bar select {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
@@ -400,7 +404,7 @@ a.file-link:hover { opacity: 1; }
 }
 .filter-bar input { min-width: 140px; }
 .filter-bar select { min-width: 160px; }
-.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+.filter-bar input:focus, .filter-bar select:focus { border-color: #2DD4BF; }
 .filter-bar input::placeholder { color: var(--muted); }
 .btn-filter {
   padding: 0 14px;
@@ -444,12 +448,12 @@ a.file-link:hover { opacity: 1; }
 
 /* ── Expandable rows ─────────────────────────────────────────────────────── */
 .invoice-row { cursor: pointer; }
-.invoice-row:hover td { background: rgba(16,185,129,0.04) !important; }
-.invoice-row.expanded td { background: rgba(16,185,129,0.06) !important; }
+.invoice-row:hover td { background: rgba(45,212,191,0.05) !important; }
+.invoice-row.expanded td { background: rgba(45,212,191,0.08) !important; }
 .invoice-detail td { padding: 0 !important; border-bottom: 1px solid var(--border); }
 .detail-inner {
-  background: rgba(16,185,129,0.03);
-  border-top: 1px dashed rgba(16,185,129,0.2);
+  background: rgba(45,212,191,0.04);
+  border-top: 1px dashed rgba(45,212,191,0.3);
   padding: 12px 16px 16px;
 }
 .detail-label {
@@ -457,7 +461,7 @@ a.file-link:hover { opacity: 1; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: #0d9488;
   margin-bottom: 8px;
 }
 .detail-inner table { width: 100%; border-collapse: collapse; }
@@ -491,7 +495,7 @@ a.file-link:hover { opacity: 1; }
   text-align: left;
   transition: color 0.12s;
 }
-.btn-link:hover { color: var(--accent); text-decoration: underline; }
+.btn-link:hover { color: #0d9488; text-decoration: underline; }
 
 /* ── Modal ──────────────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -595,10 +599,10 @@ a.file-link:hover { opacity: 1; }
   align-self: flex-end; border-bottom-right-radius: 4px;
 }
 .chat-bubble.ai {
-  background: var(--surface2); color: var(--text);
+  background: #f0fdf9; color: #111827; border: 1px solid rgba(45,212,191,0.2);
   align-self: flex-start; border-bottom-left-radius: 4px;
 }
-.chat-bubble.typing { color: var(--muted); background: var(--surface2); align-self: flex-start; }
+.chat-bubble.typing { color: #6b7280; background: #f8f9fa; align-self: flex-start; }
 .chat-input-row {
   display: flex; gap: 8px; padding: 10px 12px;
   border-top: 1px solid var(--border); flex-shrink: 0;
@@ -656,7 +660,7 @@ a.file-link:hover { opacity: 1; }
     <div id="login-error"></div>
     <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
       <span style="font-size:10px;color:var(--muted);letter-spacing:0.06em;">por</span>
-      <img src="/assets/images/logos/agentiva-logo.png" alt="Agentiva" style="height:12px;width:auto;opacity:0.4;filter:brightness(10);">
+      <img src="/assets/images/logos/agentiva-logo.png" alt="Agentiva" style="height:12px;width:auto;opacity:0.4;filter:brightness(0);">
       <span style="font-size:10px;color:var(--muted);letter-spacing:0.06em;">Agentiva</span>
     </div>
   </div>
@@ -1374,21 +1378,21 @@ async function renderClient(token, userId) {
   initChat(restaurantId);
 
   // ── Initialize charts ─────────────────────────────────────────────────────
-  Chart.defaults.color = '#64748b';
+  Chart.defaults.color = '#374151';
   Chart.defaults.font  = { family: "system-ui, -apple-system, 'Segoe UI', sans-serif", size: 11 };
 
   new Chart(document.getElementById('chart-timeline'), {
     type: 'line',
     data: {
       labels: timelineDates.map(d => { const p = d.split('-'); return p[2] + '/' + p[1]; }),
-      datasets: [{ data: timelineValues, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#10b981', pointBorderWidth: 0 }]
+      datasets: [{ data: timelineValues, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#2DD4BF', pointBorderWidth: 0 }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtARS(ctx.raw) } } },
       scales: {
-        x: { ticks: { maxTicksLimit: 14, maxRotation: 0 }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : (v/1000).toFixed(0)+'k') }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        x: { ticks: { maxTicksLimit: 14, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        y: { ticks: { callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : (v/1000).toFixed(0)+'k') }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
     }
   });
@@ -1397,14 +1401,14 @@ async function renderClient(token, userId) {
     type: 'bar',
     data: {
       labels: supplierChartData.map(s => s.name),
-      datasets: [{ data: supplierChartData.map(s => s.total), backgroundColor: '#10b981', borderRadius: 4 }]
+      datasets: [{ data: supplierChartData.map(s => s.total), backgroundColor: '#2DD4BF', borderRadius: 4 }]
     },
     options: {
       indexAxis: 'y', responsive: true,
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtARS(ctx.raw) } } },
       scales: {
-        x: { ticks: { callback: v => '$' + (v/1000000).toFixed(1)+'M' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#e2e8f0', font: { size: 11 } }, grid: { display: false } }
+        x: { ticks: { callback: v => '$' + (v/1000000).toFixed(1)+'M' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        y: { ticks: { color: '#374151', font: { size: 11 } }, grid: { display: false } }
       }
     }
   });
