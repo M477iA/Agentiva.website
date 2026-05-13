@@ -119,57 +119,58 @@ body {
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  padding: 12px 28px;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
   position: sticky;
   top: 0;
   z-index: 10;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  min-height: 60px;
 }
-.topbar-brand {
+.topbar-left {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: stretch;
 }
-.brand-main {
+.topbar-agentiva-brand {
+  background: #111827;
   display: flex;
   align-items: center;
-  gap: 10px;
+  padding: 0 28px;
+  flex-shrink: 0;
 }
-.brand-logo {
-  height: 30px;
+.agentiva-wordmark {
+  height: 26px;
   width: auto;
-  border-radius: 5px;
-  object-fit: contain;
+  filter: none;
 }
-.brand-name {
-  font-size: 14px;
+.topbar-campaso-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  border-right: 1px solid #e5e7eb;
+}
+.campaso-logo-nav {
+  height: 42px;
+  width: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.campaso-crm-name {
+  font-size: 16px;
   font-weight: 700;
   color: #111827;
-  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
-.brand-sub {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding-left: 2px;
-}
-.brand-sub-label {
-  font-size: 11px;
+.campaso-crm-sub {
+  font-size: 12px;
   color: #6b7280;
-  letter-spacing: 0.05em;
-  font-weight: 500;
+  margin-top: 2px;
 }
-.brand-agentiva-logo {
-  height: 20px;
-  width: auto;
-  opacity: 1;
-  filter: brightness(0);
-}
-.topbar-right { display: flex; align-items: center; gap: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 16px; padding: 0 24px; }
 .topbar-user  { font-size: 13px; color: #374151; font-weight: 500; }
 .btn-logout {
   padding: 6px 14px;
@@ -539,24 +540,26 @@ a.file-link:hover { text-decoration: underline; }
 
 /* ── AI Chat widget ──────────────────────────────────────────────────────── */
 .chat-toggle {
-  position: fixed; bottom: 24px; right: 24px;
-  width: 56px; height: 56px;
-  background: rgba(96,165,250,0.10);
-  border: 1.5px solid rgba(96,165,250,0.35);
-  border-radius: 14px;
+  position: fixed; bottom: 28px; right: 28px;
+  width: 72px; height: 72px;
+  background: #2563eb;
+  border: none;
+  border-radius: 20px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   z-index: 200;
-  color: #60a5fa;
-  animation: chat-glow 2.5s ease-in-out infinite;
+  color: #ffffff;
+  animation: chat-pulse 1.6s ease-in-out infinite;
   transition: transform 0.2s;
+  box-shadow: 0 6px 24px rgba(37,99,235,0.45);
 }
-.chat-toggle:hover { transform: scale(1.07); }
-@keyframes chat-glow {
-  0%,100% { box-shadow: 0 0 8px rgba(96,165,250,0.25); border-color: rgba(96,165,250,0.35); }
-  50%      { box-shadow: 0 0 22px rgba(96,165,250,0.65); border-color: rgba(96,165,250,0.75); }
+.chat-toggle:hover { transform: scale(1.06); }
+@keyframes chat-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0.55), 0 6px 24px rgba(37,99,235,0.4); }
+  60%  { box-shadow: 0 0 0 16px rgba(37,99,235,0), 0 6px 32px rgba(37,99,235,0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0), 0 6px 24px rgba(37,99,235,0.4); }
 }
 .chat-panel {
-  position: fixed; bottom: 88px; right: 24px;
+  position: fixed; bottom: 116px; right: 28px;
   width: 360px; height: 500px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   display: flex; flex-direction: column;
@@ -669,14 +672,16 @@ a.file-link:hover { text-decoration: underline; }
 <!-- App -->
 <div id="app" hidden>
   <div class="topbar">
-    <div class="topbar-brand">
-      <div class="brand-main">
-        <img src="/assets/images/clients/Campaso%20logo.jpg" alt="Campaso" class="brand-logo">
-        <span class="brand-name">Campaso CRM Business Suite</span>
+    <div class="topbar-left">
+      <div class="topbar-agentiva-brand">
+        <img src="/assets/images/logos/Agentiva Logo esteso.png" alt="Agentiva" class="agentiva-wordmark">
       </div>
-      <div class="brand-sub">
-        <span class="brand-sub-label">por</span>
-        <img src="/assets/images/logos/Agentiva Logo esteso.png" alt="Agentiva" class="brand-agentiva-logo">
+      <div class="topbar-campaso-info">
+        <img src="/assets/images/clients/Campaso%20logo.jpg" alt="Campaso" class="campaso-logo-nav">
+        <div>
+          <div class="campaso-crm-name">Campaso CRM</div>
+          <div class="campaso-crm-sub">a business suite</div>
+        </div>
       </div>
     </div>
     <div class="topbar-right">
@@ -689,7 +694,7 @@ a.file-link:hover { text-decoration: underline; }
 
 <!-- AI Chat Widget -->
 <button class="chat-toggle" id="chat-toggle" title="Asistente IA">
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 2v3"/>
     <circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/>
     <rect x="3" y="5" width="18" height="15" rx="3"/>
