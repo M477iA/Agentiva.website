@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentiva · Restaurant Platform</title>
+<style>
+/* ── Reset & tokens ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+:root {
+  --bg:        #0f1117;
+  --surface:   #1a1f2e;
+  --surface2:  #222840;
+  --border:    rgba(255,255,255,0.08);
+  --accent:    #10b981;
+  --accent-bg: rgba(16,185,129,0.1);
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --danger:    #ef4444;
+  --font:      system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Login ──────────────────────────────────────────────────── */
+#login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+}
+.login-brand {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.login-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus { border-color: var(--accent); }
+.btn-primary {
+  width: 100%;
+  padding: 11px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: default; }
+#login-error {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--danger);
+  text-align: center;
+}
+
+/* ── App shell ──────────────────────────────────────────────── */
+#app { min-height: 100vh; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-brand {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.topbar-user  { font-size: 13px; color: var(--muted); }
+.btn-logout {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+.main { padding: 28px; max-width: 1100px; margin: 0 auto; }
+
+/* ── Stats row ──────────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.stat-accent { color: var(--accent); }
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Section header ─────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.section-meta  { font-size: 12px; color: var(--muted); }
+
+/* ── Table ──────────────────────────────────────────────────── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+.td-mono { font-variant-numeric: tabular-nums; }
+.td-muted { color: var(--muted); }
+.td-accent { color: var(--accent); font-weight: 600; }
+
+/* ── Badge ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-green { background: var(--accent-bg); color: var(--accent); }
+.badge-blue  { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.badge-gray  { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+/* ── File link ──────────────────────────────────────────────── */
+a.file-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 12px;
+  opacity: 0.8;
+}
+a.file-link:hover { opacity: 1; }
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Loading ────────────────────────────────────────────────── */
+#loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--muted);
+  font-size: 13px;
+  gap: 10px;
+}
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Admin view ─────────────────────────────────────────────── */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--accent-bg);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.admin-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .topbar { padding: 12px 16px; }
+  .main   { padding: 16px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading"><div class="spinner"></div> Cargando...</div>
+
+<!-- Login -->
+<div id="login-screen" hidden>
+  <div class="login-card">
+    <div class="login-brand">Agentiva</div>
+    <div class="login-title">Restaurant Platform</div>
+    <p class="login-sub">Ingresá con tu cuenta para ver el panel de tu restaurante.</p>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="hola@mirestaurante.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="login-btn">Ingresar</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" hidden>
+  <div class="topbar">
+    <div class="topbar-brand">Agentiva · Restaurant Platform</div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="user-label"></span>
+      <button class="btn-logout" id="logout-btn">Salir</button>
+    </div>
+  </div>
+  <div class="main" id="main-content"></div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+// Replace these with your restaurant-platform Supabase project values.
+const SB_URL  = 'https://etetlzcsqucujqjkzsvm.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0ZXRsemNzcXVjdWpxamt6c3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTU3MzUsImV4cCI6MjA5NDI3MTczNX0.KMo40WJKxsLMu7OK5ksblxSkg61gTZLjpA4DIJOMJ8c';
+const SESSION_KEY = 'restaurant_platform_v1';
+
+// ── Auth helpers ────────────────────────────────────────────────────────────
+function saveSession(data) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+}
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; }
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+async function login(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_ANON },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Error de autenticación');
+  return data;
+}
+
+async function logout() {
+  const session = getSession();
+  if (session?.access_token) {
+    await fetch(`${SB_URL}/auth/v1/logout`, {
+      method: 'POST',
+      headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${session.access_token}` },
+    }).catch(() => {});
+  }
+  clearSession();
+  location.reload();
+}
+
+// ── Supabase REST ───────────────────────────────────────────────────────────
+function sbHeaders(token) {
+  return {
+    'apikey':        SB_ANON,
+    'Authorization': `Bearer ${token}`,
+    'Content-Type':  'application/json',
+  };
+}
+
+async function sbGet(token, endpoint, params = {}) {
+  const url = new URL(`${SB_URL}/rest/v1/${endpoint}`);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  const res = await fetch(url, { headers: sbHeaders(token) });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+// ── Formatters ──────────────────────────────────────────────────────────────
+const fmtARS = n => n == null ? '—' : new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+const fmtDate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; };
+
+// ── CLIENT VIEW ─────────────────────────────────────────────────────────────
+async function renderClient(token, userId) {
+  // Fetch user's portal profile and restaurant
+  const [profile] = await sbGet(token, 'portal_users', { 'id': `eq.${userId}`, 'select': '*' });
+  const restaurantId = profile.restaurant_id;
+
+  const [restaurant] = await sbGet(token, 'restaurants', { 'id': `eq.${restaurantId}`, 'select': '*' });
+  document.getElementById('user-label').textContent = restaurant.name;
+
+  // Fetch all data in parallel
+  const [invoices, suppliers, lineItems] = await Promise.all([
+    sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '500' }),
+    sbGet(token, 'suppliers', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*', 'order': 'name.asc', 'limit': '500' }),
+    sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': 'total,category_id,categories(name)', 'limit': '2000' }),
+  ]);
+
+  // Compute stats
+  const ms = monthStart();
+  const thisMonth = invoices.filter(i => i.invoice_date >= ms);
+  const totalThisMonth = thisMonth.reduce((s, i) => s + (i.total || 0), 0);
+  const totalAllTime   = invoices.reduce((s, i) => s + (i.total || 0), 0);
+
+  // Top supplier this month
+  const supplierSpend = {};
+  for (const inv of thisMonth) {
+    const name = inv.suppliers?.name || 'Sin proveedor';
+    supplierSpend[name] = (supplierSpend[name] || 0) + (inv.total || 0);
+  }
+  const topSupplier = Object.entries(supplierSpend).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+
+  // Top category all time
+  const catSpend = {};
+  for (const li of lineItems) {
+    const name = li.categories?.name || 'Sin categoría';
+    catSpend[name] = (catSpend[name] || 0) + (li.total || 0);
+  }
+  const catEntries = Object.entries(catSpend).sort((a,b)=>b[1]-a[1]);
+  const topCat = catEntries[0]?.[0] || '—';
+
+  // Supplier invoice counts + spend
+  const supplierData = {};
+  for (const inv of invoices) {
+    const sid = inv.supplier_id;
+    if (!sid) continue;
+    if (!supplierData[sid]) supplierData[sid] = { count: 0, total: 0 };
+    supplierData[sid].count++;
+    supplierData[sid].total += inv.total || 0;
+  }
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Gasto este mes</div>
+        <div class="stat-value stat-accent">${fmtARS(totalThisMonth)}</div>
+        <div class="stat-sub">${thisMonth.length} factura${thisMonth.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total histórico</div>
+        <div class="stat-value">${fmtARS(totalAllTime)}</div>
+        <div class="stat-sub">${invoices.length} facturas totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Principal proveedor</div>
+        <div class="stat-value" style="font-size:16px;margin-top:4px;">${topSupplier}</div>
+        <div class="stat-sub">este mes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Categoría top</div>
+        <div class="stat-value" style="font-size:16px;margin-top:4px;">${topCat}</div>
+        <div class="stat-sub">por gasto total</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="facturas">Facturas</button>
+      <button class="tab-btn" data-tab="proveedores">Proveedores</button>
+      <button class="tab-btn" data-tab="categorias">Categorías</button>
+    </div>
+
+    <!-- Facturas tab -->
+    <div id="tab-facturas">
+      <div class="section-header">
+        <div class="section-title">Facturas</div>
+        <div class="section-meta">Últimas ${Math.min(invoices.length, 200)} facturas</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>N° Comprobante</th>
+              <th>Proveedor</th>
+              <th>Tipo</th>
+              <th>Sin IVA</th>
+              <th>Total</th>
+              <th>Archivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${invoices.slice(0,200).map(i => `
+              <tr>
+                <td class="td-mono">${fmtDate(i.invoice_date)}</td>
+                <td class="td-mono td-muted" style="font-size:12px;">${i.invoice_number || '—'}</td>
+                <td>${i.suppliers?.name || '—'}</td>
+                <td><span class="badge badge-gray">${i.tipo_comprobante || '—'}</span></td>
+                <td class="td-mono td-muted">${fmtARS(i.subtotal)}</td>
+                <td class="td-mono td-accent">${fmtARS(i.total)}</td>
+                <td>${i.file_url ? `<a class="file-link" href="${i.file_url}" target="_blank">Ver ↗</a>` : '<span class="td-muted">—</span>'}</td>
+              </tr>
+            `).join('') || '<tr><td colspan="7" class="empty">Sin facturas registradas.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Proveedores tab -->
+    <div id="tab-proveedores" hidden>
+      <div class="section-header">
+        <div class="section-title">Proveedores</div>
+        <div class="section-meta">${suppliers.length} proveedor${suppliers.length !== 1 ? 'es' : ''}</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Proveedor</th><th>CUIT</th><th>Facturas</th><th>Gasto total</th></tr>
+          </thead>
+          <tbody>
+            ${suppliers.map(s => {
+              const d = supplierData[s.id] || { count: 0, total: 0 };
+              return `<tr>
+                <td>${s.name}</td>
+                <td class="td-mono td-muted">${s.cuit || '—'}</td>
+                <td class="td-mono">${d.count}</td>
+                <td class="td-mono td-accent">${fmtARS(d.total)}</td>
+              </tr>`;
+            }).join('') || '<tr><td colspan="4" class="empty">Sin proveedores.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Categorias tab -->
+    <div id="tab-categorias" hidden>
+      <div class="section-header">
+        <div class="section-title">Gasto por categoría</div>
+        <div class="section-meta">Top ${Math.min(catEntries.length, 30)} categorías</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Categoría</th><th>Gasto total (ARS)</th></tr>
+          </thead>
+          <tbody>
+            ${catEntries.slice(0,30).map(([name, total]) => `
+              <tr>
+                <td>${name}</td>
+                <td class="td-mono td-accent">${fmtARS(total)}</td>
+              </tr>
+            `).join('') || '<tr><td colspan="2" class="empty">Sin datos de categorías.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['facturas','proveedores','categorias'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        if (el) el.hidden = t !== btn.dataset.tab;
+      });
+    });
+  });
+}
+
+// ── ADMIN VIEW ──────────────────────────────────────────────────────────────
+async function renderAdmin(token) {
+  document.getElementById('user-label').textContent = 'Admin';
+
+  const [restaurants, invoices] = await Promise.all([
+    sbGet(token, 'restaurants', { 'select': '*', 'order': 'name.asc', 'limit': '200' }),
+    sbGet(token, 'invoices', { 'select': 'restaurant_id,total,invoice_date', 'limit': '2000', 'order': 'invoice_date.desc' }),
+  ]);
+
+  const ms = monthStart();
+  // Aggregate per restaurant
+  const byRestaurant = {};
+  for (const inv of invoices) {
+    const rid = inv.restaurant_id;
+    if (!byRestaurant[rid]) byRestaurant[rid] = { invoicesThisMonth: 0, totalThisMonth: 0, lastDate: null };
+    if (inv.invoice_date >= ms) {
+      byRestaurant[rid].invoicesThisMonth++;
+      byRestaurant[rid].totalThisMonth += inv.total || 0;
+    }
+    if (!byRestaurant[rid].lastDate || inv.invoice_date > byRestaurant[rid].lastDate) {
+      byRestaurant[rid].lastDate = inv.invoice_date;
+    }
+  }
+
+  const totalMRR = restaurants.filter(r => r.active).reduce((s, r) => {
+    const plan = r.plan;
+    const price = plan === 'pro' ? 150 : plan === 'enterprise' ? 300 : 100;
+    return s + price;
+  }, 0);
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="admin-badge"><div class="admin-dot"></div>Vista Admin</div>
+
+    <div class="stats-row" style="margin-bottom: 28px;">
+      <div class="stat-card">
+        <div class="stat-label">Restaurantes activos</div>
+        <div class="stat-value stat-accent">${restaurants.filter(r=>r.active).length}</div>
+        <div class="stat-sub">de ${restaurants.length} total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">MRR estimado</div>
+        <div class="stat-value">USD ${totalMRR}</div>
+        <div class="stat-sub">según plan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Facturas este mes</div>
+        <div class="stat-value">${Object.values(byRestaurant).reduce((s,r)=>s+r.invoicesThisMonth,0)}</div>
+        <div class="stat-sub">todos los restaurantes</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Restaurantes</div>
+      <div class="section-meta">${restaurants.length} clientes</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Restaurante</th>
+            <th>Plan</th>
+            <th>Estado</th>
+            <th>Facturas este mes</th>
+            <th>Gasto este mes</th>
+            <th>Última factura</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${restaurants.map(r => {
+            const d = byRestaurant[r.id] || { invoicesThisMonth: 0, totalThisMonth: 0, lastDate: null };
+            const planBadge = r.plan === 'pro' ? 'badge-blue' : r.plan === 'enterprise' ? 'badge-green' : 'badge-gray';
+            return `<tr>
+              <td>
+                <div style="font-weight:600;">${r.name}</div>
+                <div style="font-size:11px;color:var(--muted);">${r.business_name || ''}</div>
+              </td>
+              <td><span class="badge ${planBadge}">${r.plan}</span></td>
+              <td><span class="badge ${r.active ? 'badge-green' : 'badge-gray'}">${r.active ? 'activo' : 'inactivo'}</span></td>
+              <td class="td-mono">${d.invoicesThisMonth}</td>
+              <td class="td-mono td-accent">${fmtARS(d.totalThisMonth)}</td>
+              <td class="td-mono td-muted">${fmtDate(d.lastDate)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ── Boot ────────────────────────────────────────────────────────────────────
+async function boot() {
+  const session = getSession();
+
+  if (!session?.access_token) {
+    document.getElementById('loading').hidden = true;
+    document.getElementById('login-screen').hidden = false;
+    return;
+  }
+
+  try {
+    // Verify session and get role
+    const [profile] = await sbGet(session.access_token, 'portal_users', {
+      'id': `eq.${session.user_id}`, 'select': 'role,restaurant_id'
+    });
+    if (!profile) throw new Error('Sin perfil');
+
+    document.getElementById('loading').hidden = true;
+    document.getElementById('app').hidden = false;
+
+    if (profile.role === 'admin') {
+      await renderAdmin(session.access_token);
+    } else {
+      await renderClient(session.access_token, session.user_id);
+    }
+  } catch (err) {
+    clearSession();
+    document.getElementById('loading').hidden = true;
+    document.getElementById('login-screen').hidden = false;
+  }
+}
+
+// ── Login handler ────────────────────────────────────────────────────────────
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('login-btn');
+  const err      = document.getElementById('login-error');
+
+  err.textContent = '';
+  btn.disabled    = true;
+  btn.textContent = 'Ingresando...';
+
+  try {
+    const data = await login(email, password);
+    saveSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
+    location.reload();
+  } catch (e) {
+    err.textContent = e.message;
+    btn.disabled    = false;
+    btn.textContent = 'Ingresar';
+  }
+});
+
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+// Start
+boot().catch(console.error);
+</script>
+</body>
+</html>
