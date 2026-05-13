@@ -118,12 +118,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 28px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  padding: 12px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 .topbar-brand {
   display: flex;
@@ -144,7 +145,7 @@ body {
 .brand-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text);
+  color: #111827;
   letter-spacing: 0.02em;
 }
 .brand-sub {
@@ -154,30 +155,31 @@ body {
   padding-left: 2px;
 }
 .brand-sub-label {
-  font-size: 10px;
-  color: var(--muted);
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 .brand-agentiva-logo {
-  height: 11px;
+  height: 20px;
   width: auto;
-  opacity: 0.5;
-  filter: brightness(10);
+  opacity: 1;
+  filter: brightness(0);
 }
 .topbar-right { display: flex; align-items: center; gap: 16px; }
-.topbar-user  { font-size: 13px; color: var(--muted); }
+.topbar-user  { font-size: 13px; color: #374151; font-weight: 500; }
 .btn-logout {
   padding: 6px 14px;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  color: var(--muted);
+  color: #374151;
   font-size: 12px;
   cursor: pointer;
   font-family: var(--font);
   transition: border-color 0.15s, color 0.15s;
 }
-.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+.btn-logout:hover { border-color: #111827; color: #111827; }
 
 .main { padding: 28px; max-width: 1100px; margin: 0 auto; }
 
@@ -670,8 +672,7 @@ a.file-link:hover { opacity: 1; }
       </div>
       <div class="brand-sub">
         <span class="brand-sub-label">por</span>
-        <img src="/assets/images/logos/agentiva-logo.png" alt="Agentiva" class="brand-agentiva-logo">
-        <span class="brand-sub-label">Agentiva</span>
+        <img src="/assets/images/logos/Agentiva Logo esteso.png" alt="Agentiva" class="brand-agentiva-logo">
       </div>
     </div>
     <div class="topbar-right">
