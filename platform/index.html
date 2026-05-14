@@ -636,6 +636,29 @@ a.file-link:hover { text-decoration: underline; }
   .chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 84px; }
 }
 
+/* ── Proveedores filter bar ─────────────────────────────── */
+.prov-filter-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px; }
+.prov-cat-btn {
+  padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: none; font-size: 13px; font-family: var(--font); cursor: pointer;
+  color: var(--muted); transition: all 0.15s;
+}
+.prov-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+.prov-cat-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+.prov-search-input {
+  flex: 1; min-width: 180px; padding: 6px 12px; border: 1px solid #e5e7eb;
+  border-radius: 8px; font-size: 13px; font-family: var(--font); color: var(--text);
+  background: #f9fafb; outline: none;
+}
+.prov-search-input:focus { border-color: var(--accent); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.form-field label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:5px; }
+.form-field input, .form-field select {
+  width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px;
+  font-size: 13px; font-family: var(--font); color: var(--text); background: #f9fafb; outline: none;
+}
+.form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+
 /* ── Stock card grid ─────────────────────────────────────── */
 .stock-grid {
   display: grid;
@@ -1036,6 +1059,7 @@ const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${St
 let _invoicesAll      = [];
 let _facturasFiltered = [];
 let _chatRestaurantId = null;
+let _authToken        = '';
 let _suppliersAll     = [];
 let _supplierMap  = {};
 let _liByInvoice  = {};
@@ -1297,6 +1321,78 @@ function openProductModal(pidx) {
   showModal();
 }
 
+// ── Proveedores filter ────────────────────────────────────────────────────────
+function filterProveedores() {
+  const activeCat = document.querySelector('.prov-cat-btn.active')?.dataset.cat || '';
+  const search    = (document.getElementById('prov-search')?.value || '').toLowerCase().trim();
+  const rows      = document.querySelectorAll('#proveedores-tbody .prov-row');
+  let visible = 0;
+  rows.forEach(function(row) {
+    const name     = (row.cells[0]?.textContent || '').toLowerCase();
+    const catCell  = (row.cells[2]?.textContent || '').toLowerCase();
+    const products = (row.cells[5]?.textContent || '').toLowerCase();
+    const matchCat    = !activeCat || catCell.includes(activeCat);
+    const matchSearch = !search || name.includes(search) || products.includes(search);
+    row.hidden = !(matchCat && matchSearch);
+    if (!row.hidden) visible++;
+  });
+  const countEl = document.getElementById('prov-count');
+  if (countEl) countEl.textContent = visible + ' proveedor' + (visible !== 1 ? 'es' : '');
+}
+
+// ── Add provider form ────────────────────────────────────────────────────────
+function openAddProviderForm() {
+  const inputStyle = 'width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:#f9fafb;outline:none;';
+  const labelStyle = 'display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px;';
+  document.getElementById('modal-body').innerHTML =
+    '<div style="padding-right:32px;margin-bottom:20px;">'
+    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;">Agregar proveedor</div>'
+    + '<div style="font-size:13px;color:var(--muted);">Los campos con * son obligatorios</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">'
+    + '<div style="grid-column:1/-1;"><label style="' + labelStyle + '">Nombre *</label><input id="new-sup-name" style="' + inputStyle + '" placeholder="Nombre del proveedor" autocomplete="off"></div>'
+    + '<div><label style="' + labelStyle + '">CUIT</label><input id="new-sup-cuit" style="' + inputStyle + '" placeholder="30-12345678-0"></div>'
+    + '<div><label style="' + labelStyle + '">Categoría</label><select id="new-sup-cat" style="' + inputStyle + '"><option value="">Sin categoría</option><option value="comida">Comida</option><option value="bebida">Bebida</option></select></div>'
+    + '<div><label style="' + labelStyle + '">Subcategoría</label><input id="new-sup-subcat" style="' + inputStyle + '" placeholder="ej. carne, lácteos..."></div>'
+    + '<div><label style="' + labelStyle + '">Email</label><input id="new-sup-email" type="email" style="' + inputStyle + '" placeholder="proveedor@email.com"></div>'
+    + '<div><label style="' + labelStyle + '">Teléfono</label><input id="new-sup-tel" type="tel" style="' + inputStyle + '" placeholder="+54 11 ..."></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button id="btn-submit-provider" style="flex:1;padding:10px;background:var(--accent);border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">Agregar proveedor</button>'
+    + '<button onclick="closeModal()" style="padding:10px 20px;background:none;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:var(--font);color:var(--muted);cursor:pointer;">Cancelar</button>'
+    + '</div>';
+  showModal();
+  document.getElementById('new-sup-name').focus();
+  document.getElementById('btn-submit-provider').addEventListener('click', submitNewProvider);
+}
+
+async function submitNewProvider() {
+  const name  = (document.getElementById('new-sup-name')?.value  || '').trim();
+  const cuit  = (document.getElementById('new-sup-cuit')?.value  || '').trim();
+  const cat   = (document.getElementById('new-sup-cat')?.value   || '');
+  const sub   = (document.getElementById('new-sup-subcat')?.value|| '').trim();
+  const email = (document.getElementById('new-sup-email')?.value || '').trim();
+  const tel   = (document.getElementById('new-sup-tel')?.value   || '').trim();
+  if (!name) { document.getElementById('new-sup-name').style.borderColor = 'var(--danger)'; return; }
+  const btn = document.getElementById('btn-submit-provider');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/suppliers', {
+      method: 'POST',
+      headers: { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + _authToken, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name: name, cuit: cuit || null, restaurant_id: _chatRestaurantId })
+    });
+    if (!res.ok) throw new Error('Error ' + res.status);
+    if (cat || email || sub || tel) SUPPLIER_META[name] = { categoria: cat, subcategoria: sub, email: email, telefono: tel };
+    closeModal();
+    location.reload();
+  } catch (err) {
+    btn.textContent = 'Agregar proveedor'; btn.disabled = false;
+    btn.style.background = 'var(--danger)'; btn.style.color = '#fff';
+    setTimeout(function() { btn.style.background = 'var(--accent)'; btn.style.color = '#000'; }, 2000);
+  }
+}
+
 // ── Stock modal state ─────────────────────────────────────────────────────────
 let _stockModalItems = [];
 let _stockModalCat   = '';
@@ -1454,6 +1550,7 @@ function closeModal() {
 
 // ── CLIENT VIEW ─────────────────────────────────────────────────────────────
 async function renderClient(token, userId) {
+  _authToken = token;
   const [profile] = await sbGet(token, 'portal_users', { 'id': `eq.${userId}`, 'select': '*' });
   const restaurantId = profile.restaurant_id;
 
@@ -1615,9 +1712,18 @@ async function renderClient(token, userId) {
   }).join('') || '<tr><td colspan="7" class="empty">Sin proveedores.</td></tr>';
 
   const proveedoresHtml = '<div id="tab-proveedores" hidden>'
-    + '<div class="section-header"><div class="section-title">Proveedores</div><div class="section-meta">' + suppliers.length + ' proveedor' + (suppliers.length !== 1 ? 'es' : '') + '</div></div>'
+    + '<div class="section-header"><div class="section-title">Proveedores</div><div class="section-meta" id="prov-count">' + suppliers.length + ' proveedor' + (suppliers.length !== 1 ? 'es' : '') + '</div></div>'
+    + '<div class="prov-filter-bar">'
+    + '<button class="prov-cat-btn active" data-cat="">Todos</button>'
+    + '<button class="prov-cat-btn" data-cat="comida">Comida</button>'
+    + '<button class="prov-cat-btn" data-cat="bebida">Bebida</button>'
+    + '<input type="text" id="prov-search" class="prov-search-input" placeholder="Buscar por proveedor o producto...">'
+    + '</div>'
     + '<div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>CUIT</th><th>Categoría</th><th>Facturas</th><th>Gasto total</th><th>Productos principales</th><th>Contacto</th></tr></thead>'
-    + '<tbody id="proveedores-tbody">' + proveedoresRows + '</tbody></table></div></div>';
+    + '<tbody id="proveedores-tbody">' + proveedoresRows + '</tbody></table></div>'
+    + '<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);text-align:center;">'
+    + '<button id="btn-add-provider" style="padding:9px 22px;border:1px dashed var(--accent);border-radius:8px;background:none;color:var(--accent);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;">+ Agregar proveedor</button>'
+    + '</div></div>';
 
   const productosRows = sortedLI.slice(0, 500).map(li =>
     '<tr>'
@@ -1734,7 +1840,7 @@ async function renderClient(token, userId) {
     });
   });
 
-  // Proveedores row click → supplier modal
+  // Proveedores: row click, filter bar, add-provider button
   const provTbody = document.getElementById('proveedores-tbody');
   if (provTbody) {
     provTbody.addEventListener('click', function(e) {
@@ -1743,6 +1849,17 @@ async function renderClient(token, userId) {
       if (row) openProviderModal(row.dataset.supId);
     });
   }
+  document.querySelectorAll('.prov-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.prov-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      filterProveedores();
+    });
+  });
+  const provSearch = document.getElementById('prov-search');
+  if (provSearch) provSearch.addEventListener('input', filterProveedores);
+  const addProvBtn = document.getElementById('btn-add-provider');
+  if (addProvBtn) addProvBtn.addEventListener('click', openAddProviderForm);
 
   // Stock card click → drill-down modal
   const stockGrid = document.querySelector('.stock-grid');
