@@ -1310,7 +1310,7 @@ async function renderClient(token, userId) {
   const [invoices, suppliers, lineItems] = await Promise.all([
     sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '500' }),
     sbGet(token, 'suppliers', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*', 'order': 'name.asc', 'limit': '500' }),
-    sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,invoices(invoice_date),suppliers(name),categories(name)', 'order': 'created_at.desc', 'limit': '2000' }),
+    sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,invoices(invoice_date,invoice_number),suppliers(name),categories(name)', 'order': 'created_at.desc', 'limit': '2000' }),
   ]);
 
   // Stats
