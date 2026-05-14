@@ -1005,7 +1005,7 @@ async function sbGet(token, endpoint, params = {}) {
 }
 
 // ── Formatters ──────────────────────────────────────────────────────────────
-const fmtARS = n => n == null ? '—' : new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+const fmtARS = n => n == null ? '—' : 'AR$ ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n);
 const fmtDate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; };
 
@@ -1267,16 +1267,20 @@ function openStockModal(catName) {
     + '</tr>'
   ).join('');
   document.getElementById('modal-body').innerHTML =
-    '<div style="margin-bottom:20px;padding-right:32px;">'
-    + '<div style="font-size:32px;margin-bottom:8px;">' + emoji + '</div>'
-    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;">' + escAttr(catName) + '</div>'
-    + '<div style="font-size:13px;color:var(--muted);">Macro: ' + escAttr(meta.macro||'—') + ' &nbsp;·&nbsp; Unidad: ' + escAttr(unit) + '</div>'
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-right:32px;">'
+    + '<div style="font-size:40px;line-height:1;">' + emoji + '</div>'
+    + '<div>'
+    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:2px;">' + escAttr(catName) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">' + escAttr(meta.macro||'—') + ' &nbsp;·&nbsp; ' + escAttr(unit) + '</div>'
+    + '</div></div>'
+    + '<div style="background:var(--accent-bg);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:16px 20px;margin-bottom:14px;">'
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Total Gastado</div>'
+    + '<div style="font-size:30px;font-weight:800;color:var(--accent);">' + fmtARS(totARS) + '</div>'
     + '</div>'
-    + '<div class="stats-row" style="margin-bottom:20px;">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">'
     + '<div class="stat-card"><div class="stat-label">Compras</div><div class="stat-value">' + items.length + '</div></div>'
-    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div class="stat-value">' + fmtNum(totQty) + ' <span style="font-size:14px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
-    + '<div class="stat-card"><div class="stat-label">Precio prom.</div><div class="stat-value">' + fmtARS(avgPrice) + ' <span style="font-size:12px;color:var(--muted);">/' + escAttr(unit) + '</span></div></div>'
-    + '<div class="stat-card"><div class="stat-label">Total gastado</div><div class="stat-value stat-accent">' + fmtARS(totARS) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div class="stat-value" style="font-size:20px;">' + fmtNum(totQty) + ' <span style="font-size:13px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
+    + '<div class="stat-card"><div class="stat-label">Precio prom. / ' + escAttr(unit) + '</div><div class="stat-value" style="font-size:20px;">' + fmtARS(avgPrice) + '</div></div>'
     + '</div>'
     + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Historial de compras</div>'
     + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Factura</th><th>Proveedor</th><th>Producto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
