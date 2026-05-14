@@ -1257,6 +1257,25 @@ function getPidx(name) {
   return idx;
 }
 
+// ── Navigate from Stock modal to a specific invoice in Facturas ───────────────
+function goToFactura(invId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('.tab-btn[data-tab="facturas"]');
+  if (btn) btn.classList.add('active');
+  ['general','tareas','facturas','proveedores','stock'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.hidden = (t !== 'facturas');
+  });
+  clearFilters();
+  setTimeout(function() {
+    const row = document.querySelector('tr.invoice-row[data-iid="' + invId + '"]');
+    if (row) {
+      toggleInvoiceDetail(row, invId);
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 30);
+}
+
 // ── Provider modal ───────────────────────────────────────────────────────────
 function openProviderModal(supplierId) {
   const sup = _supplierMap[supplierId];
@@ -1466,6 +1485,13 @@ function openStockModal(catName) {
   showModal();
   renderStockTable(_stockModalItems);
 
+  document.getElementById('stock-modal-tbody').addEventListener('click', function(e) {
+    const row = e.target.closest('tr[data-inv-id]');
+    if (!row || !row.dataset.invId) return;
+    closeModal();
+    goToFactura(row.dataset.invId);
+  });
+
   document.getElementById('stock-filter-from').addEventListener('input', applyStockFilter);
   document.getElementById('stock-filter-to').addEventListener('input', applyStockFilter);
   document.getElementById('stock-filter-clear').addEventListener('click', function() {
@@ -1508,9 +1534,9 @@ function renderStockTable(items) {
   const tbody = document.getElementById('stock-modal-tbody');
   if (!tbody) return;
   tbody.innerHTML = items.map(function(li) {
-    return '<tr>'
+    return '<tr data-inv-id="' + escAttr(li.invoice_id||'') + '" style="cursor:pointer;" title="Ver factura completa">'
       + '<td class="td-mono td-muted">'                      + fmtDate(li.invoices?.invoice_date) + '</td>'
-      + '<td class="td-mono td-muted" style="font-size:11px;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
+      + '<td class="td-mono" style="font-size:11px;color:var(--accent);text-decoration:underline;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
       + '<td class="td-muted" style="font-size:12px;">'      + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
       + '<td style="font-size:12px;">'                       + escAttr(li.product_name||'—') + '</td>'
       + '<td class="td-mono">'                               + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
