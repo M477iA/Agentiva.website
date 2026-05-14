@@ -517,7 +517,7 @@ a.file-link:hover { text-decoration: underline; }
   border-radius: 14px;
   padding: 28px;
   width: 100%;
-  max-width: 680px;
+  max-width: 880px;
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
@@ -1239,7 +1239,11 @@ function openProductModal(pidx) {
   showModal();
 }
 
-// ── Stock category modal ─────────────────────────────────────────────────────
+// ── Stock modal state ─────────────────────────────────────────────────────────
+let _stockModalItems = [];
+let _stockModalCat   = '';
+let _stockModalMeta  = {};
+
 function openStockModal(catName) {
   const items = [];
   for (const invId in _liByInvoice) {
@@ -1248,44 +1252,135 @@ function openStockModal(catName) {
     }
   }
   if (!items.length) return;
-  const meta    = catMeta(catName);
-  const unit    = meta.medida || '—';
-  const emoji   = meta.emoji  || '📦';
-  const totQty  = items.reduce((s,li) => s + (li.quantity || 0), 0);
-  const totARS  = items.reduce((s,li) => s + (li.total    || 0), 0);
-  const avgPrice = totQty > 0 ? totARS / totQty : 0;
   items.sort((a,b) => (b.invoices?.invoice_date||'').localeCompare(a.invoices?.invoice_date||''));
-  const rows = items.map(li =>
-    '<tr>'
-    + '<td class="td-mono td-muted">'    + fmtDate(li.invoices?.invoice_date) + '</td>'
-    + '<td class="td-mono td-muted" style="font-size:11px;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
-    + '<td class="td-muted" style="font-size:12px;">' + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
-    + '<td style="font-size:12px;">'     + escAttr(li.product_name||'—') + '</td>'
-    + '<td class="td-mono">'             + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
-    + '<td class="td-mono td-muted">'   + fmtARS(li.unit_price) + '</td>'
-    + '<td class="td-mono td-accent">'  + fmtARS(li.total) + '</td>'
-    + '</tr>'
-  ).join('');
+  _stockModalItems = items;
+  _stockModalCat   = catName;
+  _stockModalMeta  = catMeta(catName);
+
+  const unit  = _stockModalMeta.medida || '—';
+  const emoji = _stockModalMeta.emoji  || '📦';
+  const totARS = items.reduce((s,li) => s + (li.total || 0), 0);
+  const totQty = items.reduce((s,li) => s + (li.quantity || 0), 0);
+
+  const inputStyle = 'padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:#f9fafb;outline:none;';
+
   document.getElementById('modal-body').innerHTML =
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-right:32px;">'
     + '<div style="font-size:40px;line-height:1;">' + emoji + '</div>'
-    + '<div>'
-    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:2px;">' + escAttr(catName) + '</div>'
-    + '<div style="font-size:13px;color:var(--muted);">' + escAttr(meta.macro||'—') + ' &nbsp;·&nbsp; ' + escAttr(unit) + '</div>'
-    + '</div></div>'
+    + '<div><div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:2px;">' + escAttr(catName) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">' + escAttr(_stockModalMeta.macro||'—') + ' &nbsp;·&nbsp; ' + escAttr(unit) + '</div></div></div>'
     + '<div style="background:var(--accent-bg);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:16px 20px;margin-bottom:14px;">'
     + '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Total Gastado</div>'
-    + '<div style="font-size:30px;font-weight:800;color:var(--accent);">' + fmtARS(totARS) + '</div>'
+    + '<div id="stock-total-val" style="font-size:30px;font-weight:800;color:var(--accent);">' + fmtARS(totARS) + '</div>'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">'
-    + '<div class="stat-card"><div class="stat-label">Compras</div><div class="stat-value">' + items.length + '</div></div>'
-    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div class="stat-value" style="font-size:20px;">' + fmtNum(totQty) + ' <span style="font-size:13px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
-    + '<div class="stat-card"><div class="stat-label">Precio prom. / ' + escAttr(unit) + '</div><div class="stat-value" style="font-size:20px;">' + fmtARS(avgPrice) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Compras</div><div class="stat-value" id="stock-stat-count">' + items.length + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div id="stock-stat-qty" class="stat-value" style="font-size:20px;">' + fmtNum(totQty) + ' <span style="font-size:13px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
+    + '<div class="stat-card"><div class="stat-label">Precio prom. / ' + escAttr(unit) + '</div><div id="stock-stat-price" class="stat-value" style="font-size:20px;">' + fmtARS(totQty > 0 ? totARS / totQty : 0) + '</div></div>'
     + '</div>'
-    + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Historial de compras</div>'
-    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Factura</th><th>Proveedor</th><th>Producto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
-    + '<tbody>' + rows + '</tbody></table></div>';
+    + '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px;">'
+    + '<div><label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px;">Desde</label><input type="date" id="stock-filter-from" style="' + inputStyle + '"></div>'
+    + '<div><label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px;">Hasta</label><input type="date" id="stock-filter-to" style="' + inputStyle + '"></div>'
+    + '<button id="stock-filter-clear" style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:none;font-size:13px;font-family:var(--font);color:var(--muted);cursor:pointer;">Limpiar</button>'
+    + '<button id="stock-export-btn" style="margin-left:auto;padding:7px 18px;border:none;border-radius:8px;background:var(--accent);color:#000;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;">↓ Exportar Excel</button>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);">Historial de compras</div>'
+    + '<div id="stock-row-count" style="font-size:12px;color:var(--muted);">' + items.length + ' registros</div>'
+    + '</div>'
+    + '<div class="table-wrap"><table style="min-width:640px;"><thead><tr>'
+    + '<th>Fecha</th><th>Factura</th><th>Proveedor</th><th>Producto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th>'
+    + '</tr></thead><tbody id="stock-modal-tbody"></tbody></table></div>';
+
   showModal();
+  renderStockTable(_stockModalItems);
+
+  document.getElementById('stock-filter-from').addEventListener('input', applyStockFilter);
+  document.getElementById('stock-filter-to').addEventListener('input', applyStockFilter);
+  document.getElementById('stock-filter-clear').addEventListener('click', function() {
+    document.getElementById('stock-filter-from').value = '';
+    document.getElementById('stock-filter-to').value = '';
+    applyStockFilter();
+  });
+  document.getElementById('stock-export-btn').addEventListener('click', exportStockCSV);
+}
+
+function applyStockFilter() {
+  const from = (document.getElementById('stock-filter-from') || {}).value || '';
+  const to   = (document.getElementById('stock-filter-to')   || {}).value || '';
+  const filtered = _stockModalItems.filter(function(li) {
+    const d = li.invoices?.invoice_date || '';
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  });
+  renderStockTable(filtered);
+}
+
+function renderStockTable(items) {
+  const unit   = _stockModalMeta.medida || '—';
+  const totQty = items.reduce(function(s,li) { return s + (li.quantity || 0); }, 0);
+  const totARS = items.reduce(function(s,li) { return s + (li.total    || 0); }, 0);
+  const avg    = totQty > 0 ? totARS / totQty : 0;
+
+  const elTotal = document.getElementById('stock-total-val');
+  const elCount = document.getElementById('stock-stat-count');
+  const elQty   = document.getElementById('stock-stat-qty');
+  const elPrice = document.getElementById('stock-stat-price');
+  const elRows  = document.getElementById('stock-row-count');
+  if (elTotal) elTotal.textContent = fmtARS(totARS);
+  if (elCount) elCount.textContent = items.length;
+  if (elQty)   elQty.innerHTML = fmtNum(totQty) + ' <span style="font-size:13px;color:var(--muted);">' + escAttr(unit) + '</span>';
+  if (elPrice) elPrice.textContent = fmtARS(avg);
+  if (elRows)  elRows.textContent = items.length + ' registros';
+
+  const tbody = document.getElementById('stock-modal-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = items.map(function(li) {
+    return '<tr>'
+      + '<td class="td-mono td-muted">'                      + fmtDate(li.invoices?.invoice_date) + '</td>'
+      + '<td class="td-mono td-muted" style="font-size:11px;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
+      + '<td class="td-muted" style="font-size:12px;">'      + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
+      + '<td style="font-size:12px;">'                       + escAttr(li.product_name||'—') + '</td>'
+      + '<td class="td-mono">'                               + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
+      + '<td class="td-mono td-muted">'                     + fmtARS(li.unit_price) + '</td>'
+      + '<td class="td-mono td-accent">'                    + fmtARS(li.total) + '</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="7" class="empty">Sin resultados para este período.</td></tr>';
+}
+
+function exportStockCSV() {
+  const from = (document.getElementById('stock-filter-from') || {}).value || '';
+  const to   = (document.getElementById('stock-filter-to')   || {}).value || '';
+  const items = _stockModalItems.filter(function(li) {
+    const d = li.invoices?.invoice_date || '';
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  });
+  const unit = _stockModalMeta.medida || '';
+  const cols = ['Fecha','N° Factura','Proveedor','Producto','Cant. ('+unit+')','Precio Unit. (AR$)','Total (AR$)'];
+  const rows = items.map(function(li) {
+    return [
+      fmtDate(li.invoices?.invoice_date),
+      li.invoices?.invoice_number || '',
+      _supplierMap[li.supplier_id]?.name || '',
+      li.product_name || '',
+      li.quantity != null ? li.quantity : '',
+      li.unit_price != null ? li.unit_price : '',
+      li.total != null ? li.total : ''
+    ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+  });
+  const csv  = '﻿' + [cols.join(',')].concat(rows).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = (_stockModalCat || 'stock') + '_compras.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function showModal() {
