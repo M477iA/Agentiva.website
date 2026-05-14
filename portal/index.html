@@ -990,7 +990,7 @@ function renderServices(services) {
         ${s.viewer_url ? `
         <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-          Ver conversaciones en vivo
+          ${s.ram_display ? 'Ver conversaciones en vivo' : 'Ver plataforma →'}
         </a>` : ''}
       </div>`;
     }).join('')
