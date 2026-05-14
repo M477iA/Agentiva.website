@@ -1239,6 +1239,51 @@ function openProductModal(pidx) {
   showModal();
 }
 
+// ── Stock category modal ─────────────────────────────────────────────────────
+function openStockModal(catName) {
+  const items = [];
+  for (const invId in _liByInvoice) {
+    for (const li of _liByInvoice[invId]) {
+      if ((li.categories?.name || '') === catName) items.push(li);
+    }
+  }
+  if (!items.length) return;
+  const meta    = catMeta(catName);
+  const unit    = meta.medida || '—';
+  const emoji   = meta.emoji  || '📦';
+  const totQty  = items.reduce((s,li) => s + (li.quantity || 0), 0);
+  const totARS  = items.reduce((s,li) => s + (li.total    || 0), 0);
+  const avgPrice = totQty > 0 ? totARS / totQty : 0;
+  items.sort((a,b) => (b.invoices?.invoice_date||'').localeCompare(a.invoices?.invoice_date||''));
+  const rows = items.map(li =>
+    '<tr>'
+    + '<td class="td-mono td-muted">'    + fmtDate(li.invoices?.invoice_date) + '</td>'
+    + '<td class="td-mono td-muted" style="font-size:11px;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
+    + '<td class="td-muted" style="font-size:12px;">' + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
+    + '<td style="font-size:12px;">'     + escAttr(li.product_name||'—') + '</td>'
+    + '<td class="td-mono">'             + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
+    + '<td class="td-mono td-muted">'   + fmtARS(li.unit_price) + '</td>'
+    + '<td class="td-mono td-accent">'  + fmtARS(li.total) + '</td>'
+    + '</tr>'
+  ).join('');
+  document.getElementById('modal-body').innerHTML =
+    '<div style="margin-bottom:20px;padding-right:32px;">'
+    + '<div style="font-size:32px;margin-bottom:8px;">' + emoji + '</div>'
+    + '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;">' + escAttr(catName) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">Macro: ' + escAttr(meta.macro||'—') + ' &nbsp;·&nbsp; Unidad: ' + escAttr(unit) + '</div>'
+    + '</div>'
+    + '<div class="stats-row" style="margin-bottom:20px;">'
+    + '<div class="stat-card"><div class="stat-label">Compras</div><div class="stat-value">' + items.length + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Cant. total</div><div class="stat-value">' + fmtNum(totQty) + ' <span style="font-size:14px;color:var(--muted);">' + escAttr(unit) + '</span></div></div>'
+    + '<div class="stat-card"><div class="stat-label">Precio prom.</div><div class="stat-value">' + fmtARS(avgPrice) + ' <span style="font-size:12px;color:var(--muted);">/' + escAttr(unit) + '</span></div></div>'
+    + '<div class="stat-card"><div class="stat-label">Total gastado</div><div class="stat-value stat-accent">' + fmtARS(totARS) + '</div></div>'
+    + '</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Historial de compras</div>'
+    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Factura</th><th>Proveedor</th><th>Producto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+  showModal();
+}
+
 function showModal() {
   const ov = document.getElementById('modal-overlay');
   ov.hidden = false;
@@ -1420,7 +1465,7 @@ async function renderClient(token, userId) {
     const meta = catMeta(name);
     const color = CARD_COLORS[meta.macro] || '#6B7280';
     const emoji = meta.emoji || '📦';
-    return '<div class="stock-card">'
+    return '<div class="stock-card" data-catname="' + escAttr(name) + '" style="cursor:pointer;">'
       + '<div class="stock-card-img" style="background:' + color + '1a;">'
       + emoji + '</div>'
       + '<div class="stock-card-body">'
@@ -1506,6 +1551,15 @@ async function renderClient(token, userId) {
       });
     });
   });
+
+  // Stock card click → drill-down modal
+  const stockGrid = document.querySelector('.stock-grid');
+  if (stockGrid) {
+    stockGrid.addEventListener('click', e => {
+      const card = e.target.closest('[data-catname]');
+      if (card) openStockModal(card.dataset.catname);
+    });
+  }
 }
 
 // ── ADMIN VIEW ──────────────────────────────────────────────────────────────
