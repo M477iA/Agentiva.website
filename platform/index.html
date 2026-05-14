@@ -5,6 +5,9 @@
 <link rel="icon" href="/assets/images/logos/agentiva-logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campaso CRM Business Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ── Reset & tokens ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -142,34 +145,31 @@ body {
   flex-shrink: 0;
 }
 .agentiva-wordmark {
-  height: 26px;
+  height: 20px;
   width: auto;
   filter: none;
 }
 .topbar-campaso-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   padding: 0 24px;
   border-right: 1px solid #e5e7eb;
 }
 .campaso-logo-nav {
-  height: 42px;
+  height: 56px;
   width: auto;
   border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
 }
 .campaso-crm-name {
-  font-size: 16px;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 17px;
   font-weight: 700;
   color: #111827;
-  line-height: 1.2;
-}
-.campaso-crm-sub {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 2px;
+  letter-spacing: -0.01em;
+  line-height: 1;
 }
 .topbar-right { display: flex; align-items: center; gap: 16px; padding: 0 24px; }
 .topbar-user  { font-size: 13px; color: #374151; font-weight: 500; }
@@ -756,10 +756,7 @@ a.file-link:hover { text-decoration: underline; }
       </div>
       <div class="topbar-campaso-info">
         <img src="/assets/images/clients/Campaso%20logo.jpg" alt="Campaso" class="campaso-logo-nav">
-        <div>
-          <div class="campaso-crm-name">Campaso CRM</div>
-          <div class="campaso-crm-sub">a business suite</div>
-        </div>
+        <div class="campaso-crm-name">CRM Business Suite</div>
       </div>
     </div>
     <div class="topbar-right">
