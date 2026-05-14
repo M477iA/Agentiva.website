@@ -1789,7 +1789,6 @@ async function renderClient(token, userId) {
     + '<button class="tab-btn" data-tab="tareas">Tareas' + tareasBadge + '</button>'
     + '<button class="tab-btn" data-tab="facturas">Facturas</button>'
     + '<button class="tab-btn" data-tab="proveedores">Proveedores</button>'
-    + '<button class="tab-btn" data-tab="productos">Productos</button>'
     + '<button class="tab-btn" data-tab="stock">Stock</button>'
     + '</div>';
 
@@ -1871,23 +1870,6 @@ async function renderClient(token, userId) {
     + '<button id="btn-add-provider" style="padding:9px 22px;border:1px dashed var(--accent);border-radius:8px;background:none;color:var(--accent);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;">+ Agregar proveedor</button>'
     + '</div></div>';
 
-  const productosRows = sortedLI.slice(0, 500).map(li =>
-    '<tr>'
-    + '<td class="td-mono td-muted" style="font-size:12px;">' + fmtDate(li.invoices?.invoice_date) + '</td>'
-    + '<td style="font-weight:500;">' + (li.product_name || '—') + '</td>'
-    + '<td class="td-muted">' + (li.categories?.name || '—') + '</td>'
-    + '<td class="td-muted">' + (li.suppliers?.name || '—') + '</td>'
-    + '<td class="td-mono">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
-    + '<td class="td-muted">' + (li.unit || '—') + '</td>'
-    + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
-    + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
-    + '</tr>'
-  ).join('') || '<tr><td colspan="8" class="empty">Sin productos registrados.</td></tr>';
-
-  const productosHtml = '<div id="tab-productos" hidden>'
-    + '<div class="section-header"><div class="section-title">Productos</div><div class="section-meta">' + sortedLI.length + ' registros</div></div>'
-    + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Producto</th><th>Categoría</th><th>Proveedor</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
-    + '<tbody>' + productosRows + '</tbody></table></div></div>';
 
   const CARD_COLORS = {
     'Almacen':'#F59E0B','Verduleria':'#10B981','Carniceria':'#EF4444',
@@ -1965,7 +1947,7 @@ async function renderClient(token, userId) {
     + '<div id="tareas-list">' + tareasCards + '</div></div>';
 
   const main = document.getElementById('main-content');
-  main.innerHTML = tabsHtml + generalHtml + tareasHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
+  main.innerHTML = tabsHtml + generalHtml + tareasHtml + facturasHtml + proveedoresHtml + stockHtml;
 
   // Populate facturas table (must happen after innerHTML is set)
   renderFacturasTable(_invoicesAll);
@@ -2040,7 +2022,7 @@ async function renderClient(token, userId) {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['general','tareas','facturas','proveedores','productos','stock'].forEach(t => {
+      ['general','tareas','facturas','proveedores','stock'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.hidden = t !== btn.dataset.tab;
       });
