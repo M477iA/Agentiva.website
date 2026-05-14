@@ -106,7 +106,7 @@ def build_context(token, restaurant_id):
     }, token)
     line_items = sb_get('line_items', {
         'restaurant_id': f'eq.{restaurant_id}',
-        'select': 'product_name,quantity,unit,total,categories(name)',
+        'select': 'product_name,quantity,unit,unit_price,total,suppliers(name),invoices(invoice_date),categories(name)',
         'limit': '2000',
     }, token)
     sb_get('suppliers', {
@@ -131,10 +131,19 @@ def build_context(token, restaurant_id):
     prod = {}
     for li in line_items:
         n = li.get('product_name') or '?'
+        supplier = (li.get('suppliers') or {}).get('name', '')
+        inv_date = (li.get('invoices') or {}).get('invoice_date', '')
+        unit_price = li.get('unit_price') or 0
         if n not in prod:
-            prod[n] = {'qty': 0, 'total': 0, 'unit': li.get('unit', '')}
+            prod[n] = {'qty': 0, 'total': 0, 'unit': li.get('unit', ''),
+                       'suppliers': set(), 'latest_date': '', 'latest_unit_price': 0}
         prod[n]['qty']   += li.get('quantity') or 0
         prod[n]['total'] += li.get('total') or 0
+        if supplier:
+            prod[n]['suppliers'].add(supplier)
+        if inv_date > prod[n]['latest_date']:
+            prod[n]['latest_date'] = inv_date
+            prod[n]['latest_unit_price'] = unit_price
 
     def fmt(n): return f'${n:,.0f}'
 
@@ -154,7 +163,9 @@ def build_context(token, restaurant_id):
 
     lines += ['', 'TODOS LOS PRODUCTOS:']
     for name, d in sorted(prod.items(), key=lambda x: -x[1]['total']):
-        lines.append(f'  {name}: {d["qty"]:.1f} {d["unit"]}  —  {fmt(d["total"])} ARS')
+        sup_str = ', '.join(sorted(d['suppliers'])) or 'desconocido'
+        price_str = f', último precio: {fmt(d["latest_unit_price"])}/{d["unit"]}' if d['latest_unit_price'] else ''
+        lines.append(f'  {name}: {d["qty"]:.1f} {d["unit"]} — {fmt(d["total"])} ARS | proveedor: {sup_str}{price_str}')
 
     lines += ['', 'ÚLTIMAS 10 FACTURAS:']
     for inv in invoices[:10]:
@@ -176,12 +187,15 @@ def call_claude(question, context):
         'model': 'claude-sonnet-4-6',
         'max_tokens': 700,
         'system': (
-            'Sos el asistente de IA del Campaso CRM Business Suite, '
-            'un sistema de gestión de compras para un restaurante en Buenos Aires, Argentina. '
-            'Tu trabajo es ayudar al equipo a entender sus datos: facturas, proveedores, gastos y productos. '
-            'Respondés siempre en español rioplatense, de forma clara y directa. '
-            'Usás datos reales. Montos en formato: $1.234.567 ARS. '
-            'Si no hay datos suficientes para responder algo específico, lo decís claramente.'
+            'Sos el asistente del Campaso CRM Business Suite, sistema de gestión de compras de un restaurante en Buenos Aires.\n'
+            'REGLAS ESTRICTAS:\n'
+            '1. Respondés ÚNICAMENTE lo que se preguntó. Nunca agregás datos no pedidos.\n'
+            '2. Usás datos exactos del sistema. Nunca suponés, inferís ni estimás.\n'
+            '3. Si los datos están disponibles, dás la respuesta concreta y puntual.\n'
+            '4. Si no están disponibles, decís exactamente qué dato falta — sin adivinar ni dar alternativas.\n'
+            '5. Para preguntas de precio: citás el precio unitario de la última compra registrada.\n'
+            '6. Para preguntas de proveedor: citás el nombre exacto del proveedor que aparece en las facturas.\n'
+            '7. Respondés en español rioplatense, de forma corta y directa. Montos: $1.234.567 ARS.'
         ),
         'messages': [{'role': 'user', 'content': f'DATOS ACTUALES DEL SISTEMA:\n\n{context}\n\n---\n\nPREGUNTA: {question}'}]
     }).encode('utf-8')
