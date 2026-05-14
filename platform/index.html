@@ -1071,12 +1071,13 @@ function renderFacturasTable(invoices) {
       + '<td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
       + '<td class="td-mono td-muted" style="font-size:12px;">' + escAttr(i.invoice_number || '—') + '</td>'
       + '<td><button class="btn-link" data-sup-id="' + i.supplier_id + '">' + escAttr(sup?.name || '—') + '</button></td>'
+      + '<td class="td-mono" style="font-weight:600;color:var(--text);">' + (i.tax_amount ? '01' : '02') + '</td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + (i.tax_amount ? '<span style="font-size:10px;color:var(--muted);margin-left:4px;">(' + ivaRateLabel(i) + ')</span>' : '') + '</td>'
       + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
       + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
       + '</tr>';
-  }).join('') || '<tr><td colspan="7" class="empty">Sin facturas.</td></tr>';
+  }).join('') || '<tr><td colspan="8" class="empty">Sin facturas.</td></tr>';
 
   if (!tbody._hasListeners) {
     tbody.addEventListener('click', handleFacturasClick);
@@ -1102,12 +1103,13 @@ function renderFacturasTable(invoices) {
 
 function exportFacturasCSV() {
   const invoices = _facturasFiltered.length ? _facturasFiltered : _invoicesAll;
-  const cols = ['Fecha','N° Comprobante','Proveedor','Sin IVA (AR$)','IVA (AR$)','Total (AR$)'];
+  const cols = ['Fecha','N° Comprobante','Proveedor','Código','Sin IVA (AR$)','IVA (AR$)','Total (AR$)'];
   const rows = invoices.map(function(i) {
     return [
       fmtDate(i.invoice_date),
       i.invoice_number || '',
       _supplierMap[i.supplier_id]?.name || '',
+      i.tax_amount ? '01' : '02',
       i.subtotal != null ? i.subtotal : '',
       i.tax_amount != null ? i.tax_amount : '',
       i.total != null ? i.total : ''
@@ -1549,7 +1551,7 @@ async function renderClient(token, userId) {
     + '</div>'
     + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta" id="facturas-count"></div></div>'
     + '<div class="table-wrap"><table>'
-    + '<thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Sin IVA</th><th>IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
+    + '<thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Código</th><th>Sin IVA</th><th>IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
     + '<tbody id="facturas-tbody"></tbody>'
     + '</table></div></div>';
 
