@@ -1257,6 +1257,72 @@ function getPidx(name) {
   return idx;
 }
 
+// ── Inline invoice detail inside Stock modal ──────────────────────────────────
+function toggleStockInvoiceDetail(row, invId) {
+  const existing = document.getElementById('sinv-' + invId);
+  if (existing) {
+    existing.remove();
+    row.style.background = '';
+    return;
+  }
+  // Collapse any other open detail rows
+  document.querySelectorAll('[id^="sinv-"]').forEach(el => el.remove());
+  document.querySelectorAll('tr[data-inv-id]').forEach(r => r.style.background = '');
+  row.style.background = 'rgba(45,212,191,0.06)';
+
+  const items = _liByInvoice[invId] || [];
+  const invObj = _invoicesAll.find(i => i.id === invId);
+
+  const subRows = items.map(function(li) {
+    return '<tr style="background:#fafafa;">'
+      + '<td style="font-size:12px;color:var(--muted);padding:7px 12px;">' + escAttr(li.categories?.name || '—') + '</td>'
+      + '<td style="font-size:12px;font-weight:500;padding:7px 12px;">' + escAttr(li.product_name || '—') + '</td>'
+      + '<td class="td-mono" style="font-size:12px;padding:7px 12px;">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
+      + '<td style="font-size:12px;color:var(--muted);padding:7px 12px;">' + escAttr(li.unit || '—') + '</td>'
+      + '<td class="td-mono td-muted" style="font-size:12px;padding:7px 12px;">' + fmtARS(li.unit_price) + '</td>'
+      + '<td class="td-mono td-accent" style="font-size:12px;padding:7px 12px;font-weight:600;">' + fmtARS(li.total) + '</td>'
+      + '<td></td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="7" style="padding:12px;text-align:center;color:var(--muted);">Sin productos.</td></tr>';
+
+  let fiscalHtml = '';
+  if (invObj) {
+    const fields = [
+      { label: 'Sin IVA', val: invObj.subtotal },
+      { label: 'IVA 10,5%', val: invObj.iva_10_5 },
+      { label: 'IVA 21%', val: invObj.iva_21 },
+      { label: 'IVA 27%', val: invObj.iva_27 },
+      { label: 'Total', val: invObj.total },
+    ].filter(f => f.val);
+    if (fields.length) {
+      fiscalHtml = '<div style="display:flex;gap:20px;flex-wrap:wrap;padding:10px 14px;background:#f0fdf9;border-top:1px solid rgba(45,212,191,0.2);">'
+        + fields.map(f => '<span style="font-size:12px;"><span style="color:var(--muted);">' + f.label + ':</span> <strong>' + fmtARS(f.val) + '</strong></span>').join('')
+        + (invObj.file_url ? ' <a href="' + invObj.file_url + '" target="_blank" style="margin-left:auto;font-size:12px;color:var(--accent);font-weight:600;">Ver archivo ↗</a>' : '')
+        + '</div>';
+    }
+  }
+
+  const det = document.createElement('tr');
+  det.id = 'sinv-' + invId;
+  det.innerHTML = '<td colspan="7" style="padding:0;border-top:2px solid var(--accent);">'
+    + '<table style="width:100%;border-collapse:collapse;">'
+    + '<thead><tr style="background:#f0fdf9;">'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">CATEGORÍA</th>'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">PRODUCTO</th>'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">CANT.</th>'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">U.M.</th>'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">PRECIO UNIT.</th>'
+    + '<th style="padding:8px 12px;font-size:11px;text-align:left;font-weight:700;letter-spacing:0.05em;">TOTAL</th>'
+    + '<th></th>'
+    + '</tr></thead>'
+    + '<tbody>' + subRows + '</tbody>'
+    + '</table>'
+    + fiscalHtml
+    + '</td>';
+
+  row.after(det);
+}
+
 // ── Navigate from Stock modal to a specific invoice in Facturas ───────────────
 function goToFactura(invId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1488,8 +1554,7 @@ function openStockModal(catName) {
   document.getElementById('stock-modal-tbody').addEventListener('click', function(e) {
     const row = e.target.closest('tr[data-inv-id]');
     if (!row || !row.dataset.invId) return;
-    closeModal();
-    goToFactura(row.dataset.invId);
+    toggleStockInvoiceDetail(row, row.dataset.invId);
   });
 
   document.getElementById('stock-filter-from').addEventListener('input', applyStockFilter);
@@ -1534,7 +1599,7 @@ function renderStockTable(items) {
   const tbody = document.getElementById('stock-modal-tbody');
   if (!tbody) return;
   tbody.innerHTML = items.map(function(li) {
-    return '<tr data-inv-id="' + escAttr(li.invoice_id||'') + '" style="cursor:pointer;" title="Ver factura completa">'
+    return '<tr data-inv-id="' + escAttr(li.invoice_id||'') + '" style="cursor:pointer;" title="Ver detalle de factura">'
       + '<td class="td-mono td-muted">'                      + fmtDate(li.invoices?.invoice_date) + '</td>'
       + '<td class="td-mono" style="font-size:11px;color:var(--accent);text-decoration:underline;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
       + '<td class="td-muted" style="font-size:12px;">'      + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
