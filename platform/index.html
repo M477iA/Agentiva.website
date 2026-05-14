@@ -1410,7 +1410,7 @@ async function renderClient(token, userId) {
     + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Producto</th><th>Categoría</th><th>Proveedor</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
     + '<tbody>' + productosRows + '</tbody></table></div></div>';
 
-  const MACRO_COLORS = {
+  const CARD_COLORS = {
     'Almacen':'#F59E0B','Verduleria':'#10B981','Carniceria':'#EF4444',
     'Fiambre':'#8B5CF6','Limpieza':'#3B82F6','Bebidas':'#2DD4BF','Servicios':'#6B7280'
   };
@@ -1418,7 +1418,7 @@ async function renderClient(token, userId) {
   const stockCards = stockEntries.map(function(entry) {
     const name = entry[0]; const d = entry[1];
     const meta = catMeta(name);
-    const color = MACRO_COLORS[meta.macro] || '#6B7280';
+    const color = CARD_COLORS[meta.macro] || '#6B7280';
     const emoji = meta.emoji || '📦';
     return '<div class="stock-card">'
       + '<div class="stock-card-img" style="background:' + color + '1a;">'
