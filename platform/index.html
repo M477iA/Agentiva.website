@@ -1048,6 +1048,25 @@ async function sbGet(token, endpoint, params = {}) {
   if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
   return res.json();
 }
+async function sbPost(token, endpoint, body) {
+  const res = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
+    method: 'POST',
+    headers: { ...sbHeaders(token), 'Prefer': 'return=representation' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`POST ${endpoint}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+async function sbPatch(token, endpoint, filter, body) {
+  const url = new URL(`${SB_URL}/rest/v1/${endpoint}`);
+  url.searchParams.set(filter.key, filter.val);
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { ...sbHeaders(token), 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PATCH ${endpoint}: ${res.status} ${await res.text()}`);
+}
 
 // ── Formatters ──────────────────────────────────────────────────────────────
 const fmtARS = n => n == null ? '—' : 'AR$ ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n);
@@ -1058,6 +1077,7 @@ const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${St
 // ── Global state for modals & filters ───────────────────────────────────────
 let _invoicesAll      = [];
 let _facturasFiltered = [];
+let _tareasAll        = [];
 let _chatRestaurantId = null;
 let _authToken        = '';
 let _suppliersAll     = [];
@@ -1537,6 +1557,127 @@ function exportStockCSV() {
   URL.revokeObjectURL(url);
 }
 
+// ── Tarea approve / reject ───────────────────────────────────────────────────
+function _ivaFields(d) {
+  const rate = String(d.tax_rate || '').replace('%','').replace(',','.').trim();
+  if (!d.tax_amount || !rate) return {};
+  if (rate === '27')   return { iva_27:        d.tax_amount };
+  if (rate === '21')   return { iva_21:         d.tax_amount };
+  if (rate === '10.5') return { iva_10_5:       d.tax_amount };
+  if (rate === '5')    return { iva_5:          d.tax_amount };
+  if (rate === '2.5')  return { iva_2_5:        d.tax_amount };
+  return { otros_tributos: d.tax_amount };
+}
+function _toIsoDate(s) {
+  if (!s) return null;
+  const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : s;
+}
+
+async function approveTarea(tareaId) {
+  const tarea = _tareasAll.find(t => t.id === tareaId);
+  if (!tarea) return;
+  const d = tarea.extracted_data || {};
+  const btn = document.querySelector(`.btn-approve-tarea[data-id="${tareaId}"]`);
+  if (btn) { btn.textContent = 'Procesando…'; btn.disabled = true; }
+
+  try {
+    const restaurantId = _chatRestaurantId;
+
+    // 1. Find or create supplier
+    let supplierId;
+    const supFilter = d.cuit
+      ? { 'cuit': `eq.${d.cuit}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' }
+      : { 'name': `eq.${d.supplier_name || ''}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' };
+    const existing = await sbGet(_authToken, 'suppliers', supFilter);
+    if (existing.length > 0) {
+      supplierId = existing[0].id;
+    } else {
+      const [newSup] = await sbPost(_authToken, 'suppliers', { restaurant_id: restaurantId, name: d.supplier_name || 'Desconocido', cuit: d.cuit || null });
+      supplierId = newSup.id;
+    }
+
+    // 2. Check for duplicate invoice
+    const dupCheck = await sbGet(_authToken, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'invoice_number': `eq.${(d.invoice_number||'').replace(/-/g,'')}`, 'select': 'id', 'limit': '1' });
+    if (dupCheck.length > 0) {
+      alert('Esta factura ya existe en el sistema (N° ' + d.invoice_number + ').');
+      if (btn) { btn.textContent = '✓ Aprobar'; btn.disabled = false; }
+      return;
+    }
+
+    // 3. Insert invoice
+    const [invoice] = await sbPost(_authToken, 'invoices', {
+      restaurant_id:    restaurantId,
+      supplier_id:      supplierId,
+      invoice_number:   (d.invoice_number || '').replace(/-/g, ''),
+      invoice_date:     _toIsoDate(d.invoice_date),
+      subtotal:         d.subtotal   || null,
+      tax_amount:       d.tax_amount || null,
+      total:            d.total      || null,
+      tipo_comprobante: d.tipo_comprobante || null,
+      condicion_iva:    d.condicion_iva    || null,
+      ..._ivaFields(d),
+    });
+
+    // 4. Resolve category IDs
+    const catNames = [...new Set((d.line_items || []).map(li => li.category_name).filter(Boolean))];
+    const catMap = {};
+    if (catNames.length > 0) {
+      const catRows = await sbGet(_authToken, 'categories', {
+        'restaurant_id': `eq.${restaurantId}`,
+        'name': `in.(${catNames.map(n => `"${n.replace(/"/g,'\\"')}"`).join(',')})`,
+        'select': 'id,name',
+        'limit': '200',
+      });
+      for (const r of catRows) catMap[r.name] = r.id;
+    }
+
+    // 5. Insert line items
+    for (const li of (d.line_items || [])) {
+      const qty   = li.quantity   || 0;
+      const price = li.unit_price || 0;
+      await sbPost(_authToken, 'line_items', {
+        restaurant_id: restaurantId,
+        invoice_id:    invoice.id,
+        supplier_id:   supplierId,
+        category_id:   li.category_name ? (catMap[li.category_name] || null) : null,
+        product_name:  li.description || li.name || '',
+        quantity:      qty,
+        unit:          li.unit || null,
+        unit_content:  li.unit_content || 1,
+        unit_price:    price,
+        total:         Math.round(qty * price * 100) / 100,
+      });
+    }
+
+    // 6. Mark tarea as approved
+    await sbPatch(_authToken, 'tareas', { key: 'id', val: `eq.${tareaId}` }, { status: 'approved', processed_at: new Date().toISOString() });
+
+    // Remove card from UI
+    const card = document.getElementById('tarea-' + tareaId);
+    if (card) card.remove();
+    const t = _tareasAll.find(x => x.id === tareaId);
+    if (t) t.status = 'approved';
+
+  } catch (err) {
+    if (btn) { btn.textContent = '✓ Aprobar'; btn.disabled = false; }
+    alert('Error al aprobar: ' + err.message + '\n\nVerificá que el usuario tenga permisos de escritura en Supabase.');
+  }
+}
+
+async function rejectTarea(tareaId) {
+  if (!confirm('¿Rechazar esta tarea? Los datos extraídos serán descartados.')) return;
+  try {
+    await sbPatch(_authToken, 'tareas', { key: 'id', val: `eq.${tareaId}` }, { status: 'rejected', processed_at: new Date().toISOString() });
+    const card = document.getElementById('tarea-' + tareaId);
+    if (card) card.remove();
+    const t = _tareasAll.find(x => x.id === tareaId);
+    if (t) t.status = 'rejected';
+  } catch (err) {
+    alert('Error al rechazar: ' + err.message);
+  }
+}
+
 function showModal() {
   const ov = document.getElementById('modal-overlay');
   ov.hidden = false;
@@ -1557,11 +1698,13 @@ async function renderClient(token, userId) {
   const [restaurant] = await sbGet(token, 'restaurants', { 'id': `eq.${restaurantId}`, 'select': '*' });
   document.getElementById('user-label').textContent = restaurant.name;
 
-  const [invoices, suppliers, lineItems] = await Promise.all([
+  const [invoices, suppliers, lineItems, tareas] = await Promise.all([
     sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '500' }),
     sbGet(token, 'suppliers', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*', 'order': 'name.asc', 'limit': '500' }),
     sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,invoices(invoice_date,invoice_number),suppliers(name),categories(name)', 'order': 'created_at.desc', 'limit': '2000' }),
+    sbGet(token, 'tareas', { 'restaurant_id': `eq.${restaurantId}`, 'order': 'created_at.desc', 'limit': '200' }).catch(() => []),
   ]);
+  _tareasAll = tareas || [];
 
   // Stats
   const ms = monthStart();
@@ -1639,8 +1782,14 @@ async function renderClient(token, userId) {
   }
 
   // ── Build HTML ────────────────────────────────────────────────────────────
+  const pendingCount = _tareasAll.filter(t => t.status === 'pending').length;
+  const tareasBadge  = pendingCount > 0
+    ? ' <span style="background:#ef4444;color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:middle;">' + pendingCount + '</span>'
+    : '';
+
   const tabsHtml = '<div class="tabs">'
     + '<button class="tab-btn active" data-tab="general">General</button>'
+    + '<button class="tab-btn" data-tab="tareas">Tareas' + tareasBadge + '</button>'
     + '<button class="tab-btn" data-tab="facturas">Facturas</button>'
     + '<button class="tab-btn" data-tab="proveedores">Proveedores</button>'
     + '<button class="tab-btn" data-tab="productos">Productos</button>'
@@ -1768,8 +1917,58 @@ async function renderClient(token, userId) {
     + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta">' + stockEntries.length + ' categorías</div></div>'
     + '<div class="stock-grid">' + stockCards + '</div></div>';
 
+  const tareasCards = _tareasAll.map(function(t) {
+    const d   = t.extracted_data || {};
+    const cls = t.status === 'pending' ? '' : (t.status === 'approved' ? 'border-color:#2DD4BF;' : 'border-color:#ef4444;opacity:0.6;');
+    const statusBadge = t.status !== 'pending'
+      ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada') + '</span> '
+      : '';
+    const items = (d.line_items || []).slice(0, 3).map(li =>
+      '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
+      + '<span style="font-size:12px;">' + escAttr(li.description || li.name || '—') + (li.category_name ? ' <span style="color:var(--muted);font-size:11px;">(' + escAttr(li.category_name) + ')</span>' : '') + '</span>'
+      + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + (li.quantity != null ? fmtNum(li.quantity) : '') + ' ' + escAttr(li.unit || '') + '</span>'
+      + '</div>'
+    ).join('');
+    const moreItems = (d.line_items || []).length > 3 ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;">+ ' + ((d.line_items.length - 3)) + ' productos más</div>' : '';
+    return '<div class="tarea-card" id="tarea-' + t.id + '" data-tarea-id="' + t.id + '" style="border:1px solid var(--border);' + cls + 'border-radius:12px;padding:18px;margin-bottom:14px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
+      + '<div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-bottom:2px;">📧 ' + escAttr(t.email_sender || '—') + ' &nbsp;·&nbsp; ' + escAttr(t.attachment_name || '—') + '</div>'
+      + '<div style="font-size:13px;color:var(--muted);">' + (t.created_at ? new Date(t.created_at).toLocaleDateString('es-AR') : '') + '</div>'
+      + '</div>'
+      + '<div>' + statusBadge + '</div>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">'
+      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Proveedor</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.supplier_name || '—') + '</div></div>'
+      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Factura</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_number || '—') + '</div></div>'
+      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Fecha</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_date || '—') + '</div></div>'
+      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Total</div><div style="font-size:14px;font-weight:700;color:var(--accent);">' + fmtARS(d.total) + '</div></div>'
+      + '</div>'
+      + (items ? '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:14px;">' + items + moreItems + '</div>' : '')
+      + (t.status === 'pending'
+        ? '<div style="display:flex;gap:10px;">'
+          + '<button class="btn-approve-tarea" data-id="' + t.id + '" style="flex:1;padding:8px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">✓ Aprobar</button>'
+          + '<button class="btn-reject-tarea" data-id="' + t.id + '" style="padding:8px 16px;background:none;border:1px solid #ef4444;border-radius:8px;font-size:13px;color:#ef4444;font-family:var(--font);cursor:pointer;">✗ Rechazar</button>'
+          + '</div>'
+        : '')
+      + '</div>';
+  }).join('') || '<div class="empty" style="padding:40px;text-align:center;">No hay tareas pendientes.</div>';
+
+  const allCount     = _tareasAll.length;
+  const pendingTareas = _tareasAll.filter(t => t.status === 'pending').length;
+  const approvedTareas = _tareasAll.filter(t => t.status === 'approved').length;
+
+  const tareasHtml = '<div id="tab-tareas" hidden>'
+    + '<div class="section-header"><div class="section-title">Tareas</div><div class="section-meta">' + pendingTareas + ' pendiente' + (pendingTareas !== 1 ? 's' : '') + '</div></div>'
+    + '<div class="stats-row" style="margin-bottom:20px;">'
+    + '<div class="stat-card"><div class="stat-label">Total tareas</div><div class="stat-value">' + allCount + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Pendientes</div><div class="stat-value" style="color:#f59e0b;">' + pendingTareas + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">Aprobadas</div><div class="stat-value stat-accent">' + approvedTareas + '</div></div>'
+    + '</div>'
+    + '<div id="tareas-list">' + tareasCards + '</div></div>';
+
   const main = document.getElementById('main-content');
-  main.innerHTML = tabsHtml + generalHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
+  main.innerHTML = tabsHtml + generalHtml + tareasHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
 
   // Populate facturas table (must happen after innerHTML is set)
   renderFacturasTable(_invoicesAll);
@@ -1828,12 +2027,23 @@ async function renderClient(token, userId) {
     }
   });
 
+  // Tareas: approve / reject
+  const tareasList = document.getElementById('tareas-list');
+  if (tareasList) {
+    tareasList.addEventListener('click', function(e) {
+      const approveBtn = e.target.closest('.btn-approve-tarea');
+      if (approveBtn) { approveTarea(approveBtn.dataset.id); return; }
+      const rejectBtn = e.target.closest('.btn-reject-tarea');
+      if (rejectBtn) { rejectTarea(rejectBtn.dataset.id); }
+    });
+  }
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['general','facturas','proveedores','productos','stock'].forEach(t => {
+      ['general','tareas','facturas','proveedores','productos','stock'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.hidden = t !== btn.dataset.tab;
       });
