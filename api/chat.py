@@ -148,12 +148,12 @@ def build_context(token, restaurant_id):
         count = sum(1 for i in invoices if (i.get('suppliers') or {}).get('name') == name)
         lines.append(f'  {name}: {fmt(total)} ARS ({count} facturas)')
 
-    lines += ['', 'TOP 20 CATEGORÍAS:']
-    for name, total in sorted(cat_totals.items(), key=lambda x: -x[1])[:20]:
+    lines += ['', 'CATEGORÍAS (todas):']
+    for name, total in sorted(cat_totals.items(), key=lambda x: -x[1]):
         lines.append(f'  {name}: {fmt(total)} ARS')
 
-    lines += ['', 'TOP 25 PRODUCTOS:']
-    for name, d in sorted(prod.items(), key=lambda x: -x[1]['total'])[:25]:
+    lines += ['', 'TODOS LOS PRODUCTOS:']
+    for name, d in sorted(prod.items(), key=lambda x: -x[1]['total']):
         lines.append(f'  {name}: {d["qty"]:.1f} {d["unit"]}  —  {fmt(d["total"])} ARS')
 
     lines += ['', 'ÚLTIMAS 10 FACTURAS:']
