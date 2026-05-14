@@ -632,6 +632,57 @@ a.file-link:hover { text-decoration: underline; }
 @media (max-width: 500px) {
   .chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 84px; }
 }
+
+/* ── Stock card grid ─────────────────────────────────────── */
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px;
+  padding: 4px 0 20px;
+}
+.stock-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s, transform 0.15s;
+  background: var(--bg);
+}
+.stock-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+  transform: translateY(-2px);
+}
+.stock-card-img {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  line-height: 1;
+}
+.stock-card-body { padding: 10px 12px 12px; }
+.stock-card-name {
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 5px;
+  min-height: 34px;
+}
+.stock-card-macro { margin-bottom: 7px; }
+.stock-card-qty {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.stock-card-total {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+@media (max-width: 600px) {
+  .stock-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .stock-card-img { height: 70px; font-size: 34px; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -753,153 +804,153 @@ function fmtNum(n) {
   return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(n);
 }
 const CATEGORY_MAP = {
-  'Aceite Alto Oleico Seda bidon':{'macro':'Almacen','medida':'Litros'},
-  'Aceite de Girasol':{'macro':'Almacen','medida':'Litros'},
-  'Aceite de Oliva':{'macro':'Almacen','medida':'Litros'},
-  'Aceituna':{'macro':'Almacen','medida':'Kg'},
-  'Aceto Balsamico':{'macro':'Almacen','medida':'Litros'},
-  'Ají Molido':{'macro':'Almacen','medida':'Kg'},
-  'Ajinomoto':{'macro':'Almacen','medida':'Kg'},
-  'Ajo':{'macro':'Verduleria','medida':'Kg'},
-  'Ajo en polvo':{'macro':'Almacen','medida':'Kg'},
-  'Albahaca':{'macro':'Verduleria','medida':'Kg'},
-  'Alcaparras':{'macro':'Almacen','medida':'Kg'},
-  'Almendras':{'macro':'Almacen','medida':'Kg'},
-  'Anchoa':{'macro':'Almacen','medida':'Kg'},
-  'Arroz':{'macro':'Almacen','medida':'Kg'},
-  'Asado Banderita':{'macro':'Carniceria','medida':'Kg'},
-  'Azúcar':{'macro':'Almacen','medida':'Kg'},
-  'Batata':{'macro':'Verduleria','medida':'Kg'},
-  'Berenjena':{'macro':'Verduleria','medida':'Kg'},
-  'Bife de chorizo':{'macro':'Carniceria','medida':'Kg'},
-  'Bobina Industrial':{'macro':'Limpieza','medida':'Unidades'},
-  'Bolsa Arranque 25X30':{'macro':'Limpieza','medida':'Unidades'},
-  'Bolsa Arranque 45X60':{'macro':'Limpieza','medida':'Unidades'},
-  'Bolsa Arranque 60X90':{'macro':'Limpieza','medida':'Unidades'},
-  'Bolsa Residuo Negra':{'macro':'Limpieza','medida':'Unidades'},
-  'Bolsa Residuo Verde':{'macro':'Limpieza','medida':'Unidades'},
-  'Bondiola':{'macro':'Fiambre','medida':'Kg'},
-  'Cacao':{'macro':'Almacen','medida':'Kg'},
-  'Capuchina':{'macro':'Verduleria','medida':'Kg'},
-  'Carne Picada':{'macro':'Carniceria','medida':'Kg'},
-  'Cebolla Blanca':{'macro':'Verduleria','medida':'Kg'},
-  'Cebolla Clasica':{'macro':'Verduleria','medida':'Kg'},
-  'Cebolla Deshidratada':{'macro':'Almacen','medida':'kg'},
-  'Cebolla Morada':{'macro':'Verduleria','medida':'Kg'},
-  'Cerveza':{'macro':'Bebidas','medida':'Litros'},
-  'Cheddar':{'macro':'Fiambre','medida':'Kg'},
-  'Cherry':{'macro':'Verduleria','medida':'Kg'},
-  'Choclo':{'macro':'Almacen','medida':'kg'},
-  'Chocolate Semiamargo':{'macro':'Almacen','medida':'kg'},
-  'Chocolinas':{'macro':'Almacen','medida':'kg'},
-  'Chorizo':{'macro':'Carniceria','medida':'Kg'},
-  'Cilantro':{'macro':'Verduleria','medida':'Kg'},
-  'Coca Cola':{'macro':'Bebidas','medida':'Litros'},
-  'Coca cola':{'macro':'Bebidas','medida':'Litros'},
-  'Crema':{'macro':'Fiambre','medida':'Kg'},
-  'Crema De Esencia De Vainilla':{'macro':'Almacen','medida':'kg'},
-  'Desengrasante 5LT':{'macro':'Limpieza','medida':'Unidades'},
-  'Desodorante Piso 5LT':{'macro':'Limpieza','medida':'Unidades'},
-  'Detergente 5LT':{'macro':'Limpieza','medida':'Unidades'},
-  'Dulce De Batata':{'macro':'Almacen','medida':'kg'},
-  'Dulce De Leche':{'macro':'Almacen','medida':'kg'},
-  'Entraña':{'macro':'Carniceria','medida':'Kg'},
-  'Envio Mercaderia':{'macro':'Servicios','medida':'Pedidos'},
-  'Espinaca':{'macro':'Verduleria','medida':'Kg'},
-  'Espinaca Congelada':{'macro':'Almacen','medida':'kg'},
-  'Esponja':{'macro':'Limpieza','medida':'Unidades'},
-  'Fideos':{'macro':'Almacen','medida':'kg'},
-  'Film':{'macro':'Limpieza','medida':'Unidades'},
-  'Folex':{'macro':'Limpieza','medida':'Unidades'},
-  'Francesa':{'macro':'Verduleria','medida':'Kg'},
-  'Fritolin':{'macro':'Almacen','medida':'kg'},
-  'Frutos Rojos':{'macro':'Almacen','medida':'kg'},
-  'Garbanzos':{'macro':'Almacen','medida':'kg'},
-  'Guantes Nitrilo Talle M':{'macro':'Limpieza','medida':'Unidades'},
-  'Hamburguesas':{'macro':'Carniceria','medida':'Kg'},
-  'Harina 0000':{'macro':'Almacen','medida':'kg'},
-  'Harina Leudante':{'macro':'Almacen','medida':'kg'},
-  'Huevos':{'macro':'Almacen','medida':'Maples'},
-  'Jabon en plan blanco':{'macro':'Limpieza','medida':'Unidades'},
-  'Jabon para mano':{'macro':'Limpieza','medida':'Unidades'},
-  'Jamon cocido':{'macro':'Fiambre','medida':'Kg'},
-  'Jamon crudo':{'macro':'Fiambre','medida':'Kg'},
-  'Jugo De Naranja':{'macro':'Bebidas','medida':'Litros'},
-  'Ketchup':{'macro':'Almacen','medida':'kg'},
-  'Ketchup 8g':{'macro':'Almacen','medida':'kg'},
-  'Lavandina':{'macro':'Limpieza','medida':'Unidades'},
-  'Leche':{'macro':'Almacen','medida':'L'},
-  'Lechuga Morada':{'macro':'Verduleria','medida':'Kg'},
-  'Licores':{'macro':'Bebidas','medida':'Litros'},
-  'Limón':{'macro':'Verduleria','medida':'Kg'},
-  'Lomo':{'macro':'Carniceria','medida':'Kg'},
-  'Maicena':{'macro':'Almacen','medida':'kg'},
-  'Maní':{'macro':'Almacen','medida':'kg'},
-  'Manteca':{'macro':'Fiambre','medida':'Kg'},
-  'Mayonesa':{'macro':'Almacen','medida':'kg'},
-  'Mayonesa 8g':{'macro':'Almacen','medida':'kg'},
-  'Membrillo':{'macro':'Almacen','medida':'kg'},
-  'Milanesas de berenjena':{'macro':'Carniceria','medida':'Kg'},
-  'Mollejas':{'macro':'Carniceria','medida':'Kg'},
-  'Morcillas':{'macro':'Carniceria','medida':'Kg'},
-  'Morrón Rojo':{'macro':'Verduleria','medida':'Kg'},
-  'Morrón Verde':{'macro':'Verduleria','medida':'Kg'},
-  'Morron Lata':{'macro':'Almacen','medida':'kg'},
-  'Mostaza':{'macro':'Almacen','medida':'kg'},
-  'Mostaza 8g':{'macro':'Almacen','medida':'kg'},
-  'Muzarella':{'macro':'Fiambre','medida':'Kg'},
-  'Nalga Feteada':{'macro':'Carniceria','medida':'Kg'},
-  'Naranja':{'macro':'Verduleria','medida':'Kg'},
-  'Nueces':{'macro':'Almacen','medida':'kg'},
-  'Nues moscada':{'macro':'Almacen','medida':'kg'},
-  'Ojo de bife':{'macro':'Carniceria','medida':'Kg'},
-  'Orégano':{'macro':'Almacen','medida':'kg'},
-  'Palta':{'macro':'Verduleria','medida':'Kg'},
-  'Pan rallado':{'macro':'Almacen','medida':'kg'},
-  'Papel Higienico':{'macro':'Limpieza','medida':'Unidades'},
-  'Papas':{'macro':'Verduleria','medida':'Kg'},
-  'Pata y Muslo':{'macro':'Carniceria','medida':'Kg'},
-  'Pategras':{'macro':'Fiambre','medida':'Kg'},
-  'Pateras':{'macro':'Fiambre','medida':'Kg'},
-  'Pechuga':{'macro':'Carniceria','medida':'Kg'},
-  'Peras':{'macro':'Verduleria','medida':'Kg'},
-  'Perejil':{'macro':'Verduleria','medida':'Kg'},
-  'Picada Roast Beef':{'macro':'Carniceria','medida':'Kg'},
-  'Pimentón':{'macro':'Almacen','medida':'kg'},
-  'Pimienta en grano':{'macro':'Almacen','medida':'kg'},
-  'Pimienta negra':{'macro':'Almacen','medida':'kg'},
-  'Portobello':{'macro':'Verduleria','medida':'Kg'},
-  'Provoleta':{'macro':'Fiambre','medida':'Kg'},
-  'Puré de tomate':{'macro':'Almacen','medida':'kg'},
-  'Queso Azul':{'macro':'Fiambre','medida':'Kg'},
-  'Queso Fresco':{'macro':'Fiambre','medida':'Kg'},
-  'Queso crema':{'macro':'Fiambre','medida':'Kg'},
-  'Regianito':{'macro':'Fiambre','medida':'Kg'},
-  'Repasador Frances':{'macro':'Limpieza','medida':'Unidades'},
-  'Romero':{'macro':'Verduleria','medida':'Kg'},
-  'Rucula':{'macro':'Verduleria','medida':'Kg'},
-  'Sal fina':{'macro':'Almacen','medida':'kg'},
-  'Sal gruesa':{'macro':'Almacen','medida':'kg'},
-  'Salchicha Parrillera':{'macro':'Carniceria','medida':'Kg'},
-  'Salsa de tomate cubeteado':{'macro':'Almacen','medida':'kg'},
-  'Servilleta':{'macro':'Limpieza','medida':'Unidades'},
-  'Suprema':{'macro':'Carniceria','medida':'Kg'},
-  'Tabasco':{'macro':'Almacen','medida':'unidades'},
-  'Tapa de empanada 12.5 cm':{'macro':'Almacen','medida':'kg'},
-  'Tapa de empanada 13.5 cm':{'macro':'Almacen','medida':'kg'},
-  'Toalla Intercalada':{'macro':'Limpieza','medida':'Unidades'},
-  'Tomate Deshidratado':{'macro':'Almacen','medida':'kg'},
-  'Tomate Perita':{'macro':'Verduleria','medida':'Kg'},
-  'Tomate Triturado':{'macro':'Almacen','medida':'kg'},
-  'Tomillo':{'macro':'Verduleria','medida':'Kg'},
-  'Trapo de piso':{'macro':'Limpieza','medida':'Unidades'},
-  'Vinagre':{'macro':'Almacen','medida':'Litros'},
-  'Vino Blanco':{'macro':'Bebidas','medida':'Litros'},
-  'Vino Tinto':{'macro':'Bebidas','medida':'Litros'},
-  'Vino blanco para cocinar':{'macro':'Almacen','medida':'Litros'},
-  'Vino tinto para cocinar':{'macro':'Almacen','medida':'Litros'},
-  'Wi-Fi':{'macro':'Servicios','medida':'facturas'},
-  'Zanahoria':{'macro':'Verduleria','medida':'Kg'},
+  'Aceite Alto Oleico Seda bidon':{'macro':'Almacen','medida':'Litros','emoji':'🫙'},
+  'Aceite de Girasol':{'macro':'Almacen','medida':'Litros','emoji':'🌻'},
+  'Aceite de Oliva':{'macro':'Almacen','medida':'Litros','emoji':'🫒'},
+  'Aceituna':{'macro':'Almacen','medida':'Kg','emoji':'🫒'},
+  'Aceto Balsamico':{'macro':'Almacen','medida':'Litros','emoji':'🍶'},
+  'Ají Molido':{'macro':'Almacen','medida':'Kg','emoji':'🌶️'},
+  'Ajinomoto':{'macro':'Almacen','medida':'Kg','emoji':'🧂'},
+  'Ajo':{'macro':'Verduleria','medida':'Kg','emoji':'🧄'},
+  'Ajo en polvo':{'macro':'Almacen','medida':'Kg','emoji':'🧄'},
+  'Albahaca':{'macro':'Verduleria','medida':'Kg','emoji':'🌿'},
+  'Alcaparras':{'macro':'Almacen','medida':'Kg','emoji':'🫛'},
+  'Almendras':{'macro':'Almacen','medida':'Kg','emoji':'🌰'},
+  'Anchoa':{'macro':'Almacen','medida':'Kg','emoji':'🐟'},
+  'Arroz':{'macro':'Almacen','medida':'Kg','emoji':'🍚'},
+  'Asado Banderita':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Azúcar':{'macro':'Almacen','medida':'Kg','emoji':'🍬'},
+  'Batata':{'macro':'Verduleria','medida':'Kg','emoji':'🍠'},
+  'Berenjena':{'macro':'Verduleria','medida':'Kg','emoji':'🍆'},
+  'Bife de chorizo':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Bobina Industrial':{'macro':'Limpieza','medida':'Unidades','emoji':'🧻'},
+  'Bolsa Arranque 25X30':{'macro':'Limpieza','medida':'Unidades','emoji':'🛍️'},
+  'Bolsa Arranque 45X60':{'macro':'Limpieza','medida':'Unidades','emoji':'🛍️'},
+  'Bolsa Arranque 60X90':{'macro':'Limpieza','medida':'Unidades','emoji':'🛍️'},
+  'Bolsa Residuo Negra':{'macro':'Limpieza','medida':'Unidades','emoji':'🗑️'},
+  'Bolsa Residuo Verde':{'macro':'Limpieza','medida':'Unidades','emoji':'♻️'},
+  'Bondiola':{'macro':'Fiambre','medida':'Kg','emoji':'🥓'},
+  'Cacao':{'macro':'Almacen','medida':'Kg','emoji':'🍫'},
+  'Capuchina':{'macro':'Verduleria','medida':'Kg','emoji':'🌸'},
+  'Carne Picada':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Cebolla Blanca':{'macro':'Verduleria','medida':'Kg','emoji':'🧅'},
+  'Cebolla Clasica':{'macro':'Verduleria','medida':'Kg','emoji':'🧅'},
+  'Cebolla Deshidratada':{'macro':'Almacen','medida':'kg','emoji':'🧅'},
+  'Cebolla Morada':{'macro':'Verduleria','medida':'Kg','emoji':'🧅'},
+  'Cerveza':{'macro':'Bebidas','medida':'Litros','emoji':'🍺'},
+  'Cheddar':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Cherry':{'macro':'Verduleria','medida':'Kg','emoji':'🍒'},
+  'Choclo':{'macro':'Almacen','medida':'kg','emoji':'🌽'},
+  'Chocolate Semiamargo':{'macro':'Almacen','medida':'kg','emoji':'🍫'},
+  'Chocolinas':{'macro':'Almacen','medida':'kg','emoji':'🍪'},
+  'Chorizo':{'macro':'Carniceria','medida':'Kg','emoji':'🌭'},
+  'Cilantro':{'macro':'Verduleria','medida':'Kg','emoji':'🌿'},
+  'Coca Cola':{'macro':'Bebidas','medida':'Litros','emoji':'🥤'},
+  'Coca cola':{'macro':'Bebidas','medida':'Litros','emoji':'🥤'},
+  'Crema':{'macro':'Fiambre','medida':'Kg','emoji':'🥛'},
+  'Crema De Esencia De Vainilla':{'macro':'Almacen','medida':'kg','emoji':'🍦'},
+  'Desengrasante 5LT':{'macro':'Limpieza','medida':'Unidades','emoji':'🧹'},
+  'Desodorante Piso 5LT':{'macro':'Limpieza','medida':'Unidades','emoji':'🧹'},
+  'Detergente 5LT':{'macro':'Limpieza','medida':'Unidades','emoji':'🧼'},
+  'Dulce De Batata':{'macro':'Almacen','medida':'kg','emoji':'🍬'},
+  'Dulce De Leche':{'macro':'Almacen','medida':'kg','emoji':'🍯'},
+  'Entraña':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Envio Mercaderia':{'macro':'Servicios','medida':'Pedidos','emoji':'📦'},
+  'Espinaca':{'macro':'Verduleria','medida':'Kg','emoji':'🥬'},
+  'Espinaca Congelada':{'macro':'Almacen','medida':'kg','emoji':'🥬'},
+  'Esponja':{'macro':'Limpieza','medida':'Unidades','emoji':'🧽'},
+  'Fideos':{'macro':'Almacen','medida':'kg','emoji':'🍝'},
+  'Film':{'macro':'Limpieza','medida':'Unidades','emoji':'🎞️'},
+  'Folex':{'macro':'Limpieza','medida':'Unidades','emoji':'✨'},
+  'Francesa':{'macro':'Verduleria','medida':'Kg','emoji':'🥗'},
+  'Fritolin':{'macro':'Almacen','medida':'kg','emoji':'🛢️'},
+  'Frutos Rojos':{'macro':'Almacen','medida':'kg','emoji':'🍓'},
+  'Garbanzos':{'macro':'Almacen','medida':'kg','emoji':'🫘'},
+  'Guantes Nitrilo Talle M':{'macro':'Limpieza','medida':'Unidades','emoji':'🧤'},
+  'Hamburguesas':{'macro':'Carniceria','medida':'Kg','emoji':'🍔'},
+  'Harina 0000':{'macro':'Almacen','medida':'kg','emoji':'🌾'},
+  'Harina Leudante':{'macro':'Almacen','medida':'kg','emoji':'🌾'},
+  'Huevos':{'macro':'Almacen','medida':'Maples','emoji':'🥚'},
+  'Jabon en plan blanco':{'macro':'Limpieza','medida':'Unidades','emoji':'🧼'},
+  'Jabon para mano':{'macro':'Limpieza','medida':'Unidades','emoji':'🧼'},
+  'Jamon cocido':{'macro':'Fiambre','medida':'Kg','emoji':'🍖'},
+  'Jamon crudo':{'macro':'Fiambre','medida':'Kg','emoji':'🍖'},
+  'Jugo De Naranja':{'macro':'Bebidas','medida':'Litros','emoji':'🍊'},
+  'Ketchup':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Ketchup 8g':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Lavandina':{'macro':'Limpieza','medida':'Unidades','emoji':'🧴'},
+  'Leche':{'macro':'Almacen','medida':'L','emoji':'🥛'},
+  'Lechuga Morada':{'macro':'Verduleria','medida':'Kg','emoji':'🥬'},
+  'Licores':{'macro':'Bebidas','medida':'Litros','emoji':'🍷'},
+  'Limón':{'macro':'Verduleria','medida':'Kg','emoji':'🍋'},
+  'Lomo':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Maicena':{'macro':'Almacen','medida':'kg','emoji':'🌽'},
+  'Maní':{'macro':'Almacen','medida':'kg','emoji':'🥜'},
+  'Manteca':{'macro':'Fiambre','medida':'Kg','emoji':'🧈'},
+  'Mayonesa':{'macro':'Almacen','medida':'kg','emoji':'🫙'},
+  'Mayonesa 8g':{'macro':'Almacen','medida':'kg','emoji':'🫙'},
+  'Membrillo':{'macro':'Almacen','medida':'kg','emoji':'🍐'},
+  'Milanesas de berenjena':{'macro':'Carniceria','medida':'Kg','emoji':'🍆'},
+  'Mollejas':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Morcillas':{'macro':'Carniceria','medida':'Kg','emoji':'🌭'},
+  'Morrón Rojo':{'macro':'Verduleria','medida':'Kg','emoji':'🫑'},
+  'Morrón Verde':{'macro':'Verduleria','medida':'Kg','emoji':'🫑'},
+  'Morron Lata':{'macro':'Almacen','medida':'kg','emoji':'🫑'},
+  'Mostaza':{'macro':'Almacen','medida':'kg','emoji':'🌻'},
+  'Mostaza 8g':{'macro':'Almacen','medida':'kg','emoji':'🌻'},
+  'Muzarella':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Nalga Feteada':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Naranja':{'macro':'Verduleria','medida':'Kg','emoji':'🍊'},
+  'Nueces':{'macro':'Almacen','medida':'kg','emoji':'🌰'},
+  'Nues moscada':{'macro':'Almacen','medida':'kg','emoji':'🌰'},
+  'Ojo de bife':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Orégano':{'macro':'Almacen','medida':'kg','emoji':'🌿'},
+  'Palta':{'macro':'Verduleria','medida':'Kg','emoji':'🥑'},
+  'Pan rallado':{'macro':'Almacen','medida':'kg','emoji':'🍞'},
+  'Papel Higienico':{'macro':'Limpieza','medida':'Unidades','emoji':'🧻'},
+  'Papas':{'macro':'Verduleria','medida':'Kg','emoji':'🥔'},
+  'Pata y Muslo':{'macro':'Carniceria','medida':'Kg','emoji':'🍗'},
+  'Pategras':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Pateras':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Pechuga':{'macro':'Carniceria','medida':'Kg','emoji':'🍗'},
+  'Peras':{'macro':'Verduleria','medida':'Kg','emoji':'🍐'},
+  'Perejil':{'macro':'Verduleria','medida':'Kg','emoji':'🌿'},
+  'Picada Roast Beef':{'macro':'Carniceria','medida':'Kg','emoji':'🥩'},
+  'Pimentón':{'macro':'Almacen','medida':'kg','emoji':'🌶️'},
+  'Pimienta en grano':{'macro':'Almacen','medida':'kg','emoji':'🧂'},
+  'Pimienta negra':{'macro':'Almacen','medida':'kg','emoji':'🧂'},
+  'Portobello':{'macro':'Verduleria','medida':'Kg','emoji':'🍄'},
+  'Provoleta':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Puré de tomate':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Queso Azul':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Queso Fresco':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Queso crema':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Regianito':{'macro':'Fiambre','medida':'Kg','emoji':'🧀'},
+  'Repasador Frances':{'macro':'Limpieza','medida':'Unidades','emoji':'🧺'},
+  'Romero':{'macro':'Verduleria','medida':'Kg','emoji':'🌿'},
+  'Rucula':{'macro':'Verduleria','medida':'Kg','emoji':'🥗'},
+  'Sal fina':{'macro':'Almacen','medida':'kg','emoji':'🧂'},
+  'Sal gruesa':{'macro':'Almacen','medida':'kg','emoji':'🧂'},
+  'Salchicha Parrillera':{'macro':'Carniceria','medida':'Kg','emoji':'🌭'},
+  'Salsa de tomate cubeteado':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Servilleta':{'macro':'Limpieza','medida':'Unidades','emoji':'🧻'},
+  'Suprema':{'macro':'Carniceria','medida':'Kg','emoji':'🍗'},
+  'Tabasco':{'macro':'Almacen','medida':'unidades','emoji':'🌶️'},
+  'Tapa de empanada 12.5 cm':{'macro':'Almacen','medida':'kg','emoji':'🥟'},
+  'Tapa de empanada 13.5 cm':{'macro':'Almacen','medida':'kg','emoji':'🥟'},
+  'Toalla Intercalada':{'macro':'Limpieza','medida':'Unidades','emoji':'🧻'},
+  'Tomate Deshidratado':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Tomate Perita':{'macro':'Verduleria','medida':'Kg','emoji':'🍅'},
+  'Tomate Triturado':{'macro':'Almacen','medida':'kg','emoji':'🍅'},
+  'Tomillo':{'macro':'Verduleria','medida':'Kg','emoji':'🌿'},
+  'Trapo de piso':{'macro':'Limpieza','medida':'Unidades','emoji':'🧹'},
+  'Vinagre':{'macro':'Almacen','medida':'Litros','emoji':'🍶'},
+  'Vino Blanco':{'macro':'Bebidas','medida':'Litros','emoji':'🍾'},
+  'Vino Tinto':{'macro':'Bebidas','medida':'Litros','emoji':'🍷'},
+  'Vino blanco para cocinar':{'macro':'Almacen','medida':'Litros','emoji':'🍾'},
+  'Vino tinto para cocinar':{'macro':'Almacen','medida':'Litros','emoji':'🍷'},
+  'Wi-Fi':{'macro':'Servicios','medida':'facturas','emoji':'📶'},
+  'Zanahoria':{'macro':'Verduleria','medida':'Kg','emoji':'🥕'},
 };
 
 // ── Auth helpers ────────────────────────────────────────────────────────────
@@ -1359,22 +1410,30 @@ async function renderClient(token, userId) {
     + '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Producto</th><th>Categoría</th><th>Proveedor</th><th>Cant.</th><th>U.M.</th><th>Precio Unit.</th><th>Total</th></tr></thead>'
     + '<tbody>' + productosRows + '</tbody></table></div></div>';
 
-  const stockRows = stockEntries.map(function(entry) {
+  const MACRO_COLORS = {
+    'Almacen':'#F59E0B','Verduleria':'#10B981','Carniceria':'#EF4444',
+    'Fiambre':'#8B5CF6','Limpieza':'#3B82F6','Bebidas':'#2DD4BF','Servicios':'#6B7280'
+  };
+
+  const stockCards = stockEntries.map(function(entry) {
     const name = entry[0]; const d = entry[1];
     const meta = catMeta(name);
-    return '<tr>'
-      + '<td style="font-weight:500;">' + name + '</td>'
-      + '<td><span class="badge badge-gray">' + (meta.macro || '—') + '</span></td>'
-      + '<td class="td-muted">' + (meta.medida || '—') + '</td>'
-      + '<td class="td-mono">' + fmtNum(d.qty) + '</td>'
-      + '<td class="td-mono td-accent">' + fmtARS(d.total) + '</td>'
-      + '</tr>';
-  }).join('') || '<tr><td colspan="5" class="empty">Sin datos de stock.</td></tr>';
+    const color = MACRO_COLORS[meta.macro] || '#6B7280';
+    const emoji = meta.emoji || '📦';
+    return '<div class="stock-card">'
+      + '<div class="stock-card-img" style="background:' + color + '1a;">'
+      + emoji + '</div>'
+      + '<div class="stock-card-body">'
+      + '<div class="stock-card-name">' + name + '</div>'
+      + '<div class="stock-card-macro"><span class="badge badge-gray">' + (meta.macro || '—') + '</span></div>'
+      + '<div class="stock-card-qty">' + fmtNum(d.qty) + ' ' + (meta.medida || '') + '</div>'
+      + '<div class="stock-card-total">' + fmtARS(d.total) + '</div>'
+      + '</div></div>';
+  }).join('') || '<p class="empty" style="padding:24px;">Sin datos de stock.</p>';
 
   const stockHtml = '<div id="tab-stock" hidden>'
     + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta">' + stockEntries.length + ' categorías</div></div>'
-    + '<div class="table-wrap"><table><thead><tr><th>Categoría</th><th>Macro Categoría</th><th>Unidad</th><th>Cantidad total</th><th>Total ARS</th></tr></thead>'
-    + '<tbody>' + stockRows + '</tbody></table></div></div>';
+    + '<div class="stock-grid">' + stockCards + '</div></div>';
 
   const main = document.getElementById('main-content');
   main.innerHTML = tabsHtml + generalHtml + facturasHtml + proveedoresHtml + productosHtml + stockHtml;
