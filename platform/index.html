@@ -1011,9 +1011,10 @@ const monthStart = () => { const d = new Date(); return `${d.getFullYear()}-${St
 
 
 // ── Global state for modals & filters ───────────────────────────────────────
-let _invoicesAll  = [];
+let _invoicesAll      = [];
+let _facturasFiltered = [];
 let _chatRestaurantId = null;
-let _suppliersAll = [];
+let _suppliersAll     = [];
 let _supplierMap  = {};
 let _liByInvoice  = {};
 let _productNames = [];
@@ -1059,6 +1060,7 @@ function clearFilters() {
 }
 
 function renderFacturasTable(invoices) {
+  _facturasFiltered = invoices;
   const tbody = document.getElementById('facturas-tbody');
   const countEl = document.getElementById('facturas-count');
   if (!tbody) return;
@@ -1069,34 +1071,58 @@ function renderFacturasTable(invoices) {
       + '<td class="td-mono">' + fmtDate(i.invoice_date) + '</td>'
       + '<td class="td-mono td-muted" style="font-size:12px;">' + escAttr(i.invoice_number || '—') + '</td>'
       + '<td><button class="btn-link" data-sup-id="' + i.supplier_id + '">' + escAttr(sup?.name || '—') + '</button></td>'
-      + '<td><span class="badge badge-gray">' + escAttr(i.tipo_comprobante || '—') + '</span></td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + (i.tax_amount ? '<span style="font-size:10px;color:var(--muted);margin-left:4px;">(' + ivaRateLabel(i) + ')</span>' : '') + '</td>'
       + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
       + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
       + '</tr>';
-  }).join('') || '<tr><td colspan="8" class="empty">Sin facturas.</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="empty">Sin facturas.</td></tr>';
 
   if (!tbody._hasListeners) {
     tbody.addEventListener('click', handleFacturasClick);
     tbody._hasListeners = true;
   }
-  // Wire filter buttons via event listeners (more reliable than onclick)
-  const applyBtn = document.getElementById('btn-apply-filter');
-  const clearBtn = document.getElementById('btn-clear-filter');
-  if (applyBtn && !applyBtn._wired) { applyBtn.addEventListener('click', applyFilters); applyBtn._wired = true; }
-  if (clearBtn && !clearBtn._wired) { clearBtn.addEventListener('click', clearFilters); clearBtn._wired = true; }
+  const applyBtn  = document.getElementById('btn-apply-filter');
+  const clearBtn  = document.getElementById('btn-clear-filter');
+  const exportBtn = document.getElementById('btn-export-facturas');
+  if (applyBtn  && !applyBtn._wired)  { applyBtn.addEventListener('click', applyFilters);      applyBtn._wired  = true; }
+  if (clearBtn  && !clearBtn._wired)  { clearBtn.addEventListener('click', clearFilters);      clearBtn._wired  = true; }
+  if (exportBtn && !exportBtn._wired) { exportBtn.addEventListener('click', exportFacturasCSV); exportBtn._wired = true; }
   const numEl = document.getElementById('f-num');
   if (numEl && !numEl._wired) { numEl.addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); }); numEl._wired = true; }
   const supEl = document.getElementById('f-sup');
   if (supEl && !supEl._wired) { supEl.addEventListener('change', applyFilters); supEl._wired = true; }
-  // Update filter count display
   const countEl2 = document.getElementById('filter-count');
   if (countEl2) {
     const total = _invoicesAll.length;
-    const shown = Math.min(invoices.length, 300);
+    const shown = invoices.length;
     countEl2.textContent = shown === total ? total + ' facturas' : shown + ' de ' + total + ' facturas';
   }
+}
+
+function exportFacturasCSV() {
+  const invoices = _facturasFiltered.length ? _facturasFiltered : _invoicesAll;
+  const cols = ['Fecha','N° Comprobante','Proveedor','Sin IVA (AR$)','IVA (AR$)','Total (AR$)'];
+  const rows = invoices.map(function(i) {
+    return [
+      fmtDate(i.invoice_date),
+      i.invoice_number || '',
+      _supplierMap[i.supplier_id]?.name || '',
+      i.subtotal != null ? i.subtotal : '',
+      i.tax_amount != null ? i.tax_amount : '',
+      i.total != null ? i.total : ''
+    ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+  });
+  const csv  = '﻿' + [cols.join(',')].concat(rows).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'facturas_campaso.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function handleFacturasClick(e) {
@@ -1519,10 +1545,11 @@ async function renderClient(token, userId) {
     + '<button type="button" id="btn-apply-filter" class="btn-filter">Aplicar</button>'
     + '<button type="button" id="btn-clear-filter" class="btn-filter-clear">Limpiar</button>'
     + '<span class="filter-count" id="filter-count"></span>'
+    + '<button type="button" id="btn-export-facturas" style="margin-left:auto;padding:7px 16px;border:none;border-radius:8px;background:var(--accent);color:#000;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;">↓ Exportar Excel</button>'
     + '</div>'
     + '<div class="section-header"><div class="section-title">Facturas</div><div class="section-meta" id="facturas-count"></div></div>'
     + '<div class="table-wrap"><table>'
-    + '<thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Tipo</th><th>Sin IVA</th><th>IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
+    + '<thead><tr><th>Fecha</th><th>N° Comprobante</th><th>Proveedor</th><th>Sin IVA</th><th>IVA</th><th>Total</th><th>Archivo</th></tr></thead>'
     + '<tbody id="facturas-tbody"></tbody>'
     + '</table></div></div>';
 
