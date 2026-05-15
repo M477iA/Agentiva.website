@@ -1028,7 +1028,7 @@ async function renderAdmin() {
   const [profiles, services, pagos] = await Promise.all([
     sbQuery('client_profiles', 'role=eq.client&order=nombre', currentToken),
     sbQuery('services', 'order=nombre', currentToken),
-    sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento', currentToken)
+    sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento.desc', currentToken)
   ]);
 
   const P = profiles || [];
