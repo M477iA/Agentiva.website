@@ -2877,21 +2877,32 @@ async function handleLogin(e) {
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
 
-  // Restaurant platform clients → validate against platform Supabase, redirect to /platform/
+  // Restaurant platform clients → authenticate both platform + portal, redirect to /portal/
   if (_RESTAURANT_EMAILS.has(email)) {
     try {
-      const res = await fetch(`${_PLATFORM_SB_URL}/auth/v1/token?grant_type=password`, {
+      // 1. Authenticate against platform Supabase
+      const platRes = await fetch(`${_PLATFORM_SB_URL}/auth/v1/token?grant_type=password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': _PLATFORM_SB_KEY },
         body: JSON.stringify({ email, password: pass })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error_description || 'Credenciales incorrectas');
+      const platData = await platRes.json();
+      if (!platRes.ok) throw new Error(platData.error_description || 'Credenciales incorrectas');
       localStorage.setItem(_PLATFORM_SESS, JSON.stringify({
-        access_token: data.access_token, user_id: data.user.id, email: data.user.email
+        access_token: platData.access_token, user_id: platData.user.id, email: platData.user.email
       }));
+
+      // 2. Also authenticate against portal Supabase so client sees their dashboard
+      const portalRes = await fetch(`${_SB_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': _SB_KEY },
+        body: JSON.stringify({ email, password: pass })
+      });
+      const portalData = await portalRes.json();
+      if (portalRes.ok) localStorage.setItem(_SESS_KEY, JSON.stringify(portalData));
+
       closeAuthModal();
-      window.location.href = '/platform/';
+      window.location.href = PORTAL_URL;
     } catch (err) {
       errEl.textContent = err.message || 'Email o contraseña incorrectos.';
     }
