@@ -750,6 +750,10 @@
                 <option value="32 GB">32 GB</option>
               </select>
             </div>
+            <div class="field field-full">
+              <label>URL de acceso (opcional)</label>
+              <input type="url" id="ac-svc-viewer" placeholder="https://agentiva.com.ar/platform/ o URL del viewer">
+            </div>
           </div>
         </div>
 
@@ -1251,12 +1255,14 @@ async function submitAddClient(e) {
     }, currentToken);
 
     btn.textContent = 'Guardando servicio...';
+    const svcViewer = document.getElementById('ac-svc-viewer').value.trim() || null;
     const svcRows = await sbInsert('services', {
       client_id: uid, nombre: svcNombre,
       descripcion: svcDesc || null,
       precio: svcPrecio, moneda: svcMoneda,
       fecha_inicio: svcInicio, estado: 'activo',
-      ram_display: svcRam
+      ram_display: svcRam,
+      viewer_url: svcViewer
     }, currentToken);
     const svcId = svcRows[0].id;
 
