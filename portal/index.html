@@ -1024,6 +1024,12 @@ function renderServices(services) {
 }
 
 function renderPayments(pagos, bodyId, showClient) {
+  const estadoOrder = { pendiente: 0, pagado: 1, cubierto: 2 };
+  pagos = [...pagos].sort((a, b) => {
+    const diff = (estadoOrder[a.estado] ?? 3) - (estadoOrder[b.estado] ?? 3);
+    if (diff !== 0) return diff;
+    return b.fecha_vencimiento.localeCompare(a.fecha_vencimiento);
+  });
   const tbody = $(bodyId);
   const cols = showClient ? 8 : 6;
   if (!pagos.length) {
