@@ -969,12 +969,13 @@ function renderBanner(pagos) {
 
 function renderServices(services) {
   const container = $('services-container');
-  if (!services.length) {
+  const visible = services.filter(s => s.viewer_url);
+  if (!visible.length) {
     container.innerHTML = '<div class="empty-box">Todavía no hay servicios registrados. Contactá a Agentiva.</div>';
     return;
   }
   container.innerHTML = `<div class="services-grid">${
-    services.map(s => {
+    visible.map(s => {
       const isBotActive = s.viewer_url && s.estado === 'activo' && s.ram_display;
       const isWebsite   = s.viewer_url && !s.ram_display;
       return `
@@ -1035,7 +1036,7 @@ function renderPayments(pagos, bodyId, showClient) {
       <td>${esc(p.services?.nombre || '—')}</td>
       <td>${fmtDate(p.fecha_vencimiento)}</td>
       <td class="${p.fecha_pago ? '' : 'td-muted'}">${p.fecha_pago ? fmtDate(p.fecha_pago) : '—'}</td>
-      <td class="td-mono">${fmtMonto(p.monto, p.moneda)}</td>
+      <td class="td-mono">${p.estado === 'cubierto' ? `<del style="opacity:0.45">${fmtMonto(p.monto, p.moneda)}</del>` : fmtMonto(p.monto, p.moneda)}</td>
       <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
       <td class="td-muted">${esc(p.metodo || '—')}</td>
       ${showClient ? `<td>${p.estado === 'pendiente' ? `<button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button>` : ''}</td>` : ''}
