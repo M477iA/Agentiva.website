@@ -269,7 +269,7 @@
   /* ── SERVICE CARDS ── */
   .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
     gap: 14px;
   }
   .service-card {
@@ -895,7 +895,7 @@ async function loadDashboard() {
 // ── CLIENT VIEW ───────────────────────────────────────────────────────────────
 async function renderClient(profile) {
   show('client-view');
-  $('client-greeting').textContent = `Hola, ${profile.nombre.split(' ')[0]}`;
+  $('client-greeting').textContent = `Hola, ${profile.nombre}`;
   $('client-empresa').textContent  = profile.empresa || '';
 
   const [services, pagos] = await Promise.all([
@@ -981,7 +981,7 @@ function renderServices(services) {
       return `
       <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
         <div class="service-card-header">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
             ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : ''}
             <div class="service-name">${esc(s.nombre)}</div>
           </div>
