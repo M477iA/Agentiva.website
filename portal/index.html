@@ -311,6 +311,10 @@
     font-family: var(--display); font-weight: 500;
   }
   .service-viewer-link:hover { background: var(--teal-dim); }
+  .service-credentials { margin-top: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border-radius: 8px; border: 1px solid var(--hairline); }
+  .cred-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
+  .cred-label { color: var(--slate); flex-shrink: 0; }
+  .cred-value { font-family: var(--mono-font, monospace); color: var(--bone); font-size: 12px; text-align: right; word-break: break-all; }
 
   /* ── WEBSITE LIVE INDICATOR ── */
   .live-indicator {
@@ -976,8 +980,15 @@ function renderServices(services) {
   }
   container.innerHTML = `<div class="services-grid">${
     visible.map(s => {
-      const isBotActive = s.viewer_url && s.estado === 'activo' && s.ram_display;
+      const isMail      = s.ram_display === 'mail';
+      const isBotActive = s.viewer_url && s.estado === 'activo' && s.ram_display && !isMail;
       const isWebsite   = s.viewer_url && !s.ram_display;
+      // Parse descripcion: "display text||cred:Label:value||..."
+      const descParts = (s.descripcion || '').split('||');
+      const descText  = descParts[0].trim();
+      const creds     = descParts.slice(1)
+        .filter(p => p.startsWith('cred:'))
+        .map(p => { const t = p.slice(5).split(':'); return { label: t[0], value: t.slice(1).join(':') }; });
       return `
       <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
         <div class="service-card-header">
@@ -990,7 +1001,7 @@ function renderServices(services) {
             <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
           </div>
         </div>
-        ${s.descripcion ? `<p class="service-desc">${esc(s.descripcion)}</p>` : ''}
+        ${descText ? `<p class="service-desc">${esc(descText)}</p>` : ''}
         <div class="service-meta">
           ${s.precio != null ? `
           <div class="meta-row">
@@ -1007,7 +1018,7 @@ function renderServices(services) {
             <span class="meta-label">Vence el</span>
             <span class="meta-value">${fmtDate(s.fecha_fin)}</span>
           </div>` : ''}
-          ${s.ram_display ? `
+          ${s.ram_display && !isMail ? `
           <div class="meta-row">
             <span class="meta-label">RAM</span>
             <span class="meta-value">${esc(s.ram_display)}</span>
@@ -1015,9 +1026,19 @@ function renderServices(services) {
         </div>
         ${s.viewer_url ? `
         <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-          ${s.ram_display ? 'Ver conversaciones en vivo' : 'Ver sitio web →'}
+          ${isMail
+            ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>`
+            : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>`}
+          ${isMail ? 'Ir a casilla de mail →' : s.ram_display ? 'Ver conversaciones en vivo' : 'Ver sitio web →'}
         </a>` : ''}
+        ${creds.length ? `
+        <div class="service-credentials">
+          ${creds.map(c => `
+          <div class="cred-row">
+            <span class="cred-label">${esc(c.label)}</span>
+            <span class="cred-value">${esc(c.value)}</span>
+          </div>`).join('')}
+        </div>` : ''}
       </div>`;
     }).join('')
   }</div>`;
