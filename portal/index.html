@@ -449,17 +449,72 @@
     color: var(--slate); font-size: 14px;
   }
 
+  /* ── BASE OVERFLOW GUARD ── */
+  .service-name { word-break: break-word; overflow-wrap: break-word; }
+  .service-card-header > div:first-child { min-width: 0; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
-    .portal-main { padding: 24px 16px 60px; }
-    .login-card { padding: 28px 20px; }
-    .stats-row { grid-template-columns: 1fr 1fr; }
+    /* Layout */
+    .portal-main { padding: 20px 14px 64px; }
+    .login-card   { padding: 28px 20px; width: calc(100% - 32px); }
+
+    /* Nav — hide "← Sitio web" link, tighten spacing */
+    .portal-nav-inner { padding: 0 14px; }
+    .nav-right { gap: 8px; }
+    .nav-right > a.btn-logout { display: none; }
+    .nav-name {
+      font-size: 13px; max-width: 120px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .btn-logout { padding: 5px 10px; font-size: 12px; }
+
+    /* Page header */
+    .page-header { margin-bottom: 20px; }
+    .page-title  { font-size: 22px; }
+
+    /* Service grid: single column */
     .services-grid { grid-template-columns: 1fr; }
-    .payment-banner { flex-direction: column; align-items: flex-start; }
-    .page-title { font-size: 24px; }
+
+    /* Service card: allow header icon+name to wrap */
+    .service-card-header {
+      flex-wrap: wrap; gap: 8px;
+      align-items: flex-start;
+    }
+
+    /* Credentials: stack label above value */
+    .cred-row  { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .cred-value { text-align: left; word-break: break-all; }
+
+    /* Payment banner */
+    .payment-banner { padding: 14px 16px; margin-bottom: 24px; flex-direction: column; align-items: flex-start; }
+    .banner-amount  { font-size: 20px; }
+    .banner-date    { font-size: 15px; }
+    .banner-icon    { width: 32px; height: 32px; font-size: 14px; }
+    .banner-row     { gap: 8px; }
+
+    /* Payment table: tighter cells, let it scroll horizontally */
+    table  { min-width: 460px; }
+    td, th { padding: 10px 10px; font-size: 13px; }
+
+    /* Marketing */
+    .mkt-grid { grid-template-columns: 1fr; }
+    .mkt-doc-item { flex-wrap: wrap; gap: 8px; }
+    .mkt-doc-name { flex-basis: 100%; }
+
+    /* Section spacing */
+    .section { margin-bottom: 28px; }
   }
-  @media (max-width: 380px) {
-    .stats-row { grid-template-columns: 1fr; }
+
+  @media (max-width: 400px) {
+    .portal-main { padding: 16px 12px 64px; }
+    .login-card  { padding: 24px 16px; }
+    .page-title  { font-size: 20px; }
+    .stats-row   { grid-template-columns: 1fr; }
+    .nav-name    { max-width: 80px; }
+    .banner-amount { font-size: 18px; }
+    table  { min-width: 400px; }
+    td, th { padding: 9px 8px; font-size: 12px; }
   }
 
   /* ── MODAL ── */
