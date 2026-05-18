@@ -213,6 +213,54 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 .file-link { color: var(--accent); text-decoration: none; opacity: .7; transition: opacity .12s; display: inline-flex; align-items: center; }
 .file-link:hover { opacity: 1; }
 
+/* ── CLIENT AVATAR & LINK ────────────────────────── */
+.client-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  flex-shrink: 0; vertical-align: middle;
+}
+.client-link {
+  cursor: pointer; color: var(--text);
+  border-bottom: 1px solid transparent; transition: all .12s;
+}
+.client-link:hover { border-bottom-color: var(--accent); color: var(--accent); }
+.client-row { cursor: pointer; }
+
+/* ── MODAL ────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  z-index: 200; display: none;
+  align-items: flex-start; justify-content: center;
+  padding: 5vh 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); width: 100%; max-width: 900px;
+  max-height: 88vh; overflow-y: auto; padding: 28px;
+  animation: fadeUp .2s ease;
+}
+.modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.modal-client-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.modal-meta { font-size: 13px; color: var(--muted2); margin-bottom: 20px; }
+.modal-close {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; font-size: 14px; padding: 6px 10px; border-radius: var(--radius);
+  transition: all .12s; line-height: 1; flex-shrink: 0; margin-left: 16px;
+}
+.modal-close:hover { border-color: var(--border2); color: var(--text); }
+.modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.modal-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.modal-stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; font-family: var(--font-display); }
+.modal-stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.modal-stat-value.positive { color: var(--green); }
+.modal-stat-value.accent   { color: var(--accent); }
+
 /* ── PLACEHOLDER ──────────────────────────────────── */
 .placeholder-pane {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -425,10 +473,15 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
     </div>
   </div>
   <div class="tab-content" id="content-clients">
-    <div class="placeholder-pane">
-      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <div class="placeholder-title">Clients &amp; Orders</div>
-      <div class="placeholder-sub">Client profiles, projects, offers, and leads pipeline. Coming in the next session.</div>
+    <div style="padding:28px">
+      <div class="filter-bar">
+        <input class="filter-input" type="text" id="clients-search" placeholder="Search client name or country…">
+      </div>
+      <div class="section-header">
+        <div class="section-title">Clients</div>
+        <div class="row-count" id="clients-count"></div>
+      </div>
+      <div class="table-wrap" id="clients-table-wrap"></div>
     </div>
   </div>
   <div class="tab-content" id="content-contacts">
@@ -443,6 +496,23 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
       <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       <div class="placeholder-title">To-Do</div>
       <div class="placeholder-sub">Tasks and action items. Coming in the next session.</div>
+    </div>
+  </div>
+
+  <!-- CLIENT DETAIL MODAL -->
+  <div class="modal-backdrop" id="client-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-client-name" id="modal-client-name"></div>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-meta" id="modal-client-meta"></div>
+      <div class="modal-stats" id="modal-client-stats"></div>
+      <div class="section-header">
+        <div class="section-title">Invoices</div>
+        <div class="row-count" id="modal-inv-count"></div>
+      </div>
+      <div class="table-wrap" id="modal-inv-table"></div>
     </div>
   </div>
 
@@ -506,7 +576,7 @@ if (localStorage.getItem(AUTH_KEY)) {
 }
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
-let DATA = { invoices: [], expenses: [], clients: [], providers: [], entities: [], payroll: [], employees: [] }
+let DATA = { invoices: [], expenses: [], clients: [], providers: [], entities: [], payroll: [], employees: [], contacts: [] }
 
 async function boot() {
   document.getElementById('app').classList.add('visible')
@@ -520,6 +590,7 @@ async function boot() {
       sbGet('entities',         { select: '*' }),
       sbGet('payroll',          { select: '*', order: 'payment_date.desc', limit: '200' }),
       sbGet('employees',        { select: '*', order: 'name.asc',  limit: '100' }),
+      sbGet('contacts',         { select: '*', order: 'name.asc',  limit: '500' }),
     ])
     DATA.invoices  = results[0]
     DATA.expenses  = results[1]
@@ -528,9 +599,11 @@ async function boot() {
     DATA.entities  = results[4]
     DATA.payroll   = results[5]
     DATA.employees = results[6]
+    DATA.contacts  = results[7]
     renderDashboard()
     renderSales()
     renderExpenses()
+    renderClients()
     bindFilters()
   } catch(e) {
     console.error(e)
@@ -544,10 +617,28 @@ const usd   = function(v) { return v == null ? '—' : new Intl.NumberFormat('en
 const fmtAmt = function(v, cur) { return cur === 'EUR' ? eur(v) : usd(v) }
 const fdate = function(s) { return s ? new Date(s + 'T00:00:00').toLocaleDateString('en-GB') : '—' }
 
-function clientName(id)   { const c = DATA.clients.find(function(c)   { return c.id === id }); return c ? c.name : '—' }
-function providerName(id) { const p = DATA.providers.find(function(p) { return p.id === id }); return p ? p.name : '—' }
-function employeeName(id) { const e = DATA.employees.find(function(e) { return e.id === id }); return e ? e.name : 'Employee' }
-function entityInfo(id)   { return DATA.entities.find(function(e) { return e.id === id }) || { name: 'Prolianxe', brand_color: '#6366f1' } }
+function clientName(id)      { const c = DATA.clients.find(function(c)   { return c.id === id }); return c ? c.name : '—' }
+function providerName(id)    { const p = DATA.providers.find(function(p) { return p.id === id }); return p ? p.name : '—' }
+function employeeName(id)    { const e = DATA.employees.find(function(e) { return e.id === id }); return e ? e.name : 'Employee' }
+function entityInfo(id)      { return DATA.entities.find(function(e) { return e.id === id }) || { name: 'Prolianxe', brand_color: '#6366f1' } }
+function contactForClient(id){ const c = DATA.contacts.find(function(c) { return c.client_id === id }); return c ? c.name : '—' }
+
+const AVATAR_COLORS = ['#6366f1','#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899']
+function clientAvatar(name) {
+  const initials = (name || '?').split(' ').slice(0,2).map(function(w){ return w[0] || '' }).join('').toUpperCase()
+  const color = AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length]
+  return '<div class="client-avatar" style="background:' + color + '22;color:' + color + '">' + initials + '</div>'
+}
+
+function clientRevenue(clientId) {
+  const invs = DATA.invoices.filter(function(i) { return i.client_id === clientId })
+  return {
+    invoices:    invs,
+    total:       invs.reduce(function(s,i){ return s + (i.eur_amount||0) }, 0),
+    paid:        invs.filter(function(i){ return i.status==='Paid' }).reduce(function(s,i){ return s + (i.eur_amount||0) }, 0),
+    outstanding: invs.filter(function(i){ return i.status==='Sent'||i.status==='Overdue' }).length
+  }
+}
 
 function statusBadge(s) {
   const map = { Paid: 'paid', Sent: 'sent', Draft: 'draft', Overdue: 'overdue', Pending: 'pending' }
@@ -559,7 +650,10 @@ function catBadge(c) {
 }
 function fileLink(url) {
   if (!url) return '—'
-  return '<a class="file-link" href="' + url + '" target="_blank"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
+  const isAirtable = url.includes('airtableusercontent') || url.includes('airtable.com')
+  const color = isAirtable ? 'var(--amber)' : 'var(--accent)'
+  const title = isAirtable ? 'Airtable URL — may have expired' : 'View file'
+  return '<a class="file-link" href="' + url + '" target="_blank" title="' + title + '" style="color:' + color + ';opacity:1"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
 }
 
 // ── MONTHLY AGGREGATION ──────────────────────────────────────────────────────
@@ -792,7 +886,7 @@ function renderInvoiceTable() {
     ? rows.map(function(i) {
         return '<tr>' +
           '<td class="td-mono">' + (i.invoice_number || '—') + '</td>' +
-          '<td>' + clientName(i.client_id) + '</td>' +
+          '<td><span class="client-link" data-client-id="' + i.client_id + '">' + clientName(i.client_id) + '</span></td>' +
           '<td class="td-muted">' + fdate(i.date) + '</td>' +
           '<td class="td-amount">' + eur(i.eur_amount) + '</td>' +
           '<td class="td-amount td-muted">' + usd(i.usd_amount) + '</td>' +
@@ -808,6 +902,7 @@ function renderInvoiceTable() {
       '<th style="text-align:right">EUR</th><th style="text-align:right">USD</th>' +
       '<th>Due Date</th><th>Status</th><th>File</th>' +
     '</tr></thead><tbody>' + tbody + '</tbody></table>'
+  bindClientLinks('invoices-table-wrap')
 }
 
 // ── RENDER: EXPENSES ──────────────────────────────────────────────────────────
@@ -925,6 +1020,105 @@ function renderPayrollTable() {
     '</tr></thead><tbody>' + tbody + '</tbody></table>'
 }
 
+// ── CLIENT LINKS ──────────────────────────────────────────────────────────────
+function bindClientLinks(containerId) {
+  document.querySelectorAll('#' + containerId + ' .client-link').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation()
+      openClientModal(el.dataset.clientId)
+    })
+  })
+}
+
+// ── CLIENT MODAL ──────────────────────────────────────────────────────────────
+function openClientModal(clientId) {
+  const client = DATA.clients.find(function(c) { return c.id === clientId })
+  if (!client) return
+  const rev = clientRevenue(clientId)
+  const meta = [client.country, client.cuit ? 'VAT: ' + client.cuit : null, client.email].filter(Boolean).join(' · ')
+
+  document.getElementById('modal-client-name').textContent = client.name
+  document.getElementById('modal-client-meta').textContent = meta || 'No additional info'
+  document.getElementById('modal-client-stats').innerHTML =
+    '<div class="modal-stat"><div class="modal-stat-label">Total Billed</div><div class="modal-stat-value">' + eur(rev.total) + '</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-label">Collected (Paid)</div><div class="modal-stat-value positive">' + eur(rev.paid) + '</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-label">Outstanding</div><div class="modal-stat-value accent">' + rev.outstanding + '</div></div>'
+  document.getElementById('modal-inv-count').textContent = rev.invoices.length + ' invoices'
+
+  const tbody = rev.invoices.length
+    ? rev.invoices.map(function(i) {
+        return '<tr>' +
+          '<td class="td-mono">' + (i.invoice_number || '—') + '</td>' +
+          '<td class="td-muted">' + fdate(i.date) + '</td>' +
+          '<td class="td-amount">' + eur(i.eur_amount) + '</td>' +
+          '<td class="td-amount td-muted">' + usd(i.usd_amount) + '</td>' +
+          '<td>' + statusBadge(i.status) + '</td>' +
+          '<td>' + fileLink(i.file_url) + '</td>' +
+        '</tr>'
+      }).join('')
+    : '<tr class="empty-row"><td colspan="6">No invoices</td></tr>'
+
+  document.getElementById('modal-inv-table').innerHTML =
+    '<table><thead><tr>' +
+    '<th>Invoice #</th><th>Date</th><th style="text-align:right">EUR</th>' +
+    '<th style="text-align:right">USD</th><th>Status</th><th>File</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody></table>'
+
+  document.getElementById('client-modal').classList.add('open')
+}
+function closeClientModal() {
+  document.getElementById('client-modal').classList.remove('open')
+}
+
+// ── RENDER: CLIENTS ───────────────────────────────────────────────────────────
+function renderClients() {
+  const allClients = DATA.clients.slice().sort(function(a, b) {
+    return clientRevenue(b.id).total - clientRevenue(a.id).total
+  })
+
+  function applyFilter() {
+    const q = (document.getElementById('clients-search') ? document.getElementById('clients-search').value : '').toLowerCase()
+    const rows = q
+      ? allClients.filter(function(c) { return c.name.toLowerCase().includes(q) || (c.country||'').toLowerCase().includes(q) })
+      : allClients
+    document.getElementById('clients-count').textContent = rows.length + ' clients'
+    const tbody = rows.length
+      ? rows.map(function(c) {
+          const rev = clientRevenue(c.id)
+          return '<tr class="client-row" data-client-id="' + c.id + '">' +
+            '<td>' + clientAvatar(c.name) + '</td>' +
+            '<td><span class="client-link" data-client-id="' + c.id + '">' + c.name + '</span></td>' +
+            '<td class="td-muted">' + (c.country || '—') + '</td>' +
+            '<td class="td-mono">' + (c.cuit || '—') + '</td>' +
+            '<td class="td-muted">' + contactForClient(c.id) + '</td>' +
+            '<td class="td-muted" style="text-align:center">' + rev.invoices.length + '</td>' +
+            '<td class="td-amount positive">' + eur(rev.total) + '</td>' +
+          '</tr>'
+        }).join('')
+      : '<tr class="empty-row"><td colspan="7">No clients</td></tr>'
+
+    document.getElementById('clients-table-wrap').innerHTML =
+      '<table><thead><tr>' +
+      '<th style="width:46px"></th><th>Name</th><th>Country</th>' +
+      '<th>VAT / CUIT</th><th>Contact</th>' +
+      '<th style="text-align:center">Invoices</th><th style="text-align:right">Total Revenue</th>' +
+      '</tr></thead><tbody>' + tbody + '</tbody></table>'
+
+    bindClientLinks('clients-table-wrap')
+    document.querySelectorAll('#clients-table-wrap .client-row').forEach(function(row) {
+      row.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('client-link')) {
+          openClientModal(row.dataset.clientId)
+        }
+      })
+    })
+  }
+
+  applyFilter()
+  const searchEl = document.getElementById('clients-search')
+  if (searchEl) searchEl.addEventListener('input', applyFilter)
+}
+
 // ── FILTER BINDINGS ───────────────────────────────────────────────────────────
 function bindFilters() {
   document.getElementById('inv-status-filter').addEventListener('change', renderInvoiceTable)
@@ -932,6 +1126,15 @@ function bindFilters() {
   document.getElementById('exp-cat-filter').addEventListener('change', renderExpenseTable)
   document.getElementById('exp-search').addEventListener('input', renderExpenseTable)
 }
+
+// ── MODAL CLOSE ───────────────────────────────────────────────────────────────
+document.getElementById('modal-close-btn').addEventListener('click', closeClientModal)
+document.getElementById('client-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeClientModal()
+})
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeClientModal()
+})
 
 // ── TAB NAVIGATION ────────────────────────────────────────────────────────────
 const TABS = ['performance', 'directory', 'administration', 'clients', 'contacts', 'todo']
