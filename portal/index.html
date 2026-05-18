@@ -311,6 +311,17 @@
     font-family: var(--display); font-weight: 500;
   }
   .service-viewer-link:hover { background: var(--teal-dim); }
+  /* ── MARKETING SECTION ── */
+  .mkt-section { margin-top: 20px; }
+  .mkt-section-header { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+  .mkt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .mkt-card { background: var(--card-bg); border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; }
+  .mkt-doc-item { display: flex; align-items: center; gap: 10px; }
+  .mkt-doc-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex-shrink: 0; background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2); border-radius: 7px; color: var(--teal); }
+  .mkt-doc-name { flex: 1; font-size: 13px; color: var(--bone); font-weight: 500; }
+  .mkt-doc-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--teal); text-decoration: none; white-space: nowrap; padding: 5px 10px; border: 1px solid rgba(45,212,191,0.25); border-radius: 4px; font-weight: 500; transition: background 0.15s; }
+  .mkt-doc-link:hover { background: var(--teal-dim); }
+
   .service-credentials { margin-top: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border-radius: 8px; border: 1px solid var(--hairline); }
   .cred-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
   .cred-label { color: var(--slate); flex-shrink: 0; }
@@ -978,77 +989,109 @@ function renderBanner(pagos) {
   container.innerHTML = '';
 }
 
+function buildServiceCard(s) {
+  const isMail      = s.ram_display === 'mail';
+  const isBotActive = s.viewer_url && s.estado === 'activo' && s.ram_display && !isMail;
+  const isWebsite   = s.viewer_url && !s.ram_display;
+  const descParts   = (s.descripcion || '').split('||');
+  const descText    = descParts[0].trim();
+  const creds       = descParts.slice(1)
+    .filter(p => p.startsWith('cred:'))
+    .map(p => { const t = p.slice(5).split(':'); return { label: t[0], value: t.slice(1).join(':') }; });
+  return `
+  <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
+    <div class="service-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : isMail ? `<div class="mail-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>` : ''}
+        <div class="service-name">${esc(s.nombre)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${isWebsite && s.estado === 'activo' ? `<span class="live-indicator">En línea</span>` : ''}
+        <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
+      </div>
+    </div>
+    ${descText ? `<p class="service-desc">${esc(descText)}</p>` : ''}
+    <div class="service-meta">
+      ${s.precio != null ? `
+      <div class="meta-row">
+        <span class="meta-label">${s.fecha_fin ? 'Pago anual' : 'Precio mensual'}</span>
+        <span class="meta-value teal">${fmtMonto(s.precio, s.moneda)}</span>
+      </div>` : ''}
+      ${s.fecha_inicio ? `
+      <div class="meta-row">
+        <span class="meta-label">Activo desde</span>
+        <span class="meta-value">${fmtDate(s.fecha_inicio)}</span>
+      </div>` : ''}
+      ${s.fecha_fin ? `
+      <div class="meta-row">
+        <span class="meta-label">Vence el</span>
+        <span class="meta-value">${fmtDate(s.fecha_fin)}</span>
+      </div>` : ''}
+      ${s.ram_display && !isMail ? `
+      <div class="meta-row">
+        <span class="meta-label">RAM</span>
+        <span class="meta-value">${esc(s.ram_display)}</span>
+      </div>` : ''}
+    </div>
+    ${s.viewer_url ? `
+    <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
+      ${isMail
+        ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>`
+        : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>`}
+      ${isMail ? 'Ir a casilla de mail →' : s.ram_display ? 'Ver conversaciones en vivo' : 'Ver sitio web →'}
+    </a>` : ''}
+    ${creds.length ? `
+    <div class="service-credentials">
+      ${creds.map(c => `
+      <div class="cred-row">
+        <span class="cred-label">${esc(c.label)}</span>
+        <span class="cred-value">${esc(c.value)}</span>
+      </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
 function renderServices(services) {
   const container = $('services-container');
-  const visible = services.filter(s => s.viewer_url);
-  if (!visible.length) {
+  // Split: marketing folder vs regular service cards
+  const mainSvcs = services.filter(s => s.viewer_url && s.ram_display !== 'marketing')
+    .sort((a, b) => (a.ram_display === 'mail' ? 1 : 0) - (b.ram_display === 'mail' ? 1 : 0));
+  const mktSvcs  = services.filter(s => s.viewer_url && s.ram_display === 'marketing');
+
+  if (!mainSvcs.length && !mktSvcs.length) {
     container.innerHTML = '<div class="empty-box">Todavía no hay servicios registrados. Contactá a Agentiva.</div>';
     return;
   }
-  container.innerHTML = `<div class="services-grid">${
-    visible.map(s => {
-      const isMail      = s.ram_display === 'mail';
-      const isBotActive = s.viewer_url && s.estado === 'activo' && s.ram_display && !isMail;
-      const isWebsite   = s.viewer_url && !s.ram_display;
-      // Parse descripcion: "display text||cred:Label:value||..."
-      const descParts = (s.descripcion || '').split('||');
-      const descText  = descParts[0].trim();
-      const creds     = descParts.slice(1)
-        .filter(p => p.startsWith('cred:'))
-        .map(p => { const t = p.slice(5).split(':'); return { label: t[0], value: t.slice(1).join(':') }; });
-      return `
-      <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
-        <div class="service-card-header">
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : isMail ? `<div class="mail-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>` : ''}
-            <div class="service-name">${esc(s.nombre)}</div>
+
+  let html = '';
+  if (mainSvcs.length) {
+    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}</div>`;
+  }
+  if (mktSvcs.length) {
+    html += `
+    <div class="mkt-section">
+      <div class="mkt-section-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Marketing
+      </div>
+      <div class="mkt-grid">
+        ${mktSvcs.map(s => `
+        <div class="mkt-card">
+          <div class="mkt-doc-item">
+            <div class="mkt-doc-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <span class="mkt-doc-name">${esc(s.descripcion || s.nombre)}</span>
+            <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="mkt-doc-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Abrir para imprimir →
+            </a>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${isWebsite && s.estado === 'activo' ? `<span class="live-indicator">En línea</span>` : ''}
-            <span class="badge badge-${s.estado}">${cap(s.estado)}</span>
-          </div>
-        </div>
-        ${descText ? `<p class="service-desc">${esc(descText)}</p>` : ''}
-        <div class="service-meta">
-          ${s.precio != null ? `
-          <div class="meta-row">
-            <span class="meta-label">${s.fecha_fin ? 'Pago anual' : 'Precio mensual'}</span>
-            <span class="meta-value teal">${fmtMonto(s.precio, s.moneda)}</span>
-          </div>` : ''}
-          ${s.fecha_inicio ? `
-          <div class="meta-row">
-            <span class="meta-label">Activo desde</span>
-            <span class="meta-value">${fmtDate(s.fecha_inicio)}</span>
-          </div>` : ''}
-          ${s.fecha_fin ? `
-          <div class="meta-row">
-            <span class="meta-label">Vence el</span>
-            <span class="meta-value">${fmtDate(s.fecha_fin)}</span>
-          </div>` : ''}
-          ${s.ram_display && !isMail ? `
-          <div class="meta-row">
-            <span class="meta-label">RAM</span>
-            <span class="meta-value">${esc(s.ram_display)}</span>
-          </div>` : ''}
-        </div>
-        ${s.viewer_url ? `
-        <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
-          ${isMail
-            ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>`
-            : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>`}
-          ${isMail ? 'Ir a casilla de mail →' : s.ram_display ? 'Ver conversaciones en vivo' : 'Ver sitio web →'}
-        </a>` : ''}
-        ${creds.length ? `
-        <div class="service-credentials">
-          ${creds.map(c => `
-          <div class="cred-row">
-            <span class="cred-label">${esc(c.label)}</span>
-            <span class="cred-value">${esc(c.value)}</span>
-          </div>`).join('')}
-        </div>` : ''}
-      </div>`;
-    }).join('')
-  }</div>`;
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
 }
 
 function renderPayments(pagos, bodyId, showClient) {
