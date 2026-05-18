@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:        #08080f;
@@ -63,61 +64,19 @@ body::before {
 
 /* ── PIN GATE ─────────────────────────────────────── */
 #pin-gate {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  z-index: 100;
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); z-index: 100;
 }
-.pin-box {
-  width: 320px;
-  text-align: center;
-  animation: fadeUp .4s ease both;
-}
-.pin-logo {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.5px;
-  margin-bottom: 6px;
-}
+.pin-box { width: 320px; text-align: center; animation: fadeUp .4s ease both; }
+.pin-logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; margin-bottom: 6px; }
 .pin-logo span { color: var(--accent); }
 .pin-sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
-.pin-dots {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 28px;
-}
-.pin-dot {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--border2);
-  background: transparent;
-  transition: all .15s;
-}
+.pin-dots { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border2); background: transparent; transition: all .15s; }
 .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-.pin-keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.pin-key {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  transition: all .12s;
-  user-select: none;
-}
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pin-key { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text); cursor: pointer; transition: all .12s; user-select: none; }
 .pin-key:hover { background: var(--surface3); border-color: var(--border2); }
 .pin-key:active { transform: scale(.95); }
 .pin-key.del { font-size: 14px; color: var(--muted); }
@@ -130,207 +89,112 @@ body::before {
 #app.visible { display: block; animation: fadeIn .3s ease; }
 
 header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  background: rgba(8,8,15,0.92);
-  backdrop-filter: blur(12px);
-  z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(8,8,15,0.92); backdrop-filter: blur(12px); z-index: 50;
 }
-.logo {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.3px;
-}
+.logo { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
 .logo span { color: var(--accent); }
 .header-right { display: flex; align-items: center; gap: 16px; }
 .header-date { color: var(--muted); font-size: 13px; font-family: var(--font-mono); }
-.logout-btn {
-  background: none; border: 1px solid var(--border);
-  color: var(--muted); padding: 6px 12px; border-radius: var(--radius);
-  font-size: 12px; cursor: pointer; transition: all .12s;
-}
+.logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all .12s; }
 .logout-btn:hover { border-color: var(--border2); color: var(--text); }
 
+/* ── MAIN NAV ─────────────────────────────────────── */
 nav {
-  display: flex;
-  gap: 0;
-  padding: 0 28px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  display: flex; gap: 0; padding: 0 28px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
 }
 .tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--muted);
-  padding: 14px 20px;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-  margin-bottom: -1px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted); padding: 14px 20px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; margin-bottom: -1px;
+  display: flex; align-items: center; gap: 7px;
 }
 .tab-btn svg { opacity: .6; }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab-btn.active svg { opacity: 1; }
 
-.tab-content { display: none; padding: 28px; }
+/* ── SUB-NAV (Performance sub-tabs) ──────────────── */
+.subnav {
+  display: none; gap: 0; padding: 0 28px 0 48px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.subnav.visible { display: flex; }
+.subtab-btn {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted2); padding: 10px 16px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all .15s; margin-bottom: -1px;
+}
+.subtab-btn:hover { color: var(--text); }
+.subtab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── TAB / SUBTAB CONTENT ─────────────────────────── */
+.tab-content { display: none; }
 .tab-content.active { display: block; animation: fadeIn .2s ease; }
+.subtab-content { display: none; padding: 28px; }
+.subtab-content.active { display: block; animation: fadeIn .2s ease; }
 
 /* ── STAT CARDS ───────────────────────────────────── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
-}
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  transition: border-color .15s;
-}
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; transition: border-color .15s; }
 .stat-card:hover { border-color: var(--border2); }
-.stat-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--muted);
-  margin-bottom: 10px;
-  font-family: var(--font-display);
-}
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -1px;
-  line-height: 1;
-}
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; font-family: var(--font-display); }
+.stat-value { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text); letter-spacing: -1px; line-height: 1; }
 .stat-value.positive { color: var(--green); }
 .stat-value.negative { color: var(--red); }
 .stat-value.accent   { color: var(--accent); }
 .stat-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
+/* ── CHARTS ───────────────────────────────────────── */
+.charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 0; }
+.chart-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 22px;
+}
+.chart-card.full { margin-bottom: 24px; }
+.chart-title { font-family: var(--font-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted2); display: block; margin-bottom: 16px; }
+.chart-container { position: relative; height: 260px; }
+
 /* ── SECTION HEADERS ──────────────────────────────── */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.section-title {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted2);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--muted2); text-transform: uppercase; letter-spacing: .06em; }
 .row-count { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
 
 /* ── FILTER BAR ───────────────────────────────────── */
-.filter-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
+.filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .filter-select, .filter-input {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  padding: 8px 12px;
-  font-size: 13px;
-  font-family: var(--font-sans);
-  outline: none;
-  transition: border-color .15s;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  padding: 8px 12px; font-size: 13px; font-family: var(--font-sans); outline: none; transition: border-color .15s;
 }
 .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
 .filter-input { min-width: 220px; }
 .filter-input::placeholder { color: var(--muted); }
 
 /* ── TABLES ───────────────────────────────────────── */
-.table-wrap {
-  overflow-x: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-thead th {
-  background: var(--surface2);
-  padding: 11px 14px;
-  text-align: left;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--muted);
-  white-space: nowrap;
-  border-bottom: 1px solid var(--border);
-}
+.table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--surface2); padding: 11px 14px; text-align: left; font-family: var(--font-display); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; border-bottom: 1px solid var(--border); }
 thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
-thead th:last-child { border-radius: 0 var(--radius-lg) 0 0; }
+thead th:last-child  { border-radius: 0 var(--radius-lg) 0 0; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: rgba(255,255,255,0.03); }
 td { padding: 11px 14px; vertical-align: middle; white-space: nowrap; }
-.td-mono { font-family: var(--font-mono); font-size: 12px; color: var(--muted2); }
-.td-amount {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13px;
-  text-align: right;
-}
-.td-muted { color: var(--muted2); }
-tfoot td {
-  background: var(--surface2);
-  border-top: 1px solid var(--border2);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 12px;
-  padding: 10px 14px;
-  color: var(--muted2);
-}
-.empty-row td {
-  text-align: center;
-  padding: 40px;
-  color: var(--muted);
-  font-style: italic;
-}
+.td-mono   { font-family: var(--font-mono); font-size: 12px; color: var(--muted2); }
+.td-amount { font-family: var(--font-display); font-weight: 600; font-size: 13px; text-align: right; }
+.td-muted  { color: var(--muted2); }
+tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); font-family: var(--font-display); font-weight: 600; font-size: 12px; padding: 10px 14px; color: var(--muted2); }
+.empty-row td { text-align: center; padding: 40px; color: var(--muted); font-style: italic; }
 
 /* ── BADGES ───────────────────────────────────────── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: var(--font-display);
-  white-space: nowrap;
-}
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; font-family: var(--font-display); white-space: nowrap; }
 .badge-paid    { background: var(--green-bg); color: var(--green); }
 .badge-sent    { background: var(--blue-bg);  color: var(--blue); }
 .badge-draft   { background: var(--gray-bg);  color: var(--gray); }
@@ -346,50 +210,37 @@ tfoot td {
 .badge-acct    { background: rgba(99,102,241,.12);  color: #818cf8; }
 
 /* ── FILE LINK ────────────────────────────────────── */
-.file-link {
-  color: var(--accent);
-  text-decoration: none;
-  opacity: .7;
-  transition: opacity .12s;
-  display: inline-flex;
-  align-items: center;
-}
+.file-link { color: var(--accent); text-decoration: none; opacity: .7; transition: opacity .12s; display: inline-flex; align-items: center; }
 .file-link:hover { opacity: 1; }
 
-/* ── RECENT GRID ──────────────────────────────────── */
-.recent-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+/* ── PLACEHOLDER ──────────────────────────────────── */
+.placeholder-pane {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 28px; text-align: center; gap: 12px;
 }
+.placeholder-pane svg { opacity: .2; margin-bottom: 8px; }
+.placeholder-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--muted2); }
+.placeholder-sub { font-size: 13px; color: var(--muted); max-width: 320px; }
 
-/* ── LOADING ──────────────────────────────────────── */
-.skeleton {
-  display: inline-block;
-  height: 14px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
+/* ── SKELETON ─────────────────────────────────────── */
+.skeleton { display: inline-block; height: 14px; border-radius: 4px; background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+
+/* ── KEYFRAMES ────────────────────────────────────── */
 @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
 
 /* ── RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 900px) { .charts-2col { grid-template-columns: 1fr; } }
 @media (max-width: 768px) {
   header { padding: 14px 16px; }
-  nav .tab-btn { padding: 12px 14px; font-size: 12px; }
-  .tab-content { padding: 16px; }
+  nav .tab-btn { padding: 12px 10px; font-size: 12px; }
+  .subtab-content { padding: 16px; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
-  .recent-grid { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; }
   .filter-input { min-width: unset; width: 100%; }
 }
-@media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .stat-value { font-size: 20px; }
-}
+@media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr 1fr; } .stat-value { font-size: 20px; } }
 </style>
 </head>
 <body>
@@ -400,10 +251,8 @@ tfoot td {
     <div class="pin-logo">Prolianxe <span>BS</span></div>
     <div class="pin-sub">Business Suite · Enter PIN to continue</div>
     <div class="pin-dots">
-      <div class="pin-dot" id="d0"></div>
-      <div class="pin-dot" id="d1"></div>
-      <div class="pin-dot" id="d2"></div>
-      <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="pin-keypad">
       <button class="pin-key" onclick="pinKey('1')">1</button>
@@ -433,112 +282,189 @@ tfoot td {
     </div>
   </header>
 
+  <!-- MAIN NAV -->
   <nav>
-    <button class="tab-btn active" onclick="showTab('dashboard')" id="tab-dashboard">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <button class="tab-btn active" id="tab-performance">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      Performance
     </button>
-    <button class="tab-btn" onclick="showTab('invoices')" id="tab-invoices">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-      Invoices
+    <button class="tab-btn" id="tab-directory">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Directory
     </button>
-    <button class="tab-btn" onclick="showTab('expenses')" id="tab-expenses">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      Expenses
+    <button class="tab-btn" id="tab-administration">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Administration
     </button>
-    <button class="tab-btn" onclick="showTab('clients')" id="tab-clients">
+    <button class="tab-btn" id="tab-clients">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Clients
+      Clients &amp; Orders
+    </button>
+    <button class="tab-btn" id="tab-contacts">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Contacts
+    </button>
+    <button class="tab-btn" id="tab-todo">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      To-Do
     </button>
   </nav>
 
-  <!-- DASHBOARD TAB -->
-  <div class="tab-content active" id="content-dashboard">
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-card"><div class="stat-label">Revenue YTD</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Expenses YTD</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Net P&amp;L</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
-      <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
-    </div>
-    <div class="recent-grid">
-      <div>
-        <div class="section-header"><div class="section-title">Recent Invoices</div></div>
-        <div class="table-wrap" id="recent-invoices-wrap"><div style="padding:20px;color:var(--muted);text-align:center"><span class="skeleton" style="width:200px;height:12px"></span></div></div>
+  <!-- PERFORMANCE SUB-NAV -->
+  <div class="subnav visible" id="perf-subnav">
+    <button class="subtab-btn active" id="subtab-dash">Dashboard</button>
+    <button class="subtab-btn" id="subtab-sales">Sales</button>
+    <button class="subtab-btn" id="subtab-expenses">Expenses</button>
+  </div>
+
+  <!-- ═══ PERFORMANCE TAB ═══════════════════════════ -->
+  <div class="tab-content active" id="content-performance">
+
+    <!-- ── Dashboard sub-view ── -->
+    <div class="subtab-content active" id="subcontent-dash">
+      <div class="stats-grid" id="dash-stats">
+        <div class="stat-card"><div class="stat-label">Revenue YTD</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Expenses YTD</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Net P&amp;L</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
       </div>
-      <div>
-        <div class="section-header"><div class="section-title">Recent Expenses</div></div>
-        <div class="table-wrap" id="recent-expenses-wrap"><div style="padding:20px;color:var(--muted);text-align:center"><span class="skeleton" style="width:200px;height:12px"></span></div></div>
+      <div class="charts-2col">
+        <div class="chart-card">
+          <span class="chart-title">Month Results</span>
+          <div class="chart-container"><canvas id="chart-monthly"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <span class="chart-title">Sales vs Expenses</span>
+          <div class="chart-container"><canvas id="chart-salesvexp"></canvas></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- INVOICES TAB -->
-  <div class="tab-content" id="content-invoices">
-    <div class="filter-bar">
-      <select class="filter-select" id="inv-status-filter" onchange="renderInvoices()">
-        <option value="">All Statuses</option>
-        <option value="Draft">Draft</option>
-        <option value="Sent">Sent</option>
-        <option value="Paid">Paid</option>
-        <option value="Overdue">Overdue</option>
-      </select>
-      <input class="filter-input" type="text" id="inv-search" placeholder="Search invoice # or client…" oninput="renderInvoices()">
+    <!-- ── Sales sub-view ── -->
+    <div class="subtab-content" id="subcontent-sales">
+      <div class="stats-grid" id="sales-stats">
+        <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value"><span class="skeleton" style="width:60px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Collected (Paid)</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value"><span class="skeleton" style="width:60px"></span></div></div>
+      </div>
+      <div class="chart-card full">
+        <span class="chart-title">Monthly Revenue</span>
+        <div class="chart-container"><canvas id="chart-sales"></canvas></div>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-select" id="inv-status-filter">
+          <option value="">All Statuses</option>
+          <option value="Draft">Draft</option>
+          <option value="Sent">Sent</option>
+          <option value="Paid">Paid</option>
+          <option value="Overdue">Overdue</option>
+        </select>
+        <input class="filter-input" type="text" id="inv-search" placeholder="Search invoice # or client…">
+      </div>
+      <div class="section-header">
+        <div class="section-title">Invoices</div>
+        <div class="row-count" id="inv-count"></div>
+      </div>
+      <div class="table-wrap" id="invoices-table-wrap"></div>
     </div>
-    <div class="section-header">
-      <div class="section-title">Emitted Invoices</div>
-      <div class="row-count" id="inv-count"></div>
-    </div>
-    <div class="table-wrap" id="invoices-table-wrap"></div>
-  </div>
 
-  <!-- EXPENSES TAB -->
-  <div class="tab-content" id="content-expenses">
-    <div class="filter-bar">
-      <select class="filter-select" id="exp-cat-filter" onchange="renderExpenses()">
-        <option value="">All Categories</option>
-        <option value="R&D">R&amp;D</option>
-        <option value="Banking">Banking</option>
-        <option value="Operation">Operation</option>
-        <option value="Food">Food</option>
-        <option value="Graphic Design">Graphic Design</option>
-        <option value="A.I.">A.I.</option>
-        <option value="Accounting">Accounting</option>
-      </select>
-      <input class="filter-input" type="text" id="exp-search" placeholder="Search provider or description…" oninput="renderExpenses()">
-    </div>
-    <div class="section-header">
-      <div class="section-title">Expenses</div>
-      <div class="row-count" id="exp-count"></div>
-    </div>
-    <div class="table-wrap" id="expenses-table-wrap"></div>
-  </div>
+    <!-- ── Expenses sub-view ── -->
+    <div class="subtab-content" id="subcontent-expenses">
+      <div class="stats-grid" id="exp-stats">
+        <div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Payroll</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
+      </div>
+      <div class="chart-card full">
+        <span class="chart-title">Monthly Expenses</span>
+        <div class="chart-container"><canvas id="chart-expenses"></canvas></div>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-select" id="exp-cat-filter">
+          <option value="">All Categories</option>
+          <option value="R&D">R&amp;D</option>
+          <option value="Banking">Banking</option>
+          <option value="Operation">Operation</option>
+          <option value="Food">Food</option>
+          <option value="Graphic Design">Graphic Design</option>
+          <option value="A.I.">A.I.</option>
+          <option value="Accounting">Accounting</option>
+        </select>
+        <input class="filter-input" type="text" id="exp-search" placeholder="Search provider or description…">
+      </div>
+      <div class="section-header">
+        <div class="section-title">Vendor Expenses</div>
+        <div class="row-count" id="exp-count"></div>
+      </div>
+      <div class="table-wrap" id="expenses-table-wrap"></div>
 
-  <!-- CLIENTS TAB -->
+      <div class="section-header" style="margin-top:28px">
+        <div class="section-title">Payroll</div>
+        <div class="row-count" id="payroll-count"></div>
+      </div>
+      <div class="table-wrap" id="payroll-table-wrap"></div>
+    </div>
+
+  </div><!-- /content-performance -->
+
+  <!-- ═══ PLACEHOLDER TABS ══════════════════════════ -->
+  <div class="tab-content" id="content-directory">
+    <div class="placeholder-pane">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <div class="placeholder-title">Directory</div>
+      <div class="placeholder-sub">Providers, employees, and company contacts. Coming in the next session.</div>
+    </div>
+  </div>
+  <div class="tab-content" id="content-administration">
+    <div class="placeholder-pane">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      <div class="placeholder-title">Administration</div>
+      <div class="placeholder-sub">Entities, settings, and system configuration. Coming in the next session.</div>
+    </div>
+  </div>
   <div class="tab-content" id="content-clients">
-    <div class="section-header">
-      <div class="section-title">Clients</div>
-      <div class="row-count" id="clients-count"></div>
+    <div class="placeholder-pane">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="placeholder-title">Clients &amp; Orders</div>
+      <div class="placeholder-sub">Client profiles, projects, offers, and leads pipeline. Coming in the next session.</div>
     </div>
-    <div class="table-wrap" id="clients-table-wrap"></div>
   </div>
-</div>
+  <div class="tab-content" id="content-contacts">
+    <div class="placeholder-pane">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="placeholder-title">Contacts</div>
+      <div class="placeholder-sub">People linked to clients and leads. Coming in the next session.</div>
+    </div>
+  </div>
+  <div class="tab-content" id="content-todo">
+    <div class="placeholder-pane">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="placeholder-title">To-Do</div>
+      <div class="placeholder-sub">Tasks and action items. Coming in the next session.</div>
+    </div>
+  </div>
+
+</div><!-- /app -->
 
 <script>
-// ── CONFIG ─────────────────────────────────────────────────────────────────
-const SB_URL = 'https://mdswkljmmcyyfezckcos.supabase.co'
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kc3drbGptbWN5eWZlemNrY29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTEzMjI1OCwiZXhwIjoyMDk0NzA4MjU4fQ.GEyugqljU_5zZwP50YmUVgsU2mZUJHx7NWNBrhgWfV0'  // replace with your service_role key
-const PIN    = '2626'                        // change this to your preferred PIN
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SB_URL  = 'https://mdswkljmmcyyfezckcos.supabase.co'
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kc3drbGptbWN5eWZlemNrY29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTEzMjI1OCwiZXhwIjoyMDk0NzA4MjU4fQ.GEyugqljU_5zZwP50YmUVgsU2mZUJHx7NWNBrhgWfV0'
+const PIN     = '2626'
 const AUTH_KEY = 'prolianxe_crm_auth'
 
 // ── SUPABASE ────────────────────────────────────────────────────────────────
 function sbHeaders() {
-  return { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' }
+  return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' }
 }
-async function sbGet(table, params = {}) {
-  const url = new URL(`${SB_URL}/rest/v1/${table}`)
-  for (const [k,v] of Object.entries(params)) url.searchParams.set(k, v)
+async function sbGet(table, params) {
+  params = params || {}
+  const url = new URL(SB_URL + '/rest/v1/' + table)
+  for (const k of Object.keys(params)) url.searchParams.set(k, params[k])
   const r = await fetch(url, { headers: sbHeaders() })
-  if (!r.ok) throw new Error(`${table}: ${r.status}`)
+  if (!r.ok) throw new Error(table + ': ' + r.status)
   return r.json()
 }
 
@@ -547,7 +473,7 @@ let pinBuffer = ''
 function pinKey(d) {
   if (pinBuffer.length >= 4) return
   pinBuffer += d
-  document.getElementById(`d${pinBuffer.length - 1}`).classList.add('filled')
+  document.getElementById('d' + (pinBuffer.length - 1)).classList.add('filled')
   if (pinBuffer.length === 4) {
     if (pinBuffer === PIN) {
       localStorage.setItem(AUTH_KEY, '1')
@@ -555,9 +481,9 @@ function pinKey(d) {
       boot()
     } else {
       document.getElementById('pin-error').textContent = 'Incorrect PIN'
-      setTimeout(() => {
+      setTimeout(function() {
         pinBuffer = ''
-        document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('filled'))
+        document.querySelectorAll('.pin-dot').forEach(function(d) { d.classList.remove('filled') })
         document.getElementById('pin-error').textContent = ''
       }, 800)
     }
@@ -566,241 +492,475 @@ function pinKey(d) {
 function pinDel() {
   if (!pinBuffer.length) return
   pinBuffer = pinBuffer.slice(0, -1)
-  document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length))
+  document.querySelectorAll('.pin-dot').forEach(function(dot, i) { dot.classList.toggle('filled', i < pinBuffer.length) })
 }
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (document.getElementById('pin-gate').style.display === 'none') return
   if (e.key >= '0' && e.key <= '9') pinKey(e.key)
   if (e.key === 'Backspace') pinDel()
 })
 function logout() { localStorage.removeItem(AUTH_KEY); location.reload() }
-
-// ── STARTUP ─────────────────────────────────────────────────────────────────
 if (localStorage.getItem(AUTH_KEY)) {
   document.getElementById('pin-gate').style.display = 'none'
   boot()
 }
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
-let DATA = { invoices: [], expenses: [], clients: [], providers: [], entities: [] }
+let DATA = { invoices: [], expenses: [], clients: [], providers: [], entities: [], payroll: [], employees: [] }
 
 async function boot() {
-  const app = document.getElementById('app')
-  app.classList.add('visible')
-  document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'short',year:'numeric',month:'short',day:'numeric'})
+  document.getElementById('app').classList.add('visible')
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
   try {
-    const [invoices, expenses, clients, providers, entities] = await Promise.all([
+    const results = await Promise.all([
       sbGet('emitted_invoices', { select: '*', order: 'date.desc', limit: '500' }),
       sbGet('expenses',         { select: '*', order: 'date.desc', limit: '500' }),
-      sbGet('clients',          { select: '*', order: 'name.asc', limit: '200' }),
-      sbGet('providers',        { select: '*', order: 'name.asc', limit: '200' }),
+      sbGet('clients',          { select: '*', order: 'name.asc',  limit: '200' }),
+      sbGet('providers',        { select: '*', order: 'name.asc',  limit: '200' }),
       sbGet('entities',         { select: '*' }),
+      sbGet('payroll',          { select: '*', order: 'payment_date.desc', limit: '200' }),
+      sbGet('employees',        { select: '*', order: 'name.asc',  limit: '100' }),
     ])
-    DATA = { invoices, expenses, clients, providers, entities }
+    DATA.invoices  = results[0]
+    DATA.expenses  = results[1]
+    DATA.clients   = results[2]
+    DATA.providers = results[3]
+    DATA.entities  = results[4]
+    DATA.payroll   = results[5]
+    DATA.employees = results[6]
     renderDashboard()
-    renderInvoices()
+    renderSales()
     renderExpenses()
-    renderClients()
+    bindFilters()
   } catch(e) {
     console.error(e)
-    document.getElementById('stats-grid').innerHTML = `<div style="grid-column:1/-1;color:var(--red);padding:20px">Failed to load data. Check SB_KEY in index.html.<br><small>${e.message}</small></div>`
+    document.getElementById('dash-stats').innerHTML = '<div style="grid-column:1/-1;color:var(--red);padding:20px">Failed to load data: ' + e.message + '</div>'
   }
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-const eur = v => v == null ? '—' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(v)
-const usd = v => v == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(v)
-const fdate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('en-GB') : '—'
+const eur   = function(v) { return v == null ? '—' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(v) }
+const usd   = function(v) { return v == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(v) }
+const fmtAmt = function(v, cur) { return cur === 'EUR' ? eur(v) : usd(v) }
+const fdate = function(s) { return s ? new Date(s + 'T00:00:00').toLocaleDateString('en-GB') : '—' }
 
-function clientName(id) {
-  const c = DATA.clients.find(c => c.id === id)
-  return c ? c.name : '—'
-}
-function providerName(id) {
-  const p = DATA.providers.find(p => p.id === id)
-  return p ? p.name : '—'
-}
-function entityInfo(id) {
-  return DATA.entities.find(e => e.id === id) || { name: 'Prolianxe', brand_color: '#6366f1' }
-}
+function clientName(id)   { const c = DATA.clients.find(function(c)   { return c.id === id }); return c ? c.name : '—' }
+function providerName(id) { const p = DATA.providers.find(function(p) { return p.id === id }); return p ? p.name : '—' }
+function employeeName(id) { const e = DATA.employees.find(function(e) { return e.id === id }); return e ? e.name : 'Employee' }
+function entityInfo(id)   { return DATA.entities.find(function(e) { return e.id === id }) || { name: 'Prolianxe', brand_color: '#6366f1' } }
 
 function statusBadge(s) {
   const map = { Paid: 'paid', Sent: 'sent', Draft: 'draft', Overdue: 'overdue', Pending: 'pending' }
-  return `<span class="badge badge-${map[s] || 'draft'}">${s || '—'}</span>`
+  return '<span class="badge badge-' + (map[s] || 'draft') + '">' + (s || '—') + '</span>'
 }
 function catBadge(c) {
   const map = { 'R&D': 'rd', 'A.I.': 'ai', 'Banking': 'banking', 'Operation': 'op', 'Food': 'food', 'Graphic Design': 'design', 'Accounting': 'acct' }
-  return `<span class="badge badge-${map[c] || 'op'}">${c || '—'}</span>`
-}
-function entityBadge(entityId) {
-  const e = entityInfo(entityId)
-  return `<span class="badge" style="background:${e.brand_color}22;color:${e.brand_color}">${e.name}</span>`
+  return '<span class="badge badge-' + (map[c] || 'op') + '">' + (c || '—') + '</span>'
 }
 function fileLink(url) {
   if (!url) return '—'
-  return `<a class="file-link" href="${url}" target="_blank" title="View file">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-      <polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/>
-    </svg>
-  </a>`
+  return '<a class="file-link" href="' + url + '" target="_blank"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
 }
 
-// ── DASHBOARD ────────────────────────────────────────────────────────────────
+// ── MONTHLY AGGREGATION ──────────────────────────────────────────────────────
+function aggByMonth(items, dateFn, valFn) {
+  const m = {}
+  items.forEach(function(item) {
+    const d = dateFn(item)
+    if (!d) return
+    const key = d.slice(0, 7)
+    m[key] = (m[key] || 0) + (valFn(item) || 0)
+  })
+  return m
+}
+function mergedMonths() {
+  const args = Array.prototype.slice.call(arguments)
+  const set = new Set()
+  args.forEach(function(m) { Object.keys(m).forEach(function(k) { set.add(k) }) })
+  return Array.from(set).sort()
+}
+function monthLabel(ym) {
+  const parts = ym.split('-')
+  return new Date(+parts[0], +parts[1] - 1).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+}
+
+// Payroll date key: prefer payment_date, fall back to period (MM-YYYY → YYYY-MM)
+function payrollKey(p) {
+  if (p.payment_date) return p.payment_date.slice(0, 7)
+  if (p.period) {
+    const parts = p.period.split('-')
+    if (parts.length === 2) return parts[1] + '-' + parts[0]
+  }
+  return null
+}
+
+// ── CHART DEFAULTS ───────────────────────────────────────────────────────────
+const CHARTS = {}
+function destroyChart(id) { if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id] } }
+
+function chartScales(yPrefix) {
+  yPrefix = yPrefix || ''
+  return {
+    x: {
+      ticks: { color: '#6b6b80', font: { family: "'Space Grotesk', sans-serif", size: 11 } },
+      grid:  { color: 'rgba(255,255,255,0.04)' }
+    },
+    y: {
+      ticks: {
+        color: '#6b6b80', font: { family: "'JetBrains Mono', monospace", size: 11 },
+        callback: function(v) { return yPrefix + new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(v) }
+      },
+      grid: { color: 'rgba(255,255,255,0.04)' }
+    }
+  }
+}
+
+function chartPlugins(showLegend) {
+  return {
+    legend: {
+      display: showLegend !== false,
+      labels: { color: '#9090a8', font: { family: "'Space Grotesk', sans-serif", size: 12 }, boxWidth: 12, padding: 16 }
+    },
+    tooltip: {
+      backgroundColor: '#1a1a24',
+      borderColor: 'rgba(255,255,255,0.10)',
+      borderWidth: 1,
+      titleColor: '#e8e8f0',
+      bodyColor: '#9090a8',
+      padding: 10,
+    }
+  }
+}
+
+// ── RENDER: DASHBOARD ────────────────────────────────────────────────────────
 function renderDashboard() {
   const year = new Date().getFullYear().toString()
-  const revenueYTD = DATA.invoices
-    .filter(i => i.status === 'Paid' && i.date?.startsWith(year))
-    .reduce((s, i) => s + (i.eur_amount || 0), 0)
-  const expensesYTD = DATA.expenses
-    .filter(e => e.date?.startsWith(year))
-    .reduce((s, e) => s + (e.eur_equivalent || 0), 0)
-  const pl = revenueYTD - expensesYTD
-  const pending = DATA.invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length
 
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Revenue YTD</div>
-      <div class="stat-value">${eur(revenueYTD)}</div>
-      <div class="stat-sub">Paid invoices ${year}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Expenses YTD</div>
-      <div class="stat-value">${eur(expensesYTD)}</div>
-      <div class="stat-sub">Total costs ${year}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Net P&amp;L</div>
-      <div class="stat-value ${pl >= 0 ? 'positive' : 'negative'}">${eur(pl)}</div>
-      <div class="stat-sub">${pl >= 0 ? 'Profitable' : 'Loss'} ${year}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Pending</div>
-      <div class="stat-value accent">${pending}</div>
-      <div class="stat-sub">Awaiting payment</div>
-    </div>
-  `
+  const revenueYTD  = DATA.invoices.filter(function(i) { return i.status === 'Paid' && i.date && i.date.startsWith(year) }).reduce(function(s, i) { return s + (i.eur_amount || 0) }, 0)
+  const expensesYTD = DATA.expenses.filter(function(e) { return e.date && e.date.startsWith(year) }).reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const payrollYTD  = DATA.payroll.filter(function(p) {
+    const k = payrollKey(p)
+    return k && k.startsWith(year)
+  }).reduce(function(s, p) { return s + (p.amount || 0) }, 0)
+  const totalCosts = expensesYTD + payrollYTD
+  const pl = revenueYTD - totalCosts
+  const pending = DATA.invoices.filter(function(i) { return i.status === 'Sent' || i.status === 'Overdue' }).length
 
-  // Recent invoices
-  const recentInv = DATA.invoices.slice(0, 5)
-  document.getElementById('recent-invoices-wrap').innerHTML = `
-    <table><thead><tr>
-      <th>Invoice #</th><th>Client</th><th>Date</th><th style="text-align:right">Amount</th><th>Status</th>
-    </tr></thead><tbody>
-    ${recentInv.length ? recentInv.map(i => `<tr>
-      <td class="td-mono">${i.invoice_number}</td>
-      <td>${clientName(i.client_id)}</td>
-      <td class="td-muted">${fdate(i.date)}</td>
-      <td class="td-amount">${eur(i.eur_amount)}</td>
-      <td>${statusBadge(i.status)}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="5">No invoices</td></tr>'}
-    </tbody></table>`
+  document.getElementById('dash-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Revenue YTD</div><div class="stat-value">' + eur(revenueYTD) + '</div><div class="stat-sub">Paid invoices ' + year + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Costs YTD</div><div class="stat-value">' + eur(totalCosts) + '</div><div class="stat-sub">Vendor + payroll</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Net P&amp;L</div><div class="stat-value ' + (pl >= 0 ? 'positive' : 'negative') + '">' + eur(pl) + '</div><div class="stat-sub">' + (pl >= 0 ? 'Profitable' : 'Loss') + ' ' + year + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value accent">' + pending + '</div><div class="stat-sub">Awaiting payment</div></div>'
 
-  // Recent expenses
-  const recentExp = DATA.expenses.slice(0, 5)
-  document.getElementById('recent-expenses-wrap').innerHTML = `
-    <table><thead><tr>
-      <th>Date</th><th>Provider</th><th>Category</th><th style="text-align:right">EUR</th>
-    </tr></thead><tbody>
-    ${recentExp.length ? recentExp.map(e => `<tr>
-      <td class="td-muted">${fdate(e.date)}</td>
-      <td>${providerName(e.provider_id)}</td>
-      <td>${catBadge(e.category)}</td>
-      <td class="td-amount">${eur(e.eur_equivalent)}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="4">No expenses</td></tr>'}
-    </tbody></table>`
+  // --- Month Results bar chart (P&L per month) ---
+  const revMap  = aggByMonth(DATA.invoices.filter(function(i) { return i.status === 'Paid' }), function(i) { return i.date }, function(i) { return i.eur_amount || 0 })
+  const expMap  = aggByMonth(DATA.expenses, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
+  const payMap  = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
+  const months  = mergedMonths(revMap, expMap, payMap)
+  const labels  = months.map(monthLabel)
+  const plData  = months.map(function(m) { return (revMap[m] || 0) - (expMap[m] || 0) - (payMap[m] || 0) })
+
+  destroyChart('monthly')
+  const ctx1 = document.getElementById('chart-monthly').getContext('2d')
+  CHARTS['monthly'] = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Net P&L (€)',
+        data: plData,
+        backgroundColor: plData.map(function(v) { return v >= 0 ? 'rgba(99,102,241,0.7)' : 'rgba(239,68,68,0.7)' }),
+        borderColor:     plData.map(function(v) { return v >= 0 ? '#6366f1' : '#ef4444' }),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: chartPlugins(false),
+      scales: chartScales('€')
+    }
+  })
+
+  // --- Sales vs Expenses line chart ---
+  const revAll = aggByMonth(DATA.invoices, function(i) { return i.date }, function(i) { return i.eur_amount || 0 })
+  const months2 = mergedMonths(revAll, expMap, payMap)
+  const labels2 = months2.map(monthLabel)
+
+  destroyChart('salesvexp')
+  const ctx2 = document.getElementById('chart-salesvexp').getContext('2d')
+  CHARTS['salesvexp'] = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: labels2,
+      datasets: [
+        {
+          label: 'Revenue (€)',
+          data: months2.map(function(m) { return revAll[m] || 0 }),
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34,197,94,0.08)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 3,
+        },
+        {
+          label: 'Vendor Expenses (€)',
+          data: months2.map(function(m) { return expMap[m] || 0 }),
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,0.06)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 3,
+        },
+        {
+          label: 'Payroll',
+          data: months2.map(function(m) { return payMap[m] || 0 }),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.06)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 3,
+          borderDash: [4, 3],
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: chartPlugins(true),
+      scales: chartScales('€')
+    }
+  })
 }
 
-// ── INVOICES ─────────────────────────────────────────────────────────────────
-function renderInvoices() {
+// ── RENDER: SALES ─────────────────────────────────────────────────────────────
+function renderSales() {
+  const total    = DATA.invoices.reduce(function(s, i) { return s + (i.eur_amount || 0) }, 0)
+  const paid     = DATA.invoices.filter(function(i) { return i.status === 'Paid' }).reduce(function(s, i) { return s + (i.eur_amount || 0) }, 0)
+  const outstanding = DATA.invoices.filter(function(i) { return i.status === 'Sent' || i.status === 'Overdue' }).length
+
+  document.getElementById('sales-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value accent">' + DATA.invoices.length + '</div><div class="stat-sub">All time</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value">' + eur(total) + '</div><div class="stat-sub">All invoices</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Collected (Paid)</div><div class="stat-value positive">' + eur(paid) + '</div><div class="stat-sub">Status: Paid</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value accent">' + outstanding + '</div><div class="stat-sub">Sent or overdue</div></div>'
+
+  // Monthly revenue chart
+  const revMap = aggByMonth(DATA.invoices, function(i) { return i.date }, function(i) { return i.eur_amount || 0 })
+  const months = Object.keys(revMap).sort()
+  const labels = months.map(monthLabel)
+
+  destroyChart('sales')
+  const ctx = document.getElementById('chart-sales').getContext('2d')
+  CHARTS['sales'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Revenue (€)',
+        data: months.map(function(m) { return revMap[m] || 0 }),
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99,102,241,0.08)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: '#6366f1',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: chartPlugins(false),
+      scales: chartScales('€')
+    }
+  })
+
+  renderInvoiceTable()
+}
+
+function renderInvoiceTable() {
   const status = document.getElementById('inv-status-filter').value
-  const q = document.getElementById('inv-search').value.toLowerCase()
-  let rows = DATA.invoices.filter(i => {
+  const q      = document.getElementById('inv-search').value.toLowerCase()
+  const rows   = DATA.invoices.filter(function(i) {
     if (status && i.status !== status) return false
-    if (q && !i.invoice_number?.toLowerCase().includes(q) && !clientName(i.client_id).toLowerCase().includes(q)) return false
+    if (q && !(i.invoice_number || '').toLowerCase().includes(q) && !clientName(i.client_id).toLowerCase().includes(q)) return false
     return true
   })
-  document.getElementById('inv-count').textContent = `${rows.length} records`
-  document.getElementById('invoices-table-wrap').innerHTML = `
-    <table><thead><tr>
-      <th>Invoice #</th><th>Client</th><th>Date</th>
-      <th style="text-align:right">EUR</th><th style="text-align:right">USD</th>
-      <th>Due Date</th><th>Status</th><th>File</th>
-    </tr></thead><tbody>
-    ${rows.length ? rows.map(i => `<tr>
-      <td class="td-mono">${i.invoice_number}</td>
-      <td>${clientName(i.client_id)}</td>
-      <td class="td-muted">${fdate(i.date)}</td>
-      <td class="td-amount">${eur(i.eur_amount)}</td>
-      <td class="td-amount td-muted">${usd(i.usd_amount)}</td>
-      <td class="td-muted">${fdate(i.due_date)}</td>
-      <td>${statusBadge(i.status)}</td>
-      <td>${fileLink(i.file_url)}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="8">No invoices match filter</td></tr>'}
-    </tbody></table>`
+  document.getElementById('inv-count').textContent = rows.length + ' records'
+  const tbody = rows.length
+    ? rows.map(function(i) {
+        return '<tr>' +
+          '<td class="td-mono">' + (i.invoice_number || '—') + '</td>' +
+          '<td>' + clientName(i.client_id) + '</td>' +
+          '<td class="td-muted">' + fdate(i.date) + '</td>' +
+          '<td class="td-amount">' + eur(i.eur_amount) + '</td>' +
+          '<td class="td-amount td-muted">' + usd(i.usd_amount) + '</td>' +
+          '<td class="td-muted">' + fdate(i.due_date) + '</td>' +
+          '<td>' + statusBadge(i.status) + '</td>' +
+          '<td>' + fileLink(i.file_url) + '</td>' +
+        '</tr>'
+      }).join('')
+    : '<tr class="empty-row"><td colspan="8">No invoices match filter</td></tr>'
+  document.getElementById('invoices-table-wrap').innerHTML =
+    '<table><thead><tr>' +
+      '<th>Invoice #</th><th>Client</th><th>Date</th>' +
+      '<th style="text-align:right">EUR</th><th style="text-align:right">USD</th>' +
+      '<th>Due Date</th><th>Status</th><th>File</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody></table>'
 }
 
-// ── EXPENSES ─────────────────────────────────────────────────────────────────
+// ── RENDER: EXPENSES ──────────────────────────────────────────────────────────
 function renderExpenses() {
-  const cat = document.getElementById('exp-cat-filter').value
-  const q = document.getElementById('exp-search').value.toLowerCase()
-  let rows = DATA.expenses.filter(e => {
+  const vendorTotal  = DATA.expenses.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const payrollTotal = DATA.payroll.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
+  const payrollCur   = DATA.payroll.length && DATA.payroll[0].currency ? DATA.payroll[0].currency : 'USD'
+
+  document.getElementById('exp-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">All time (EUR)</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Payroll</div><div class="stat-value negative">' + fmtAmt(payrollTotal, payrollCur) + '</div><div class="stat-sub">All time (' + payrollCur + ')</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">Vendor EUR + payroll</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value accent">' + DATA.expenses.length + '</div><div class="stat-sub">Vendor invoices</div></div>'
+
+  // Monthly expenses chart (vendor + payroll stacked)
+  const expMap  = aggByMonth(DATA.expenses, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
+  const payMap  = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
+  const months  = mergedMonths(expMap, payMap)
+  const labels  = months.map(monthLabel)
+
+  destroyChart('expenses')
+  const ctx = document.getElementById('chart-expenses').getContext('2d')
+  CHARTS['expenses'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Vendor Expenses (€)',
+          data: months.map(function(m) { return expMap[m] || 0 }),
+          backgroundColor: 'rgba(239,68,68,0.65)',
+          borderColor: '#ef4444',
+          borderWidth: 1,
+          borderRadius: 3,
+          stack: 'costs',
+        },
+        {
+          label: 'Payroll (' + payrollCur + ')',
+          data: months.map(function(m) { return payMap[m] || 0 }),
+          backgroundColor: 'rgba(245,158,11,0.65)',
+          borderColor: '#f59e0b',
+          borderWidth: 1,
+          borderRadius: 3,
+          stack: 'costs',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: chartPlugins(true),
+      scales: Object.assign({}, chartScales('€'), { x: Object.assign({}, chartScales('€').x, { stacked: true }), y: Object.assign({}, chartScales('€').y, { stacked: true }) })
+    }
+  })
+
+  renderExpenseTable()
+  renderPayrollTable()
+}
+
+function renderExpenseTable() {
+  const cat  = document.getElementById('exp-cat-filter').value
+  const q    = document.getElementById('exp-search').value.toLowerCase()
+  const rows = DATA.expenses.filter(function(e) {
     if (cat && e.category !== cat) return false
-    if (q && !providerName(e.provider_id).toLowerCase().includes(q) && !e.description?.toLowerCase().includes(q) && !e.invoice_number?.toLowerCase().includes(q)) return false
+    if (q && !providerName(e.provider_id).toLowerCase().includes(q) && !(e.description || '').toLowerCase().includes(q) && !(e.invoice_number || '').toLowerCase().includes(q)) return false
     return true
   })
-  const total = rows.reduce((s, e) => s + (e.eur_equivalent || 0), 0)
-  document.getElementById('exp-count').textContent = `${rows.length} records`
-  document.getElementById('expenses-table-wrap').innerHTML = `
-    <table><thead><tr>
-      <th>Date</th><th>Invoice #</th><th>Provider</th><th>Category</th>
-      <th style="text-align:right">Net</th><th style="text-align:right">EUR Equiv</th>
-      <th>Status</th><th>Tags</th><th>File</th>
-    </tr></thead><tbody>
-    ${rows.length ? rows.map(e => `<tr>
-      <td class="td-muted">${fdate(e.date)}</td>
-      <td class="td-mono">${e.invoice_number || '—'}</td>
-      <td>${providerName(e.provider_id)}</td>
-      <td>${catBadge(e.category)}</td>
-      <td class="td-amount td-muted">${eur(e.net)}</td>
-      <td class="td-amount">${eur(e.eur_equivalent)}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${e.is_revolut ? '<span class="badge badge-revolut">Revolut</span>' : ''}</td>
-      <td>${fileLink(e.file_url)}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="9">No expenses match filter</td></tr>'}
-    </tbody>
-    <tfoot><tr>
-      <td colspan="5" style="color:var(--muted)">Total (filtered)</td>
-      <td class="td-amount" style="color:var(--text)">${eur(total)}</td>
-      <td colspan="3"></td>
-    </tr></tfoot>
-    </table>`
+  const total = rows.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  document.getElementById('exp-count').textContent = rows.length + ' records'
+  const tbody = rows.length
+    ? rows.map(function(e) {
+        return '<tr>' +
+          '<td class="td-muted">' + fdate(e.date) + '</td>' +
+          '<td class="td-mono">' + (e.invoice_number || '—') + '</td>' +
+          '<td>' + providerName(e.provider_id) + '</td>' +
+          '<td>' + catBadge(e.category) + '</td>' +
+          '<td class="td-amount td-muted">' + eur(e.net) + '</td>' +
+          '<td class="td-amount">' + eur(e.eur_equivalent) + '</td>' +
+          '<td>' + statusBadge(e.status) + '</td>' +
+          '<td>' + (e.is_revolut ? '<span class="badge badge-revolut">Revolut</span>' : '') + '</td>' +
+          '<td>' + fileLink(e.file_url) + '</td>' +
+        '</tr>'
+      }).join('')
+    : '<tr class="empty-row"><td colspan="9">No expenses match filter</td></tr>'
+  document.getElementById('expenses-table-wrap').innerHTML =
+    '<table><thead><tr>' +
+      '<th>Date</th><th>Invoice #</th><th>Provider</th><th>Category</th>' +
+      '<th style="text-align:right">Net</th><th style="text-align:right">EUR Equiv</th>' +
+      '<th>Status</th><th>Tags</th><th>File</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody>' +
+    '<tfoot><tr><td colspan="5" style="color:var(--muted)">Total (filtered)</td><td class="td-amount" style="color:var(--text)">' + eur(total) + '</td><td colspan="3"></td></tr></tfoot>' +
+    '</table>'
 }
 
-// ── CLIENTS ──────────────────────────────────────────────────────────────────
-function renderClients() {
-  const rows = DATA.clients
-  document.getElementById('clients-count').textContent = `${rows.length} clients`
-  document.getElementById('clients-table-wrap').innerHTML = `
-    <table><thead><tr>
-      <th>Name</th><th>Entity</th><th>Country</th><th>Email</th>
-    </tr></thead><tbody>
-    ${rows.length ? rows.map(c => `<tr>
-      <td style="font-weight:500">${c.name}</td>
-      <td>${entityBadge(c.entity_id)}</td>
-      <td class="td-muted">${c.country || '—'}</td>
-      <td class="td-muted">${c.email || '—'}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="4">No clients</td></tr>'}
-    </tbody></table>`
+function renderPayrollTable() {
+  const rows = DATA.payroll
+  document.getElementById('payroll-count').textContent = rows.length + ' records'
+  const tbody = rows.length
+    ? rows.map(function(p) {
+        return '<tr>' +
+          '<td class="td-muted">' + (p.payment_date ? fdate(p.payment_date) : (p.period || '—')) + '</td>' +
+          '<td>' + employeeName(p.employee_id) + '</td>' +
+          '<td class="td-mono">' + (p.period || '—') + '</td>' +
+          '<td class="td-amount">' + fmtAmt(p.amount, p.currency) + '</td>' +
+          '<td class="td-muted">' + (p.currency || '—') + '</td>' +
+          '<td>' + statusBadge(p.status) + '</td>' +
+          '<td class="td-muted">' + (p.notes || '') + '</td>' +
+        '</tr>'
+      }).join('')
+    : '<tr class="empty-row"><td colspan="7">No payroll records</td></tr>'
+  document.getElementById('payroll-table-wrap').innerHTML =
+    '<table><thead><tr>' +
+      '<th>Payment Date</th><th>Employee</th><th>Period</th>' +
+      '<th style="text-align:right">Amount</th><th>Currency</th><th>Status</th><th>Notes</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody></table>'
 }
 
-// ── TAB NAV ───────────────────────────────────────────────────────────────────
+// ── FILTER BINDINGS ───────────────────────────────────────────────────────────
+function bindFilters() {
+  document.getElementById('inv-status-filter').addEventListener('change', renderInvoiceTable)
+  document.getElementById('inv-search').addEventListener('input', renderInvoiceTable)
+  document.getElementById('exp-cat-filter').addEventListener('change', renderExpenseTable)
+  document.getElementById('exp-search').addEventListener('input', renderExpenseTable)
+}
+
+// ── TAB NAVIGATION ────────────────────────────────────────────────────────────
+const TABS = ['performance', 'directory', 'administration', 'clients', 'contacts', 'todo']
 function showTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
-  document.getElementById('tab-' + name).classList.add('active')
-  document.getElementById('content-' + name).classList.add('active')
+  TABS.forEach(function(t) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === name)
+    document.getElementById('content-' + t).classList.toggle('active', t === name)
+  })
+  document.getElementById('perf-subnav').classList.toggle('visible', name === 'performance')
 }
+
+const PERF_TABS = ['dash', 'sales', 'expenses']
+function showPerfTab(name) {
+  PERF_TABS.forEach(function(t) {
+    document.getElementById('subtab-' + t).classList.toggle('active', t === name)
+    document.getElementById('subcontent-' + t).classList.toggle('active', t === name)
+  })
+}
+
+document.getElementById('tab-performance').addEventListener('click',    function() { showTab('performance') })
+document.getElementById('tab-directory').addEventListener('click',      function() { showTab('directory') })
+document.getElementById('tab-administration').addEventListener('click', function() { showTab('administration') })
+document.getElementById('tab-clients').addEventListener('click',        function() { showTab('clients') })
+document.getElementById('tab-contacts').addEventListener('click',       function() { showTab('contacts') })
+document.getElementById('tab-todo').addEventListener('click',           function() { showTab('todo') })
+
+document.getElementById('subtab-dash').addEventListener('click',     function() { showPerfTab('dash') })
+document.getElementById('subtab-sales').addEventListener('click',    function() { showPerfTab('sales') })
+document.getElementById('subtab-expenses').addEventListener('click', function() { showPerfTab('expenses') })
 </script>
 </body>
 </html>
