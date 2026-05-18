@@ -265,6 +265,16 @@
     font-size: 24px; font-weight: 600; color: var(--teal);
   }
   .payment-banner.overdue .banner-amount { color: var(--red); }
+  /* multi-payment banner */
+  .multi-banner { flex-direction: column; align-items: stretch; }
+  .banner-multi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-bottom: 8px; }
+  .payment-banner.overdue .banner-multi-label { color: var(--red); }
+  .banner-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .banner-row-sep { border-top: 1px solid rgba(45,212,191,0.15); margin: 10px 0; }
+  .payment-banner.overdue .banner-row-sep { border-color: rgba(248,113,113,0.15); }
+  .overdue-icon { background: rgba(248,113,113,0.12) !important; }
+  .overdue-lbl  { color: var(--red) !important; }
+  .overdue-amt  { color: var(--red) !important; }
 
   /* ── SERVICE CARDS ── */
   .services-grid {
@@ -363,6 +373,13 @@
     background: rgba(251,191,36,0.12);
     border: 1px solid rgba(251,191,36,0.3);
     border-radius: 8px; color: #fbbf24;
+  }
+  .web-icon-wrap {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: rgba(45,212,191,0.10);
+    border: 1px solid rgba(45,212,191,0.25);
+    border-radius: 8px; color: var(--teal);
   }
   @keyframes glow-blue {
     0%, 100% { box-shadow: 0 0 5px rgba(96,165,250,0.25);  border-color: rgba(96,165,250,0.3); }
@@ -933,7 +950,7 @@ async function renderClient(profile) {
   const pending    = allPagos.filter(p => p.estado === 'pendiente')
                              .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
   const nonPending = allPagos.filter(p => p.estado !== 'pendiente');
-  const clientPagos = [...nonPending, ...(pending.length ? [pending[0]] : [])]
+  const clientPagos = [...nonPending, ...pending]
     .sort((a,b) => b.fecha_vencimiento.localeCompare(a.fecha_vencimiento));
   renderPayments(clientPagos, 'client-payments-body', false);
 }
@@ -944,39 +961,24 @@ function renderBanner(pagos) {
                         .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
   const upcoming = pagos.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento >= today)
                         .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+  const allPending = [...overdue, ...upcoming];
+  const container  = $('next-payment-container');
 
-  const container = $('next-payment-container');
+  if (!allPending.length) { container.innerHTML = ''; return; }
 
-  if (overdue.length) {
-    const p = overdue[0];
+  // Single payment: original compact layout
+  if (allPending.length === 1) {
+    const p      = allPending[0];
+    const isOvd  = overdue.length === 1;
+    const days   = isOvd ? null : daysDiff(today, p.fecha_vencimiento);
     container.innerHTML = `
-      <div class="payment-banner overdue">
+      <div class="payment-banner${isOvd ? ' overdue' : ''}">
         <div class="banner-left">
-          <div class="banner-icon">⚠️</div>
+          <div class="banner-icon">${isOvd ? '⚠️' : '📅'}</div>
           <div>
-            <div class="banner-label">Pago Vencido</div>
-            <div class="banner-date">${fmtDate(p.fecha_vencimiento)}</div>
-            <div class="banner-sub">${esc(p.services?.nombre || '—')}</div>
-          </div>
-        </div>
-        <div class="banner-amount">${fmtMonto(p.monto, p.moneda)}</div>
-      </div>`;
-    return;
-  }
-
-  if (upcoming.length) {
-    const p = upcoming[0];
-    const days = daysDiff(today, p.fecha_vencimiento);
-    container.innerHTML = `
-      <div class="payment-banner">
-        <div class="banner-left">
-          <div class="banner-icon">📅</div>
-          <div>
-            <div class="banner-label">Próximo Pago</div>
+            <div class="banner-label">${isOvd ? 'Pago Vencido' : 'Próximo Pago'}</div>
             <div class="banner-date">${fmtDate(p.fecha_vencimiento)}
-              <span style="font-size:13px;color:var(--slate);font-weight:400">
-                (en ${days} día${days !== 1 ? 's' : ''})
-              </span>
+              ${days !== null ? `<span style="font-size:13px;color:var(--slate);font-weight:400">(en ${days} día${days !== 1 ? 's' : ''})</span>` : ''}
             </div>
             <div class="banner-sub">${esc(p.services?.nombre || '—')}</div>
           </div>
@@ -986,7 +988,31 @@ function renderBanner(pagos) {
     return;
   }
 
-  container.innerHTML = '';
+  // Multiple pending: stacked rows inside the same banner
+  const hasOverdue = overdue.length > 0;
+  container.innerHTML = `
+    <div class="payment-banner${hasOverdue ? ' overdue' : ''} multi-banner">
+      <div class="banner-multi-label">${hasOverdue ? 'Pagos Pendientes' : 'Próximos Pagos'}</div>
+      ${allPending.map((p, i) => {
+        const isOvd = p.fecha_vencimiento < today;
+        const days  = isOvd ? null : daysDiff(today, p.fecha_vencimiento);
+        return `
+        ${i > 0 ? '<div class="banner-row-sep"></div>' : ''}
+        <div class="banner-row">
+          <div class="banner-left">
+            <div class="banner-icon${isOvd ? ' overdue-icon' : ''}">${isOvd ? '⚠️' : '📅'}</div>
+            <div>
+              <div class="banner-label${isOvd ? ' overdue-lbl' : ''}">${isOvd ? 'Vencido' : 'Próximo Pago'}</div>
+              <div class="banner-date">${fmtDate(p.fecha_vencimiento)}
+                ${days !== null ? `<span style="font-size:13px;color:var(--slate);font-weight:400">(en ${days} día${days !== 1 ? 's' : ''})</span>` : ''}
+              </div>
+              <div class="banner-sub">${esc(p.services?.nombre || '—')}</div>
+            </div>
+          </div>
+          <div class="banner-amount${isOvd ? ' overdue-amt' : ''}">${fmtMonto(p.monto, p.moneda)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 function buildServiceCard(s) {
@@ -1002,7 +1028,7 @@ function buildServiceCard(s) {
   <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
     <div class="service-card-header">
       <div style="display:flex;align-items:center;gap:8px;">
-        ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : isMail ? `<div class="mail-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>` : ''}
+        ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : isMail ? `<div class="mail-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>` : isWebsite ? `<div class="web-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>` : ''}
         <div class="service-name">${esc(s.nombre)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
