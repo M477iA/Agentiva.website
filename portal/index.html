@@ -346,6 +346,13 @@
     border-radius: 8px; color: #60a5fa;
     animation: glow-blue 2.5s ease-in-out infinite;
   }
+  .mail-icon-wrap {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: rgba(251,191,36,0.12);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 8px; color: #fbbf24;
+  }
   @keyframes glow-blue {
     0%, 100% { box-shadow: 0 0 5px rgba(96,165,250,0.25);  border-color: rgba(96,165,250,0.3); }
     50%       { box-shadow: 0 0 14px rgba(96,165,250,0.55); border-color: rgba(96,165,250,0.65); }
@@ -903,7 +910,7 @@ async function renderClient(profile) {
   $('client-empresa').textContent  = profile.empresa || '';
 
   const [services, pagos] = await Promise.all([
-    sbQuery('services', `client_id=eq.${currentUser.id}&order=fecha_inicio.desc`, currentToken),
+    sbQuery('services', `client_id=eq.${currentUser.id}&order=fecha_inicio.asc`, currentToken),
     sbQuery('pagos', `client_id=eq.${currentUser.id}&select=*,services(nombre)&order=fecha_vencimiento.desc`, currentToken)
   ]);
 
@@ -993,7 +1000,7 @@ function renderServices(services) {
       <div class="service-card${isBotActive ? ' is-bot-active' : ''}">
         <div class="service-card-header">
           <div style="display:flex;align-items:center;gap:8px;">
-            ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : ''}
+            ${isBotActive ? `<div class="ai-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg></div>` : isMail ? `<div class="mail-icon-wrap"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>` : ''}
             <div class="service-name">${esc(s.nombre)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -1366,7 +1373,7 @@ function fmtDate(iso) {
 }
 function fmtMonto(monto, moneda) {
   if (monto == null) return '—';
-  const sym = moneda === 'USD' ? 'U$S' : moneda === 'EUR' ? '€' : '$';
+  const sym = moneda === 'USD' ? 'U$S' : moneda === 'EUR' ? '€' : 'AR$';
   return `${sym} ${Number(monto).toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:2})}`;
 }
 
