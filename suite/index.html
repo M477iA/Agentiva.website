@@ -212,6 +212,9 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 /* ── FILE LINK ────────────────────────────────────── */
 .file-link { color: var(--accent); text-decoration: none; opacity: .7; transition: opacity .12s; display: inline-flex; align-items: center; }
 .file-link:hover { opacity: 1; }
+.upload-btn { background: none; border: 1px dashed var(--border2); border-radius: 5px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 3px 6px; gap: 4px; font-size: 11px; transition: all .12s; }
+.upload-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.upload-btn.uploading { opacity: .5; pointer-events: none; }
 
 /* ── CLIENT AVATAR & LINK ────────────────────────── */
 .client-avatar {
@@ -648,12 +651,69 @@ function catBadge(c) {
   const map = { 'R&D': 'rd', 'A.I.': 'ai', 'Banking': 'banking', 'Operation': 'op', 'Food': 'food', 'Graphic Design': 'design', 'Accounting': 'acct' }
   return '<span class="badge badge-' + (map[c] || 'op') + '">' + (c || '—') + '</span>'
 }
-function fileLink(url) {
-  if (!url) return '—'
+function fileLink(url, uploadId, uploadTable) {
+  if (!url) {
+    if (!uploadId) return '—'
+    return '<button class="upload-btn" data-upload-id="' + uploadId + '" data-upload-table="' + (uploadTable || 'expenses') + '" title="Attach file">' +
+      '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16,16 12,12 8,16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>' +
+      'Upload</button>'
+  }
   const isAirtable = url.includes('airtableusercontent') || url.includes('airtable.com')
   const color = isAirtable ? 'var(--amber)' : 'var(--accent)'
   const title = isAirtable ? 'Airtable URL — may have expired' : 'View file'
   return '<a class="file-link" href="' + url + '" target="_blank" title="' + title + '" style="color:' + color + ';opacity:1"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
+}
+
+async function handleFileUpload(recordId, table, file) {
+  const bucket = table === 'emitted_invoices' ? 'invoices' : 'expenses'
+  const ext = file.name.split('.').pop()
+  const filename = recordId + '.' + ext
+
+  const btn = document.querySelector('.upload-btn[data-upload-id="' + recordId + '"]')
+  if (btn) btn.classList.add('uploading')
+
+  try {
+    const uploadResp = await fetch(SB_URL + '/storage/v1/object/' + bucket + '/' + filename, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': file.type, 'x-upsert': 'true' },
+      body: file
+    })
+    if (!uploadResp.ok) { alert('Upload failed: ' + uploadResp.status); return }
+
+    const publicUrl = SB_URL + '/storage/v1/object/public/' + bucket + '/' + filename
+
+    const updateResp = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + recordId, {
+      method: 'PATCH',
+      headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ file_url: publicUrl })
+    })
+    if (!updateResp.ok) { alert('DB update failed: ' + updateResp.status); return }
+
+    const arr = table === 'emitted_invoices' ? DATA.invoices : DATA.expenses
+    const record = arr.find(function(r) { return r.id === recordId })
+    if (record) record.file_url = publicUrl
+
+    if (table === 'expenses') renderExpenseTable()
+    else renderInvoiceTable()
+  } catch (err) {
+    alert('Error: ' + err.message)
+    if (btn) btn.classList.remove('uploading')
+  }
+}
+
+function bindUploadButtons(containerId) {
+  document.querySelectorAll('#' + containerId + ' .upload-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const recordId = btn.dataset.uploadId
+      const table    = btn.dataset.uploadTable
+      const input    = document.getElementById('upload-file-input')
+      input.onchange = function() {
+        if (input.files[0]) handleFileUpload(recordId, table, input.files[0])
+        input.value = ''
+      }
+      input.click()
+    })
+  })
 }
 
 // ── MONTHLY AGGREGATION ──────────────────────────────────────────────────────
@@ -983,7 +1043,7 @@ function renderExpenseTable() {
           '<td class="td-amount">' + eur(e.eur_equivalent) + '</td>' +
           '<td>' + statusBadge(e.status) + '</td>' +
           '<td>' + (e.is_revolut ? '<span class="badge badge-revolut">Revolut</span>' : '') + '</td>' +
-          '<td>' + fileLink(e.file_url) + '</td>' +
+          '<td>' + fileLink(e.file_url, e.id, 'expenses') + '</td>' +
         '</tr>'
       }).join('')
     : '<tr class="empty-row"><td colspan="9">No expenses match filter</td></tr>'
@@ -995,6 +1055,7 @@ function renderExpenseTable() {
     '</tr></thead><tbody>' + tbody + '</tbody>' +
     '<tfoot><tr><td colspan="5" style="color:var(--muted)">Total (filtered)</td><td class="td-amount" style="color:var(--text)">' + eur(total) + '</td><td colspan="3"></td></tr></tfoot>' +
     '</table>'
+  bindUploadButtons('expenses-table-wrap')
 }
 
 function renderPayrollTable() {
@@ -1165,5 +1226,6 @@ document.getElementById('subtab-dash').addEventListener('click',     function() 
 document.getElementById('subtab-sales').addEventListener('click',    function() { showPerfTab('sales') })
 document.getElementById('subtab-expenses').addEventListener('click', function() { showPerfTab('expenses') })
 </script>
+<input type="file" id="upload-file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
 </body>
 </html>
