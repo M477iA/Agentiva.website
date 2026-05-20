@@ -518,6 +518,27 @@
     .section { margin-bottom: 28px; }
   }
 
+  /* ── COSTS ── */
+  .cost-cat {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 4px;
+    background: rgba(45,212,191,0.08);
+    border: 1px solid rgba(45,212,191,0.2);
+    color: var(--teal);
+    white-space: nowrap;
+  }
+  .btn-delete-cost {
+    background: transparent;
+    border: 1px solid rgba(248,113,113,0.25);
+    color: var(--red);
+    padding: 3px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+    cursor: pointer; font-family: var(--font);
+    transition: background 0.15s;
+  }
+  .btn-delete-cost:hover { background: rgba(248,113,113,0.08); }
+  .btn-delete-cost:disabled { opacity: 0.4; cursor: not-allowed; }
+
   @media (max-width: 400px) {
     .portal-main { padding: 16px 12px 64px; }
     .login-card  { padding: 24px 16px; }
@@ -795,6 +816,28 @@
           </table>
         </div>
       </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Costos Operativos</div>
+          <button class="btn btn-secondary" onclick="openAddCostModal()">+ Agregar costo</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Categoría</th>
+                <th>Descripción</th>
+                <th>Monto (USD)</th>
+                <th>Fecha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="costs-body"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -903,6 +946,57 @@
           <button type="submit" class="btn btn-primary" id="add-client-btn" style="width:auto">
             Crear cliente
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD COST MODAL ── -->
+<div id="add-cost-modal" hidden>
+  <div class="modal-overlay" onclick="closeAddCostModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">Agregar costo</div>
+        <button class="btn-icon" onclick="closeAddCostModal()">&times;</button>
+      </div>
+      <form id="add-cost-form" onsubmit="submitAddCost(event)">
+        <div class="modal-section">
+          <div class="form-grid">
+            <div class="field">
+              <label>Cliente</label>
+              <select id="cost-client">
+                <option value="">— Agentiva (general)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Categoría</label>
+              <select id="cost-cat" required>
+                <option value="Claude API">Claude API</option>
+                <option value="Render">Render</option>
+                <option value="Vercel">Vercel</option>
+                <option value="Supabase">Supabase</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <label>Descripción (opcional)</label>
+              <input type="text" id="cost-desc" placeholder="Ej: Bot WhatsApp — mayo 2026">
+            </div>
+            <div class="field">
+              <label>Monto (USD)</label>
+              <input type="number" id="cost-amount" step="0.0001" min="0" required placeholder="0.00">
+            </div>
+            <div class="field">
+              <label>Fecha</label>
+              <input type="date" id="cost-date" required>
+            </div>
+          </div>
+        </div>
+        <p class="form-error" id="add-cost-error"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeAddCostModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="add-cost-btn" style="width:auto">Guardar</button>
         </div>
       </form>
     </div>
@@ -1215,10 +1309,11 @@ function renderPayments(pagos, bodyId, showClient) {
 async function renderAdmin() {
   show('admin-view');
 
-  const [profiles, services, pagos] = await Promise.all([
+  const [profiles, services, pagos, costs] = await Promise.all([
     sbQuery('client_profiles', 'role=eq.client&order=nombre', currentToken),
     sbQuery('services', 'order=nombre', currentToken),
-    sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento.desc', currentToken)
+    sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento.desc', currentToken),
+    sbQuery('agentiva_costs', 'select=*,client_profiles(nombre)&order=date.desc', currentToken).catch(() => []),
   ]);
 
   const P = profiles || [];
@@ -1231,6 +1326,12 @@ async function renderAdmin() {
   const mrr      = activeS.reduce((acc, s) => acc + (s.moneda === 'USD' ? (s.precio || 0) : 0), 0);
   const overdue  = G.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento < today);
   const pendingG = G.filter(p => p.estado === 'pendiente');
+
+  const thisMonth    = today.slice(0, 7);
+  const C            = costs || [];
+  const monthCosts   = C.filter(c => c.date && c.date.startsWith(thisMonth));
+  const totalCostUsd = monthCosts.reduce((a, c) => a + Number(c.amount_usd || 0), 0);
+  const margin       = mrr - totalCostUsd;
 
   $('admin-stats').innerHTML = `
     <div class="stat-card">
@@ -1249,6 +1350,16 @@ async function renderAdmin() {
       <div class="stat-label">Cobros Vencidos</div>
       <div class="stat-value ${overdue.length ? 'red' : ''}">${overdue.length}</div>
       ${overdue.length ? '<div class="stat-sub" style="color:var(--red)">Requieren atención</div>' : '<div class="stat-sub">Al día</div>'}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Costos del Mes</div>
+      <div class="stat-value ${totalCostUsd > 0 ? 'red' : ''}">U$S ${totalCostUsd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+      <div class="stat-sub">Este mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Margen del Mes</div>
+      <div class="stat-value ${margin >= 0 ? 'teal' : 'red'}">${margin < 0 ? '-' : ''}U$S ${Math.abs(margin).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+      <div class="stat-sub">MRR − costos</div>
     </div>`;
 
   // Upcoming payments (next 30 days + overdue)
@@ -1300,6 +1411,10 @@ async function renderAdmin() {
 
   // All payments
   renderPayments(G, 'admin-all-payments-body', true);
+
+  // Costs
+  _costProfiles = P;
+  renderCosts(C);
 }
 
 async function markPaid(pagoId, btn) {
@@ -1513,6 +1628,85 @@ function fmtMonto(monto, moneda) {
   if (monto == null) return '—';
   const sym = moneda === 'USD' ? 'U$S' : moneda === 'EUR' ? '€' : 'AR$';
   return `${sym} ${Number(monto).toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:2})}`;
+}
+
+// ── COSTS ─────────────────────────────────────────────────────────────────────
+
+let _costProfiles = [];
+
+function renderCosts(costs) {
+  const tbody = $('costs-body');
+  if (!costs || !costs.length) {
+    tbody.innerHTML = '<tr class="empty-state"><td colspan="6">Sin costos registrados aún.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = costs.map(c => `
+    <tr>
+      <td class="td-primary">${c.client_profiles?.nombre ? esc(c.client_profiles.nombre) : '<span class="td-muted">Agentiva</span>'}</td>
+      <td><span class="cost-cat">${esc(c.category)}</span></td>
+      <td class="td-muted">${esc(c.description || '—')}</td>
+      <td class="td-mono">U$S ${Number(c.amount_usd).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:6})}</td>
+      <td class="td-muted">${fmtDate(c.date)}</td>
+      <td><button class="btn-delete-cost" onclick="deleteCost('${c.id}', this)">Eliminar</button></td>
+    </tr>`).join('');
+}
+
+function openAddCostModal() {
+  document.getElementById('add-cost-form').reset();
+  document.getElementById('add-cost-error').textContent = '';
+  document.getElementById('cost-date').value = today_date();
+  const sel = document.getElementById('cost-client');
+  sel.innerHTML = '<option value="">— Agentiva (general)</option>' +
+    _costProfiles.map(p => `<option value="${p.id}">${esc(p.nombre)}${p.empresa ? ' — ' + esc(p.empresa) : ''}</option>`).join('');
+  const btn = document.getElementById('add-cost-btn');
+  btn.disabled = false;
+  btn.textContent = 'Guardar';
+  show('add-cost-modal');
+}
+
+function closeAddCostModal() { hide('add-cost-modal'); }
+
+async function submitAddCost(e) {
+  e.preventDefault();
+  const btn   = document.getElementById('add-cost-btn');
+  const errEl = document.getElementById('add-cost-error');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    const clientId = document.getElementById('cost-client').value || null;
+    const category = document.getElementById('cost-cat').value;
+    const desc     = document.getElementById('cost-desc').value.trim() || null;
+    const amount   = parseFloat(document.getElementById('cost-amount').value);
+    const date     = document.getElementById('cost-date').value;
+    await sbInsert('agentiva_costs', { client_id: clientId, category, description: desc, amount_usd: amount, date }, currentToken);
+    closeAddCostModal();
+    showToast('✓ Costo registrado');
+    await renderAdmin();
+  } catch (err) {
+    errEl.textContent = err.message || 'Error inesperado.';
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+  }
+}
+
+async function deleteCost(costId, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  const res = await fetch(`${SB_URL}/rest/v1/agentiva_costs?id=eq.${costId}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${currentToken}`, 'Prefer': 'return=minimal' }
+  });
+  if (res.ok) {
+    const row = btn.closest('tr');
+    row.style.transition = 'opacity 0.25s';
+    row.style.opacity = '0.3';
+    setTimeout(() => { row.remove(); renderAdmin(); }, 300);
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Error';
+    btn.style.color = 'var(--red)';
+  }
 }
 
 // ── GO ────────────────────────────────────────────────────────────────────────

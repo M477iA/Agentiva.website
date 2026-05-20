@@ -42,11 +42,22 @@ CREATE TABLE pagos (
   created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE agentiva_costs (
+  id          UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id   UUID          REFERENCES client_profiles(id) ON DELETE SET NULL,
+  category    TEXT          NOT NULL,
+  description TEXT,
+  amount_usd  NUMERIC(10,6) NOT NULL,
+  date        DATE          NOT NULL DEFAULT CURRENT_DATE,
+  created_at  TIMESTAMPTZ   DEFAULT NOW()
+);
+
 -- ── ROW-LEVEL SECURITY ───────────────────────────────────────
 
-ALTER TABLE client_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE services        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pagos           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE client_profiles  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pagos            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agentiva_costs   ENABLE ROW LEVEL SECURITY;
 
 -- Helper function: returns current user's role without triggering RLS recursion
 CREATE OR REPLACE FUNCTION get_my_role()
@@ -79,6 +90,10 @@ CREATE POLICY "read_own_or_admin_pagos" ON pagos
   FOR SELECT USING (client_id = auth.uid() OR get_my_role() = 'admin');
 
 CREATE POLICY "admin_write_pagos" ON pagos
+  FOR ALL USING (get_my_role() = 'admin');
+
+-- agentiva_costs (admin-only)
+CREATE POLICY "admin_only_costs" ON agentiva_costs
   FOR ALL USING (get_my_role() = 'admin');
 
 -- ── SETUP STEPS ─────────────────────────────────────────────
