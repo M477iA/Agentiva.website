@@ -2157,13 +2157,13 @@ async function renderClient(token, userId) {
     const statusBadge = t.status !== 'pending'
       ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada') + '</span> '
       : '';
-    const items = (d.line_items || []).slice(0, 3).map(li =>
+    const items = (d.line_items || []).map(li =>
       '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
       + '<span style="font-size:12px;">' + escAttr(li.description || li.name || '—') + (li.category_name ? ' <span style="color:var(--muted);font-size:11px;">(' + escAttr(li.category_name) + ')</span>' : '') + '</span>'
       + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + (li.quantity != null ? fmtNum(li.quantity) : '') + ' ' + escAttr(li.unit || '') + '</span>'
       + '</div>'
     ).join('');
-    const moreItems = (d.line_items || []).length > 3 ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;">+ ' + ((d.line_items.length - 3)) + ' productos más</div>' : '';
+    const moreItems = '';
     return '<div class="tarea-card" id="tarea-' + t.id + '" data-tarea-id="' + t.id + '" style="border:1px solid var(--border);' + cls + 'border-radius:12px;padding:18px;margin-bottom:14px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
       + '<div>'
