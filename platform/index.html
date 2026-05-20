@@ -1713,6 +1713,7 @@ async function approveTarea(tareaId) {
       total:            d.total      || null,
       tipo_comprobante: d.tipo_comprobante || null,
       condicion_iva:    d.condicion_iva    || null,
+      file_url:         tarea.attachment_url || null,
       ..._ivaFields(d),
     });
 
