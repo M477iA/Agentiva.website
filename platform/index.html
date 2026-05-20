@@ -1671,6 +1671,59 @@ function _toIsoDate(s) {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : s;
 }
 
+function buildTareaCard(t) {
+  const d   = t.extracted_data || {};
+  const cls = t.status === 'pending' ? '' : (t.status === 'approved' ? 'border-color:#2DD4BF;' : 'border-color:#ef4444;opacity:0.55;');
+  const statusBadge = t.status !== 'pending'
+    ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada') + '</span> '
+    : '';
+  const items = (d.line_items || []).map(li =>
+    '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
+    + '<span style="font-size:12px;">' + escAttr(li.description || li.name || '—') + (li.category_name ? ' <span style="color:var(--muted);font-size:11px;">(' + escAttr(li.category_name) + ')</span>' : '') + '</span>'
+    + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + (li.quantity != null ? fmtNum(li.quantity) : '') + ' ' + escAttr(li.unit || '') + '</span>'
+    + '</div>'
+  ).join('');
+  return '<div class="tarea-card" id="tarea-' + t.id + '" data-tarea-id="' + t.id + '" style="border:1px solid var(--border);' + cls + 'border-radius:12px;padding:18px;margin-bottom:14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
+    + '<div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-bottom:2px;">📧 ' + escAttr(t.email_sender || '—') + ' &nbsp;·&nbsp; ' + escAttr(t.attachment_name || '—') + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">' + (t.created_at ? new Date(t.created_at).toLocaleDateString('es-AR') : '') + '</div>'
+    + '</div>'
+    + '<div>' + statusBadge + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">'
+    + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Proveedor</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.supplier_name || '—') + '</div></div>'
+    + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Factura</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_number || '—') + '</div></div>'
+    + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Fecha</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_date || '—') + '</div></div>'
+    + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Total</div><div style="font-size:14px;font-weight:700;color:var(--accent);">' + fmtARS(d.total) + '</div></div>'
+    + '</div>'
+    + (items ? '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:14px;">' + items + '</div>' : '')
+    + (t.attachment_url ? '<div style="margin-bottom:10px;"><a href="' + escAttr(t.attachment_url) + '" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">📄 Ver factura original</a></div>' : '')
+    + (t.status === 'pending'
+      ? '<div style="display:flex;gap:10px;">'
+        + '<button class="btn-approve-tarea" data-id="' + t.id + '" style="flex:1;padding:8px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">✓ Aprobar</button>'
+        + '<button class="btn-reject-tarea" data-id="' + t.id + '" style="padding:8px 16px;background:none;border:1px solid #ef4444;border-radius:8px;font-size:13px;color:#ef4444;font-family:var(--font);cursor:pointer;">✗ Rechazar</button>'
+        + '</div>'
+      : '')
+    + '</div>';
+}
+
+function filterTareas(status) {
+  ['pending','approved','rejected'].forEach(function(s) {
+    const btn = document.getElementById('tarea-filter-' + s);
+    if (!btn) return;
+    const active = s === status;
+    btn.style.background   = active ? 'var(--accent)' : 'var(--surface)';
+    btn.style.color        = active ? '#000' : 'var(--text)';
+    btn.style.borderColor  = active ? 'var(--accent)' : 'var(--border)';
+    btn.style.fontWeight   = active ? '600' : '500';
+  });
+  const filtered  = _tareasAll.filter(function(t) { return t.status === status; });
+  const emptyMsgs = { pending: 'No hay tareas pendientes.', approved: 'No hay facturas aprobadas aún.', rejected: 'No hay tareas rechazadas.' };
+  const list = document.getElementById('tareas-list');
+  if (list) list.innerHTML = filtered.map(buildTareaCard).join('') || '<div class="empty" style="padding:40px;text-align:center;">' + (emptyMsgs[status] || '') + '</div>';
+}
+
 async function approveTarea(tareaId) {
   const tarea = _tareasAll.find(t => t.id === tareaId);
   if (!tarea) return;
@@ -1751,11 +1804,9 @@ async function approveTarea(tareaId) {
     // 6. Mark tarea as approved
     await sbPatch(_authToken, 'tareas', { key: 'id', val: `eq.${tareaId}` }, { status: 'approved', processed_at: new Date().toISOString() });
 
-    // Remove card from UI
-    const card = document.getElementById('tarea-' + tareaId);
-    if (card) card.remove();
     const t = _tareasAll.find(x => x.id === tareaId);
     if (t) t.status = 'approved';
+    filterTareas('pending');
 
   } catch (err) {
     if (btn) { btn.textContent = '✓ Aprobar'; btn.disabled = false; }
@@ -1767,10 +1818,9 @@ async function rejectTarea(tareaId) {
   if (!confirm('¿Rechazar esta tarea? Los datos extraídos serán descartados.')) return;
   try {
     await sbPatch(_authToken, 'tareas', { key: 'id', val: `eq.${tareaId}` }, { status: 'rejected', processed_at: new Date().toISOString() });
-    const card = document.getElementById('tarea-' + tareaId);
-    if (card) card.remove();
     const t = _tareasAll.find(x => x.id === tareaId);
     if (t) t.status = 'rejected';
+    filterTareas('pending');
   } catch (err) {
     alert('Error al rechazar: ' + err.message);
   }
@@ -2152,47 +2202,19 @@ async function renderClient(token, userId) {
     + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta">' + stockEntries.length + ' categorías</div></div>'
     + '<div class="stock-grid">' + stockCards + '</div></div>';
 
-  const tareasCards = _tareasAll.map(function(t) {
-    const d   = t.extracted_data || {};
-    const cls = t.status === 'pending' ? '' : (t.status === 'approved' ? 'border-color:#2DD4BF;' : 'border-color:#ef4444;opacity:0.6;');
-    const statusBadge = t.status !== 'pending'
-      ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada') + '</span> '
-      : '';
-    const items = (d.line_items || []).map(li =>
-      '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
-      + '<span style="font-size:12px;">' + escAttr(li.description || li.name || '—') + (li.category_name ? ' <span style="color:var(--muted);font-size:11px;">(' + escAttr(li.category_name) + ')</span>' : '') + '</span>'
-      + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + (li.quantity != null ? fmtNum(li.quantity) : '') + ' ' + escAttr(li.unit || '') + '</span>'
-      + '</div>'
-    ).join('');
-    const moreItems = '';
-    return '<div class="tarea-card" id="tarea-' + t.id + '" data-tarea-id="' + t.id + '" style="border:1px solid var(--border);' + cls + 'border-radius:12px;padding:18px;margin-bottom:14px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
-      + '<div>'
-      + '<div style="font-size:11px;color:var(--muted);margin-bottom:2px;">📧 ' + escAttr(t.email_sender || '—') + ' &nbsp;·&nbsp; ' + escAttr(t.attachment_name || '—') + '</div>'
-      + '<div style="font-size:13px;color:var(--muted);">' + (t.created_at ? new Date(t.created_at).toLocaleDateString('es-AR') : '') + '</div>'
-      + '</div>'
-      + '<div>' + statusBadge + '</div>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">'
-      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Proveedor</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.supplier_name || '—') + '</div></div>'
-      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Factura</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_number || '—') + '</div></div>'
-      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Fecha</div><div style="font-size:14px;font-weight:600;">' + escAttr(d.invoice_date || '—') + '</div></div>'
-      + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Total</div><div style="font-size:14px;font-weight:700;color:var(--accent);">' + fmtARS(d.total) + '</div></div>'
-      + '</div>'
-      + (items ? '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:14px;">' + items + moreItems + '</div>' : '')
-      + (t.attachment_url ? '<div style="margin-bottom:10px;"><a href="' + escAttr(t.attachment_url) + '" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">📄 Ver factura original</a></div>' : '')
-      + (t.status === 'pending'
-        ? '<div style="display:flex;gap:10px;">'
-          + '<button class="btn-approve-tarea" data-id="' + t.id + '" style="flex:1;padding:8px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">✓ Aprobar</button>'
-          + '<button class="btn-reject-tarea" data-id="' + t.id + '" style="padding:8px 16px;background:none;border:1px solid #ef4444;border-radius:8px;font-size:13px;color:#ef4444;font-family:var(--font);cursor:pointer;">✗ Rechazar</button>'
-          + '</div>'
-        : '')
-      + '</div>';
-  }).join('') || '<div class="empty" style="padding:40px;text-align:center;">No hay tareas pendientes.</div>';
-
-  const allCount     = _tareasAll.length;
-  const pendingTareas = _tareasAll.filter(t => t.status === 'pending').length;
+  const allCount       = _tareasAll.length;
+  const pendingTareas  = _tareasAll.filter(t => t.status === 'pending').length;
   const approvedTareas = _tareasAll.filter(t => t.status === 'approved').length;
+  const rejectedTareas = _tareasAll.filter(t => t.status === 'rejected').length;
+
+  const initialCards = _tareasAll.filter(t => t.status === 'pending').map(buildTareaCard).join('')
+    || '<div class="empty" style="padding:40px;text-align:center;">No hay tareas pendientes.</div>';
+
+  const filterBar = '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">'
+    + '<button id="tarea-filter-pending" onclick="filterTareas(\'pending\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;">Pendientes (' + pendingTareas + ')</button>'
+    + '<button id="tarea-filter-approved" onclick="filterTareas(\'approved\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">Aprobadas (' + approvedTareas + ')</button>'
+    + '<button id="tarea-filter-rejected" onclick="filterTareas(\'rejected\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">Rechazadas (' + rejectedTareas + ')</button>'
+    + '</div>';
 
   const tareasHtml = '<div id="tab-tareas" hidden>'
     + '<div class="section-header"><div class="section-title">Tareas</div><div class="section-meta">' + pendingTareas + ' pendiente' + (pendingTareas !== 1 ? 's' : '') + '</div></div>'
@@ -2201,7 +2223,8 @@ async function renderClient(token, userId) {
     + '<div class="stat-card"><div class="stat-label">Pendientes</div><div class="stat-value" style="color:#f59e0b;">' + pendingTareas + '</div></div>'
     + '<div class="stat-card"><div class="stat-label">Aprobadas</div><div class="stat-value stat-accent">' + approvedTareas + '</div></div>'
     + '</div>'
-    + '<div id="tareas-list">' + tareasCards + '</div></div>';
+    + filterBar
+    + '<div id="tareas-list">' + initialCards + '</div></div>';
 
   const main = document.getElementById('main-content');
   main.innerHTML = tabsHtml + generalHtml + tareasHtml + facturasHtml + proveedoresHtml + stockHtml;
