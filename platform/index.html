@@ -2179,6 +2179,7 @@ async function renderClient(token, userId) {
       + '<div class="stat-card" style="padding:10px 14px;"><div class="stat-label">Total</div><div style="font-size:14px;font-weight:700;color:var(--accent);">' + fmtARS(d.total) + '</div></div>'
       + '</div>'
       + (items ? '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:14px;">' + items + moreItems + '</div>' : '')
+      + (t.attachment_url ? '<div style="margin-bottom:10px;"><a href="' + escAttr(t.attachment_url) + '" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">📄 Ver factura original</a></div>' : '')
       + (t.status === 'pending'
         ? '<div style="display:flex;gap:10px;">'
           + '<button class="btn-approve-tarea" data-id="' + t.id + '" style="flex:1;padding:8px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">✓ Aprobar</button>'
