@@ -1225,6 +1225,11 @@ function buildServiceCard(s) {
       <div class="meta-row">
         <span class="meta-label">Uso actual</span>
         <span class="meta-value">${s.ram_current_mb} MB</span>
+      </div>` : ''}
+      ${s.api_credit_ok != null ? `
+      <div class="meta-row">
+        <span class="meta-label">Estado API</span>
+        <span class="meta-value" style="color:${s.api_credit_ok ? '#4ade80' : '#f87171'}">${s.api_credit_ok ? '✓ Activo' : '⚠ Sin crédito'}</span>
       </div>` : ''}` : ''}
     </div>
     ${s.viewer_url ? `
