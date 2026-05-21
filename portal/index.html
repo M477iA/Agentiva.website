@@ -1107,9 +1107,6 @@ async function renderClient(profile) {
 
   const allPagos = pagos || [];
   renderServices(services || []);
-  fetchBotRam(services || []);
-  if (window._ramInterval) clearInterval(window._ramInterval);
-  window._ramInterval = setInterval(() => fetchBotRam(services || []), 30 * 60 * 1000);
   renderBanner(allPagos);
 
   // Client view: show all non-pending rows + only the next pending row
@@ -1224,10 +1221,10 @@ function buildServiceCard(s) {
         <span class="meta-label">RAM</span>
         <span class="meta-value">${esc(s.ram_display)}</span>
       </div>
-      ${s.viewer_url ? `
+      ${s.ram_current_mb != null ? `
       <div class="meta-row">
         <span class="meta-label">Uso actual</span>
-        <span class="meta-value" id="ram-usage-${s.id}">—</span>
+        <span class="meta-value">${s.ram_current_mb} MB</span>
       </div>` : ''}` : ''}
     </div>
     ${s.viewer_url ? `
@@ -1246,21 +1243,6 @@ function buildServiceCard(s) {
       </div>`).join('')}
     </div>` : ''}
   </div>`;
-}
-
-async function fetchBotRam(services) {
-  const bots = (services || []).filter(s => s.viewer_url && s.ram_display && s.ram_display !== 'mail' && s.ram_display !== 'marketing');
-  for (const s of bots) {
-    const el = document.getElementById('ram-usage-' + s.id);
-    if (!el) continue;
-    try {
-      const resp = await fetch(s.viewer_url.replace('/viewer', '/health'));
-      const data = await resp.json();
-      el.textContent = data.ram_mb != null ? data.ram_mb + ' MB' : '—';
-    } catch (_) {
-      el.textContent = '—';
-    }
-  }
 }
 
 function renderServices(services) {
