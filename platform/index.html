@@ -1850,7 +1850,7 @@ async function renderClient(token, userId) {
     sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '500' }),
     sbGet(token, 'suppliers', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*', 'order': 'name.asc', 'limit': '500' }),
     sbGet(token, 'line_items', { 'restaurant_id': `eq.${restaurantId}`, 'select': '*,invoices(invoice_date,invoice_number),suppliers(name),categories(name)', 'order': 'created_at.desc', 'limit': '2000' }),
-    sbGet(token, 'tareas', { 'restaurant_id': `eq.${restaurantId}`, 'order': 'created_at.desc', 'limit': '200' }).catch(() => []),
+    sbGet(token, 'tareas', { 'restaurant_id': `eq.${restaurantId}`, 'order': 'email_received_at.asc', 'limit': '200' }).catch(() => []),
   ]);
   _tareasAll = tareas || [];
 
