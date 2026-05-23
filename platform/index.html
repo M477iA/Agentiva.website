@@ -450,6 +450,16 @@ a.file-link:hover { text-decoration: underline; }
   transition: border-color 0.15s, color 0.15s;
 }
 .btn-filter-clear:hover { border-color: var(--text); color: var(--text); }
+.cat-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.35);
+  border-radius: 20px; padding: 3px 10px 3px 12px;
+  font-size: 12px; color: var(--accent); font-weight: 600;
+}
+.cat-chip button {
+  background: none; border: none; cursor: pointer;
+  color: var(--accent); font-size: 14px; line-height: 1; padding: 0;
+}
 
 /* ── Expandable rows ─────────────────────────────────────────────────────── */
 .invoice-row { cursor: pointer; }
@@ -1087,6 +1097,7 @@ let _authToken        = '';
 let _suppliersAll     = [];
 let _supplierMap  = {};
 let _liByInvoice  = {};
+let _catFilter    = null;
 let _productNames = [];
 let _liByPidx     = [];
 
@@ -1116,6 +1127,10 @@ function applyFilters() {
     if (to   && i.invoice_date > to)   return false;
     if (num  && !(i.invoice_number || '').toLowerCase().includes(num)) return false;
     if (sid  && i.supplier_id !== sid) return false;
+    if (_catFilter) {
+      const items = _liByInvoice[i.id] || [];
+      if (!items.some(li => li.categories?.name === _catFilter)) return false;
+    }
     return true;
   });
   renderFacturasTable(filtered);
@@ -1126,11 +1141,20 @@ function clearFilters() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  _catFilter = null;
   renderFacturasTable(_invoicesAll);
 }
 
 function renderFacturasTable(invoices) {
   _facturasFiltered = invoices;
+  const chipEl = document.getElementById('cat-filter-chip');
+  if (chipEl) {
+    if (_catFilter) {
+      chipEl.innerHTML = '<span class="cat-chip">Categoría: ' + escAttr(_catFilter) + '<button onclick="_catFilter=null;applyFilters();" title="Quitar filtro">×</button></span>';
+    } else {
+      chipEl.innerHTML = '';
+    }
+  }
   const tbody = document.getElementById('facturas-tbody');
   const countEl = document.getElementById('facturas-count');
   if (!tbody) return;
@@ -1143,7 +1167,7 @@ function renderFacturasTable(invoices) {
       + '<td><button class="btn-link" data-sup-id="' + i.supplier_id + '">' + escAttr(sup?.name || '—') + '</button></td>'
       + '<td class="td-mono td-muted">' + (i.tax_amount ? '01' : '02') + '</td>'
       + '<td class="td-mono td-muted">' + fmtARS(i.subtotal) + '</td>'
-      + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount) + (i.tax_amount ? '<span style="font-size:10px;color:var(--muted);margin-left:4px;">(' + ivaRateLabel(i) + ')</span>' : '') + '</td>'
+      + '<td class="td-mono td-muted">' + fmtARS(i.tax_amount ?? 0) + (i.tax_amount ? '<span style="font-size:10px;color:var(--muted);margin-left:4px;">(' + ivaRateLabel(i) + ')</span>' : '') + '</td>'
       + '<td class="td-mono td-accent">' + fmtARS(i.total) + '</td>'
       + '<td>' + (i.file_url ? '<a class="file-link" href="' + i.file_url + '" target="_blank">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
       + '</tr>';
@@ -1202,6 +1226,8 @@ function handleFacturasClick(e) {
   if (supBtn) { e.stopPropagation(); openProviderModal(supBtn.dataset.supId); return; }
   const prodBtn = e.target.closest('[data-pidx]');
   if (prodBtn) { e.stopPropagation(); openProductModal(parseInt(prodBtn.dataset.pidx)); return; }
+  const catBtn = e.target.closest('[data-cat]');
+  if (catBtn) { e.stopPropagation(); _catFilter = catBtn.dataset.cat; applyFilters(); return; }
   if (e.target.closest('a.file-link')) return;
   const row = e.target.closest('tr.invoice-row');
   if (row) toggleInvoiceDetail(row, row.dataset.iid);
@@ -1216,7 +1242,7 @@ function toggleInvoiceDetail(row, invoiceId) {
   const subRows = items.map(li => {
     const pidx = getPidx(li.product_name || '?');
     return '<tr>'
-      + '<td>' + escAttr(li.categories?.name || '—') + '</td>'
+      + '<td>' + (li.categories?.name ? '<button class="btn-link" data-cat="' + escAttr(li.categories.name) + '">' + escAttr(li.categories.name) + '</button>' : '—') + '</td>'
       + '<td><button class="btn-link" data-pidx="' + pidx + '">' + escAttr(li.product_name || '—') + '</button></td>'
       + '<td class="td-mono">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
       + '<td>' + escAttr(li.unit || '—') + '</td>'
@@ -1982,6 +2008,7 @@ async function renderClient(token, userId) {
     + '<select id="f-sup"><option value="">Todos los proveedores</option>' + supOptions + '</select>'
     + '<button type="button" id="btn-apply-filter" class="btn-filter">Aplicar</button>'
     + '<button type="button" id="btn-clear-filter" class="btn-filter-clear">Limpiar</button>'
+    + '<span id="cat-filter-chip"></span>'
     + '<span class="filter-count" id="filter-count"></span>'
     + '<button type="button" id="btn-export-facturas" style="margin-left:auto;padding:7px 16px;border:none;border-radius:8px;background:var(--accent);color:#000;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;">↓ Exportar Excel</button>'
     + '</div>'
