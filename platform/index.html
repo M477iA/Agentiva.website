@@ -1699,9 +1699,9 @@ function _toIsoDate(s) {
 
 function buildTareaCard(t) {
   const d   = t.extracted_data || {};
-  const cls = t.status === 'pending' ? '' : (t.status === 'approved' ? 'border-color:#2DD4BF;' : 'border-color:#ef4444;opacity:0.55;');
+  const cls = t.status === 'pending' ? '' : (t.status === 'approved' ? 'border-color:#2DD4BF;' : t.status === 'failed' ? 'border-color:#f59e0b;opacity:0.85;' : 'border-color:#ef4444;opacity:0.55;');
   const statusBadge = t.status !== 'pending'
-    ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada') + '</span> '
+    ? '<span class="badge ' + (t.status === 'approved' ? 'badge-green' : t.status === 'failed' ? 'badge-orange' : 'badge-gray') + '">' + (t.status === 'approved' ? '✓ Aprobada' : t.status === 'failed' ? '⚠ Fallida' : '✗ Rechazada') + '</span> '
     : '';
   const items = (d.line_items || []).map(li =>
     '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
@@ -1730,22 +1730,30 @@ function buildTareaCard(t) {
         + '<button class="btn-approve-tarea" data-id="' + t.id + '" style="flex:1;padding:8px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);color:#000;cursor:pointer;">✓ Aprobar</button>'
         + '<button class="btn-reject-tarea" data-id="' + t.id + '" style="padding:8px 16px;background:none;border:1px solid #ef4444;border-radius:8px;font-size:13px;color:#ef4444;font-family:var(--font);cursor:pointer;">✗ Rechazar</button>'
         + '</div>'
+      : t.status === 'failed'
+      ? '<div style="background:#1a1200;border:1px solid #f59e0b44;border-radius:8px;padding:10px 14px;font-size:12px;color:#f59e0b;">⚠ Error de extracción: ' + escAttr(d.error || 'desconocido') + '</div>'
       : '')
     + '</div>';
 }
 
 function filterTareas(status) {
-  ['pending','approved','rejected'].forEach(function(s) {
+  ['pending','approved','rejected','failed'].forEach(function(s) {
     const btn = document.getElementById('tarea-filter-' + s);
     if (!btn) return;
     const active = s === status;
-    btn.style.background   = active ? 'var(--accent)' : 'var(--surface)';
-    btn.style.color        = active ? '#000' : 'var(--text)';
-    btn.style.borderColor  = active ? 'var(--accent)' : 'var(--border)';
-    btn.style.fontWeight   = active ? '600' : '500';
+    if (s === 'failed') {
+      btn.style.background  = active ? '#f59e0b' : 'var(--surface)';
+      btn.style.color       = active ? '#000' : '#f59e0b';
+      btn.style.borderColor = active ? '#f59e0b' : '#f59e0b';
+    } else {
+      btn.style.background   = active ? 'var(--accent)' : 'var(--surface)';
+      btn.style.color        = active ? '#000' : 'var(--text)';
+      btn.style.borderColor  = active ? 'var(--accent)' : 'var(--border)';
+    }
+    btn.style.fontWeight = active ? '600' : '500';
   });
   const filtered  = _tareasAll.filter(function(t) { return t.status === status; });
-  const emptyMsgs = { pending: 'No hay tareas pendientes.', approved: 'No hay facturas aprobadas aún.', rejected: 'No hay tareas rechazadas.' };
+  const emptyMsgs = { pending: 'No hay tareas pendientes.', approved: 'No hay facturas aprobadas aún.', rejected: 'No hay tareas rechazadas.', failed: 'No hay extracciones fallidas.' };
   const list = document.getElementById('tareas-list');
   if (list) list.innerHTML = filtered.map(buildTareaCard).join('') || '<div class="empty" style="padding:40px;text-align:center;">' + (emptyMsgs[status] || '') + '</div>';
 }
@@ -2233,6 +2241,7 @@ async function renderClient(token, userId) {
   const pendingTareas  = _tareasAll.filter(t => t.status === 'pending').length;
   const approvedTareas = _tareasAll.filter(t => t.status === 'approved').length;
   const rejectedTareas = _tareasAll.filter(t => t.status === 'rejected').length;
+  const failedTareas   = _tareasAll.filter(t => t.status === 'failed').length;
 
   const initialCards = _tareasAll.filter(t => t.status === 'pending').map(buildTareaCard).join('')
     || '<div class="empty" style="padding:40px;text-align:center;">No hay tareas pendientes.</div>';
@@ -2241,6 +2250,7 @@ async function renderClient(token, userId) {
     + '<button id="tarea-filter-pending" onclick="filterTareas(\'pending\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;">Pendientes (' + pendingTareas + ')</button>'
     + '<button id="tarea-filter-approved" onclick="filterTareas(\'approved\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">Aprobadas (' + approvedTareas + ')</button>'
     + '<button id="tarea-filter-rejected" onclick="filterTareas(\'rejected\')" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">Rechazadas (' + rejectedTareas + ')</button>'
+    + (failedTareas > 0 ? '<button id="tarea-filter-failed" onclick="filterTareas(\'failed\')" style="padding:7px 16px;border-radius:8px;border:1px solid #f59e0b;background:var(--surface);color:#f59e0b;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">⚠ Fallidas (' + failedTareas + ')</button>' : '')
     + '</div>';
 
   const tareasHtml = '<div id="tab-tareas" hidden>'
