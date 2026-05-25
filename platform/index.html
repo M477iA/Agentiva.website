@@ -843,6 +843,7 @@ function fmtNum(n) {
   if (n == null) return '—';
   return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(n);
 }
+function calcQty(li) { return (li.quantity || 0) * (li.unit_content || 1); }
 const CATEGORY_MAP = {
   'Aceite Alto Oleico Seda bidon':{'macro':'Almacen','medida':'Litros','emoji':'🫙'},
   'Aceite de Girasol':{'macro':'Almacen','medida':'Litros','emoji':'🌻'},
@@ -1245,7 +1246,7 @@ function toggleInvoiceDetail(row, invoiceId) {
     return '<tr>'
       + '<td>' + (li.categories?.name ? '<button class="btn-link" data-cat="' + escAttr(li.categories.name) + '">' + escAttr(li.categories.name) + '</button>' : '—') + '</td>'
       + '<td><button class="btn-link" data-pidx="' + pidx + '">' + escAttr(li.product_name || '—') + '</button></td>'
-      + '<td class="td-mono">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
+      + '<td class="td-mono">' + (li.quantity != null ? fmtNum(calcQty(li)) : '—') + '</td>'
       + '<td>' + escAttr(li.unit || '—') + '</td>'
       + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
       + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
@@ -1311,7 +1312,7 @@ function toggleStockInvoiceDetail(row, invId) {
     return '<tr style="background:#fafafa;">'
       + '<td style="font-size:12px;color:var(--muted);padding:7px 12px;">' + escAttr(li.categories?.name || '—') + '</td>'
       + '<td style="font-size:12px;font-weight:500;padding:7px 12px;">' + escAttr(li.product_name || '—') + '</td>'
-      + '<td class="td-mono" style="font-size:12px;padding:7px 12px;">' + (li.quantity != null ? fmtNum(li.quantity) : '—') + '</td>'
+      + '<td class="td-mono" style="font-size:12px;padding:7px 12px;">' + (li.quantity != null ? fmtNum(calcQty(li)) : '—') + '</td>'
       + '<td style="font-size:12px;color:var(--muted);padding:7px 12px;">' + escAttr(li.unit || '—') + '</td>'
       + '<td class="td-mono td-muted" style="font-size:12px;padding:7px 12px;">' + fmtARS(li.unit_price) + '</td>'
       + '<td class="td-mono td-accent" style="font-size:12px;padding:7px 12px;font-weight:600;">' + fmtARS(li.total) + '</td>'
@@ -1429,13 +1430,13 @@ function openProductModal(pidx) {
   const sample  = items[0];
   const unit    = sample.unit || '—';
   const cat     = sample.categories?.name || '—';
-  const totQty  = items.reduce((s,li) => s+(li.quantity||0), 0);
+  const totQty  = items.reduce((s,li) => s+(li.quantity||0)*(li.unit_content||1), 0);
   const totARS  = items.reduce((s,li) => s+(li.total||0), 0);
   items.sort((a,b) => (b.invoices?.invoice_date||'').localeCompare(a.invoices?.invoice_date||''));
   const rows = items.map(li =>
     '<tr><td class="td-mono td-muted">' + fmtDate(li.invoices?.invoice_date) + '</td>'
     + '<td class="td-muted" style="font-size:12px;">' + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</td>'
-    + '<td class="td-mono">' + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
+    + '<td class="td-mono">' + (li.quantity!=null?fmtNum(calcQty(li)):'—') + '</td>'
     + '<td>' + escAttr(li.unit||'—') + '</td>'
     + '<td class="td-mono td-muted">' + fmtARS(li.unit_price) + '</td>'
     + '<td class="td-mono td-accent">' + fmtARS(li.total) + '</td>'
@@ -1550,7 +1551,7 @@ function openStockModal(catName) {
   const unit  = _stockModalMeta.medida || '—';
   const emoji = _stockModalMeta.emoji  || '📦';
   const totARS = items.reduce((s,li) => s + (li.total || 0), 0);
-  const totQty = items.reduce((s,li) => s + (li.quantity || 0), 0);
+  const totQty = items.reduce((s,li) => s + (li.quantity || 0) * (li.unit_content || 1), 0);
 
   const inputStyle = 'padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:#f9fafb;outline:none;';
 
@@ -1630,7 +1631,7 @@ function filterStock(query) {
 
 function renderStockTable(items) {
   const unit   = _stockModalMeta.medida || '—';
-  const totQty = items.reduce(function(s,li) { return s + (li.quantity || 0); }, 0);
+  const totQty = items.reduce(function(s,li) { return s + (li.quantity || 0) * (li.unit_content || 1); }, 0);
   const totARS = items.reduce(function(s,li) { return s + (li.total    || 0); }, 0);
   const avg    = totQty > 0 ? totARS / totQty : 0;
 
@@ -1653,7 +1654,7 @@ function renderStockTable(items) {
       + '<td class="td-mono" style="font-size:11px;color:var(--accent);text-decoration:underline;">' + escAttr(li.invoices?.invoice_number||'—') + '</td>'
       + '<td style="font-size:12px;"><button class="btn-link" data-sup-id="' + escAttr(li.supplier_id||'') + '" style="font-size:12px;">' + escAttr(_supplierMap[li.supplier_id]?.name||'—') + '</button></td>'
       + '<td style="font-size:12px;">'                       + escAttr(li.product_name||'—') + '</td>'
-      + '<td class="td-mono">'                               + (li.quantity!=null?fmtNum(li.quantity):'—') + '</td>'
+      + '<td class="td-mono">'                               + (li.quantity!=null?fmtNum(calcQty(li)):'—') + '</td>'
       + '<td class="td-mono td-muted">'                     + fmtARS(li.unit_price) + '</td>'
       + '<td class="td-mono td-accent">'                    + fmtARS(li.total) + '</td>'
       + '</tr>';
@@ -1720,7 +1721,7 @@ function buildTareaCard(t) {
   const items = (d.line_items || []).map(li =>
     '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
     + '<span style="font-size:12px;">' + escAttr(li.description || li.name || '—') + (li.category_name ? ' <span style="color:var(--muted);font-size:11px;">(' + escAttr(li.category_name) + ')</span>' : '') + '</span>'
-    + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + (li.quantity != null ? fmtNum(li.quantity) : '') + ' ' + escAttr(li.unit || '') + '</span>'
+    + '<span style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:8px;">' + fmtNum(calcQty(li)) + ' ' + escAttr(li.unit || '') + '</span>'
     + '</div>'
   ).join('');
   return '<div class="tarea-card" id="tarea-' + t.id + '" data-tarea-id="' + t.id + '" style="border:1px solid var(--border);' + cls + 'border-radius:12px;padding:18px;margin-bottom:14px;">'
@@ -1920,7 +1921,7 @@ async function renderClient(token, userId) {
   for (const li of lineItems) {
     const catName = li.categories?.name || 'Sin categoría';
     if (!stockMap[catName]) stockMap[catName] = { qty: 0, total: 0 };
-    stockMap[catName].qty += li.quantity || 0;
+    stockMap[catName].qty += (li.quantity || 0) * (li.unit_content || 1);
     stockMap[catName].total += li.total || 0;
   }
   const stockEntries = Object.entries(stockMap).sort((a,b) => b[1].total - a[1].total);
