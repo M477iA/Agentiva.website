@@ -1615,6 +1615,19 @@ function applyStockFilter() {
   renderStockTable(filtered);
 }
 
+function filterStock(query) {
+  const q = query.trim().toLowerCase();
+  const cards = document.querySelectorAll('.stock-card');
+  let visible = 0;
+  cards.forEach(function(card) {
+    const show = !q || (card.dataset.catname || '').toLowerCase().includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const countEl = document.getElementById('stock-count');
+  if (countEl) countEl.textContent = q ? visible + ' de ' + cards.length + ' categorías' : cards.length + ' categorías';
+}
+
 function renderStockTable(items) {
   const unit   = _stockModalMeta.medida || '—';
   const totQty = items.reduce(function(s,li) { return s + (li.quantity || 0); }, 0);
@@ -2235,7 +2248,8 @@ async function renderClient(token, userId) {
   }).join('') || '<p class="empty" style="padding:24px;">Sin datos de stock.</p>';
 
   const stockHtml = '<div id="tab-stock" hidden>'
-    + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta">' + stockEntries.length + ' categorías</div></div>'
+    + '<div class="section-header"><div class="section-title">Stock por categoría</div><div class="section-meta" id="stock-count">' + stockEntries.length + ' categorías</div></div>'
+    + '<div style="margin-bottom:16px;"><input id="stock-search" type="search" placeholder="Buscar producto..." oninput="filterStock(this.value)" style="width:100%;max-width:360px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-family:var(--font);outline:none;" /></div>'
     + '<div class="stock-grid">' + stockCards + '</div></div>';
 
   const allCount       = _tareasAll.length;
