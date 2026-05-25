@@ -1095,11 +1095,12 @@ let _tareasAll        = [];
 let _chatRestaurantId = null;
 let _authToken        = '';
 let _suppliersAll     = [];
-let _supplierMap  = {};
-let _liByInvoice  = {};
-let _catFilter    = null;
-let _productNames = [];
-let _liByPidx     = [];
+let _supplierMap      = {};
+let _liByInvoice      = {};
+let _catFilter        = null;
+let _productNames     = [];
+let _liByPidx         = [];
+let supplierTopCats   = {};
 
 
 function ivaRateLabel(inv) {
@@ -1922,7 +1923,7 @@ async function renderClient(token, userId) {
   }
 
   // Top categories per supplier (derived from line_items)
-  const supplierTopCats = {};
+  supplierTopCats = {};
   for (const li of lineItems) {
     const sid = li.supplier_id;
     const cat = li.categories?.name || '';
