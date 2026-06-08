@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Prolianxe CRM">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#f5f6fa">
 <title>Prolianxe Business Suite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,27 +14,27 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg:        #08080f;
-  --surface:   #111118;
-  --surface2:  #1a1a24;
-  --surface3:  #22222e;
-  --border:    rgba(255,255,255,0.07);
-  --border2:   rgba(255,255,255,0.12);
-  --text:      #e8e8f0;
-  --muted:     #6b6b80;
-  --muted2:    #9090a8;
+  --bg:        #f5f6fa;
+  --surface:   #ffffff;
+  --surface2:  #f0f2f8;
+  --surface3:  #e4e8f2;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.14);
+  --text:      #0f1117;
+  --muted:     #64748b;
+  --muted2:    #94a3b8;
   --accent:    #6366f1;
-  --accent-bg: rgba(99,102,241,0.12);
-  --accent-glow: rgba(99,102,241,0.25);
+  --accent-bg: rgba(99,102,241,0.08);
+  --accent-glow: rgba(99,102,241,0.18);
   --green:     #22c55e;
-  --green-bg:  rgba(34,197,94,0.10);
+  --green-bg:  rgba(34,197,94,0.12);
   --blue:      #3b82f6;
-  --blue-bg:   rgba(59,130,246,0.10);
+  --blue-bg:   rgba(59,130,246,0.12);
   --red:       #ef4444;
-  --red-bg:    rgba(239,68,68,0.10);
+  --red-bg:    rgba(239,68,68,0.12);
   --amber:     #f59e0b;
-  --amber-bg:  rgba(245,158,11,0.10);
-  --gray-bg:   rgba(148,163,184,0.10);
+  --amber-bg:  rgba(245,158,11,0.12);
+  --gray-bg:   rgba(148,163,184,0.14);
   --gray:      #94a3b8;
   --radius:    8px;
   --radius-lg: 12px;
@@ -57,7 +57,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.08) 0%, transparent 60%);
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.05) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }
@@ -92,7 +92,7 @@ header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 28px; border-bottom: 1px solid var(--border);
   position: sticky; top: 0;
-  background: rgba(8,8,15,0.92); backdrop-filter: blur(12px); z-index: 50;
+  background: rgba(245,246,250,0.95); backdrop-filter: blur(12px); z-index: 50;
 }
 .logo { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
 .logo span { color: var(--accent); }
@@ -185,7 +185,7 @@ thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
 thead th:last-child  { border-radius: 0 var(--radius-lg) 0 0; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,0.03); }
+tbody tr:hover { background: rgba(99,102,241,0.04); }
 td { padding: 11px 14px; vertical-align: middle; white-space: nowrap; }
 .td-mono   { font-family: var(--font-mono); font-size: 12px; color: var(--muted2); }
 .td-amount { font-family: var(--font-display); font-weight: 600; font-size: 13px; text-align: right; }
