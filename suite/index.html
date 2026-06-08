@@ -292,6 +292,76 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
   .filter-input { min-width: unset; width: 100%; }
 }
 @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr 1fr; } .stat-value { font-size: 20px; } }
+
+/* ── SUITE CHAT ───────────────────────────────────────── */
+#suite-chat-btn {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  transition: transform .15s, box-shadow .15s;
+}
+#suite-chat-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(99,102,241,0.45); }
+#suite-chat-btn svg { width: 22px; height: 22px; fill: #fff; }
+
+#suite-chat-panel {
+  position: fixed; bottom: 86px; right: 24px; z-index: 200;
+  width: 360px; max-height: 520px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  display: none; flex-direction: column; overflow: hidden;
+}
+.chat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.chat-header-title { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--text); }
+.chat-header-title span { color: var(--accent); }
+.chat-close-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 16px; line-height: 1; padding: 2px 6px;
+  border-radius: 4px; transition: background .1s;
+}
+.chat-close-btn:hover { background: var(--surface3); color: var(--text); }
+#chat-messages {
+  flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 200px;
+}
+.chat-msg {
+  max-width: 85%; padding: 9px 12px; border-radius: 10px;
+  font-size: 13px; line-height: 1.5; word-break: break-word; white-space: pre-wrap;
+}
+.chat-msg-user {
+  align-self: flex-end; background: var(--accent); color: #fff;
+  border-bottom-right-radius: 3px;
+}
+.chat-msg-assistant {
+  align-self: flex-start; background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); border-bottom-left-radius: 3px;
+}
+.chat-msg-assistant strong { font-weight: 600; }
+.chat-msg.loading { color: var(--muted); font-style: italic; }
+.chat-input-row {
+  display: flex; gap: 8px; padding: 10px 12px;
+  border-top: 1px solid var(--border); background: var(--surface);
+}
+#suite-chat-input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 8px 12px; font-size: 13px;
+  color: var(--text); font-family: var(--font-sans); outline: none;
+}
+#suite-chat-input::placeholder { color: var(--muted2); }
+#suite-chat-input:focus { border-color: var(--accent); }
+#suite-chat-send {
+  background: var(--accent); border: none; border-radius: var(--radius);
+  color: #fff; padding: 8px 14px; cursor: pointer; font-size: 16px;
+  transition: opacity .15s;
+}
+#suite-chat-send:hover { opacity: .85; }
+#suite-chat-send:disabled { opacity: .5; cursor: default; }
 </style>
 </head>
 <body>
@@ -1227,5 +1297,106 @@ document.getElementById('subtab-sales').addEventListener('click',    function() 
 document.getElementById('subtab-expenses').addEventListener('click', function() { showPerfTab('expenses') })
 </script>
 <input type="file" id="upload-file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
+
+<!-- Suite Chat -->
+<button id="suite-chat-btn" title="Assistant">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+</button>
+
+<div id="suite-chat-panel">
+  <div class="chat-header">
+    <span class="chat-header-title">Prolianxe <span>Assistant</span></span>
+    <button class="chat-close-btn" id="suite-chat-close">✕</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div class="chat-input-row">
+    <input id="suite-chat-input" type="text" placeholder="Ask anything about your CRM…" maxlength="500">
+    <button id="suite-chat-send">↑</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var CHAT_URL = 'https://matt-ia-telegram-bot-001.onrender.com/suite-chat';
+  var CHAT_TOKEN = 'prlnx-suite-2026';
+  var chatHistory = [];
+  var chatOpen = false;
+  var sending = false;
+
+  var btn = document.getElementById('suite-chat-btn');
+  var panel = document.getElementById('suite-chat-panel');
+  var closeBtn = document.getElementById('suite-chat-close');
+  var input = document.getElementById('suite-chat-input');
+  var sendBtn = document.getElementById('suite-chat-send');
+  var messages = document.getElementById('chat-messages');
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    panel.style.display = chatOpen ? 'flex' : 'none';
+    if (chatOpen) {
+      input.focus();
+      if (messages.children.length === 0) appendMsg('assistant', 'Hi Mattia — how can I help with your CRM today?');
+    }
+  }
+
+  function appendMsg(role, text) {
+    var div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-' + role;
+    div.innerHTML = renderText(text);
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  function renderText(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  async function send() {
+    var text = input.value.trim();
+    if (!text || sending) return;
+    input.value = '';
+    sending = true;
+    sendBtn.disabled = true;
+
+    appendMsg('user', text);
+    chatHistory.push({ role: 'user', content: [{ type: 'text', text: text }] });
+
+    var loader = appendMsg('assistant', '…');
+    loader.classList.add('loading');
+
+    try {
+      var res = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CHAT_TOKEN },
+        body: JSON.stringify({ messages: chatHistory }),
+      });
+      var data = await res.json();
+      messages.removeChild(loader);
+      if (data.reply) {
+        appendMsg('assistant', data.reply);
+        chatHistory = data.messages;
+      } else {
+        appendMsg('assistant', 'Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e) {
+      messages.removeChild(loader);
+      appendMsg('assistant', 'Connection error. Try again.');
+    }
+
+    sending = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  btn.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', toggleChat);
+  sendBtn.addEventListener('click', send);
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+})();
+</script>
 </body>
 </html>
