@@ -568,6 +568,10 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
         <div class="stat-card"><div class="stat-label">Payments</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
         <div class="stat-card"><div class="stat-label">Avg per Month</div><div class="stat-value"><span class="skeleton" style="width:60px"></span></div></div>
       </div>
+      <div class="chart-card full">
+        <span class="chart-title">Monthly Owner Distribution</span>
+        <div class="chart-container"><canvas id="chart-owner-dist"></canvas></div>
+      </div>
       <div class="section-header">
         <div class="section-title">Owner Distribution</div>
         <div class="row-count" id="payroll-count"></div>
@@ -1247,44 +1251,61 @@ function renderExpenses() {
 
   // Monthly expenses chart (vendor + payroll stacked) — exclude DDE items
   const expMap  = aggByMonth(invoiced, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
-  const payMap  = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
-  const months  = mergedMonths(expMap, payMap)
-  const labels  = months.map(monthLabel)
+  const expMonths = Object.keys(expMap).sort()
+  const expLabels = expMonths.map(monthLabel)
 
   destroyChart('expenses')
   const ctx = document.getElementById('chart-expenses').getContext('2d')
   CHARTS['expenses'] = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Vendor Expenses (€)',
-          data: months.map(function(m) { return expMap[m] || 0 }),
-          backgroundColor: 'rgba(239,68,68,0.65)',
-          borderColor: '#ef4444',
-          borderWidth: 1,
-          borderRadius: 3,
-          stack: 'costs',
-        },
-        {
-          label: 'Owner Distribution (' + payrollCur + ')',
-          data: months.map(function(m) { return payMap[m] || 0 }),
-          backgroundColor: 'rgba(245,158,11,0.65)',
-          borderColor: '#f59e0b',
-          borderWidth: 1,
-          borderRadius: 3,
-          stack: 'costs',
-        }
-      ]
+      labels: expLabels,
+      datasets: [{
+        label: 'Vendor Expenses (€)',
+        data: expMonths.map(function(m) { return expMap[m] || 0 }),
+        backgroundColor: 'rgba(239,68,68,0.65)',
+        borderColor: '#ef4444',
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: chartPlugins(true),
-      scales: Object.assign({}, chartScales('€'), { x: Object.assign({}, chartScales('€').x, { stacked: true }), y: Object.assign({}, chartScales('€').y, { stacked: true }) })
+      scales: chartScales('€')
     }
   })
+
+  // Owner Distribution chart
+  const payMap     = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
+  const payKeys    = Object.keys(payMap).sort()
+  const payLabels  = payKeys.map(monthLabel)
+
+  destroyChart('owner-dist')
+  const ctx2 = document.getElementById('chart-owner-dist')
+  if (ctx2) {
+    CHARTS['owner-dist'] = new Chart(ctx2.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: payLabels,
+        datasets: [{
+          label: 'Owner Distribution (' + payrollCur + ')',
+          data: payKeys.map(function(m) { return payMap[m] || 0 }),
+          backgroundColor: 'rgba(245,158,11,0.65)',
+          borderColor: '#f59e0b',
+          borderWidth: 1,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: chartPlugins(true),
+        scales: chartScales('€')
+      }
+    })
+  }
 
   renderExpenseTable()
   renderPayrollTable()
