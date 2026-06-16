@@ -201,6 +201,7 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 .badge-overdue { background: var(--red-bg);   color: var(--red); }
 .badge-pending { background: var(--amber-bg); color: var(--amber); }
 .badge-revolut { background: rgba(99,102,241,0.12); color: var(--accent); font-size: 10px; }
+.badge-dde     { background: rgba(245,158,11,0.14); color: var(--amber); }
 .badge-rd      { background: rgba(139,92,246,.12); color: #a78bfa; }
 .badge-ai      { background: rgba(16,185,129,.12);  color: #34d399; }
 .badge-banking { background: rgba(59,130,246,.12);  color: #60a5fa; }
@@ -208,6 +209,15 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 .badge-food    { background: rgba(251,146,60,.12);  color: #fb923c; }
 .badge-design  { background: rgba(232,121,249,.12); color: #e879f9; }
 .badge-acct    { background: rgba(99,102,241,.12);  color: #818cf8; }
+.badge-it      { background: rgba(59,130,246,.12);  color: #60a5fa; }
+
+/* ── PROVIDER LOGO ────────────────────────────────── */
+.prov-logo { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+.prov-logo img { max-width: 36px; max-height: 28px; width: auto; height: auto; object-fit: contain; border-radius: 4px; }
+.prov-logo-fallback { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; }
+.prov-row { cursor: pointer; }
+.prov-row:hover { background: rgba(99,102,241,0.06) !important; }
+.prov-name-cell { display: flex; align-items: center; gap: 10px; }
 
 /* ── FILE LINK ────────────────────────────────────── */
 .file-link { color: var(--accent); text-decoration: none; opacity: .7; transition: opacity .12s; display: inline-flex; align-items: center; }
@@ -446,7 +456,6 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
     <button class="subtab-btn active" id="subtab-dash">Dashboard</button>
     <button class="subtab-btn" id="subtab-sales">Sales</button>
     <button class="subtab-btn" id="subtab-expenses">Expenses</button>
-    <button class="subtab-btn" id="subtab-payroll">Owner Distribution</button>
   </div>
 
   <!-- ═══ PERFORMANCE TAB ═══════════════════════════ -->
@@ -504,13 +513,13 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
     <!-- ── Expenses sub-view ── -->
     <div class="subtab-content" id="subcontent-expenses">
       <div class="stats-grid" id="exp-stats">
-        <div class="stat-card"><div class="stat-label">Total Spend</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
         <div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">Avg per Invoice</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
       </div>
       <div class="chart-card full">
-        <span class="chart-title">Monthly Vendor Expenses</span>
+        <span class="chart-title">Monthly Expenses</span>
         <div class="chart-container"><canvas id="chart-expenses"></canvas></div>
       </div>
       <div class="filter-bar">
@@ -526,40 +535,74 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
         </select>
         <input class="filter-input" type="text" id="exp-search" placeholder="Search provider or description…">
       </div>
-      <div class="section-header">
-        <div class="section-title">Vendor Expenses</div>
-        <div class="row-count" id="exp-count"></div>
+      <div class="expenses-split">
+        <div class="expenses-col">
+          <div class="section-header">
+            <div class="section-title">Vendor Expenses</div>
+            <div class="row-count" id="exp-count"></div>
+          </div>
+          <div class="table-wrap" id="expenses-table-wrap"></div>
+        </div>
+        <div class="payroll-col">
+          <div class="section-header">
+            <div class="section-title">Owner Distribution</div>
+            <div class="row-count" id="payroll-count"></div>
+          </div>
+          <div class="table-wrap" id="payroll-table-wrap"></div>
+        </div>
       </div>
-      <div class="table-wrap" id="expenses-table-wrap"></div>
-    </div>
 
-    <!-- ── Owner Distribution sub-view ── -->
-    <div class="subtab-content" id="subcontent-payroll">
-      <div class="stats-grid" id="payroll-stats">
-        <div class="stat-card"><div class="stat-label">Total Distributed</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">Payments</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">Last Payment</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
+      <div style="margin-top:40px; border-top:1px solid var(--border2); padding-top:28px">
+        <div class="section-header">
+          <div>
+            <div class="section-title">DDE — Due Diligence Expenses</div>
+            <div style="font-size:11px; color:var(--muted2); margin-top:3px">Revolut charges without a receipt in the CRM · Run "reconcile expenses" in Claude Code to populate</div>
+          </div>
+          <div class="row-count" id="dde-count"></div>
+        </div>
+        <div class="table-wrap" id="dde-table-wrap"></div>
       </div>
-      <div class="chart-card full">
-        <span class="chart-title">Monthly Owner Distribution</span>
-        <div class="chart-container"><canvas id="chart-payroll"></canvas></div>
-      </div>
-      <div class="section-header">
-        <div class="section-title">Owner Distribution</div>
-        <div class="row-count" id="payroll-count"></div>
-      </div>
-      <div class="table-wrap" id="payroll-table-wrap"></div>
     </div>
 
   </div><!-- /content-performance -->
 
-  <!-- ═══ PLACEHOLDER TABS ══════════════════════════ -->
+  <!-- ═══ DIRECTORY TAB ══════════════════════════════ -->
   <div class="tab-content" id="content-directory">
-    <div class="placeholder-pane">
-      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div class="placeholder-title">Directory</div>
-      <div class="placeholder-sub">Providers, employees, and company contacts. Coming in the next session.</div>
+    <div style="padding:28px">
+      <div class="filter-bar">
+        <input class="filter-input" type="text" id="prov-search" placeholder="Search provider or email…">
+        <select class="filter-select" id="prov-cat-filter">
+          <option value="">All Categories</option>
+          <option value="Ai">A.I.</option>
+          <option value="IT">IT</option>
+          <option value="Design">Design</option>
+          <option value="Banking">Banking</option>
+          <option value="Food">Food</option>
+          <option value="Accountant">Accountant</option>
+          <option value="operation">Operation</option>
+          <option value="R&D">R&amp;D</option>
+        </select>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Providers</div>
+        <div class="row-count" id="prov-count"></div>
+      </div>
+      <div class="table-wrap">
+        <table id="prov-table">
+          <thead>
+            <tr>
+              <th style="width:44px"></th>
+              <th>Provider</th>
+              <th>Category</th>
+              <th style="text-align:right">Invoices</th>
+              <th style="text-align:right">Total Spend</th>
+              <th>Last Expense</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="prov-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
   <div class="tab-content" id="content-administration">
@@ -717,8 +760,8 @@ async function boot() {
     renderDashboard()
     renderSales()
     renderExpenses()
-    renderPayrollTab()
     renderClients()
+    renderProviders()
     bindFilters()
   } catch(e) {
     console.error(e)
@@ -762,6 +805,79 @@ function statusBadge(s) {
 function catBadge(c) {
   const map = { 'R&D': 'rd', 'A.I.': 'ai', 'Banking': 'banking', 'Operation': 'op', 'Food': 'food', 'Graphic Design': 'design', 'Accounting': 'acct' }
   return '<span class="badge badge-' + (map[c] || 'op') + '">' + (c || '—') + '</span>'
+}
+
+function provCatBadge(c) {
+  const map = {
+    'Ai': 'ai', 'A.I.': 'ai', 'AI': 'ai',
+    'IT': 'it',
+    'Design': 'design', 'Graphic Design': 'design',
+    'Food': 'food',
+    'Banking': 'banking',
+    'Accountant': 'acct', 'Accounting': 'acct',
+    'operation': 'op', 'Operation': 'op',
+    'R&D': 'rd'
+  }
+  return c ? '<span class="badge badge-' + (map[c] || 'op') + '">' + c + '</span>' : '<span class="td-muted">—</span>'
+}
+
+function provLogo(p) {
+  if (p.logo_url) {
+    return '<div class="prov-logo"><img src="' + p.logo_url + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"></div>'
+  }
+  return '<div class="prov-logo">' + provLogoFallback(p.name) + '</div>'
+}
+
+function provLogoFallback(name) {
+  const initials = (name || '?').split(' ').slice(0,2).map(function(w){ return w[0] || '' }).join('').toUpperCase()
+  const color = AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length]
+  return '<div class="prov-logo-fallback" style="background:' + color + '">' + initials + '</div>'
+}
+
+function providerStats(id) {
+  const exps = DATA.expenses.filter(function(e) { return e.provider_id === id && e.status !== 'DDE' })
+  const total = exps.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const dates = exps.map(function(e) { return e.date }).filter(Boolean).sort()
+  return { count: exps.length, total: total, last: dates[dates.length - 1] || null }
+}
+
+function renderProviders() {
+  const q        = (document.getElementById('prov-search').value || '').toLowerCase()
+  const catFilter = document.getElementById('prov-cat-filter').value
+
+  const rows = DATA.providers.filter(function(p) {
+    if (catFilter && p.default_category !== catFilter) return false
+    if (q && !p.name.toLowerCase().includes(q) && !(p.email || '').toLowerCase().includes(q)) return false
+    return true
+  }).sort(function(a, b) {
+    const sa = providerStats(a.id)
+    const sb = providerStats(b.id)
+    return sb.total - sa.total
+  })
+
+  document.getElementById('prov-count').textContent = rows.length + ' of ' + DATA.providers.length
+
+  if (!rows.length) {
+    document.getElementById('prov-tbody').innerHTML = '<tr class="empty-row"><td colspan="7">No providers found</td></tr>'
+    return
+  }
+
+  document.getElementById('prov-tbody').innerHTML = rows.map(function(p) {
+    const stats = providerStats(p.id)
+    return '<tr class="prov-row" data-pid="' + p.id + '">' +
+      '<td>' + provLogo(p) + '</td>' +
+      '<td><span class="prov-name-cell"><strong>' + p.name + '</strong></span></td>' +
+      '<td>' + provCatBadge(p.default_category) + '</td>' +
+      '<td class="td-amount">' + (stats.count || '—') + '</td>' +
+      '<td class="td-amount">' + (stats.total ? eur(stats.total) : '—') + '</td>' +
+      '<td class="td-muted">' + fdate(stats.last) + '</td>' +
+      '<td class="td-muted">' + (p.email ? '<a href="mailto:' + p.email + '" style="color:var(--accent)">' + p.email + '</a>' : '—') + '</td>' +
+    '</tr>'
+  }).join('')
+
+  document.getElementById('prov-tbody').querySelectorAll('.prov-row').forEach(function(row) {
+    row.addEventListener('click', function() { openProviderModal(row.dataset.pid) })
+  })
 }
 function fileLink(url, uploadId, uploadTable) {
   if (!url) {
@@ -903,7 +1019,7 @@ function renderDashboard() {
   const year = new Date().getFullYear().toString()
 
   const revenueYTD  = DATA.invoices.filter(function(i) { return i.status === 'Paid' && i.date && i.date.startsWith(year) }).reduce(function(s, i) { return s + (i.eur_amount || 0) }, 0)
-  const expensesYTD = DATA.expenses.filter(function(e) { return e.date && e.date.startsWith(year) }).reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const expensesYTD = DATA.expenses.filter(function(e) { return e.status !== 'DDE' && e.date && e.date.startsWith(year) }).reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
   const payrollYTD  = DATA.payroll.filter(function(p) {
     const k = payrollKey(p)
     return k && k.startsWith(year)
@@ -920,7 +1036,7 @@ function renderDashboard() {
 
   // --- Month Results bar chart (P&L per month) ---
   const revMap  = aggByMonth(DATA.invoices.filter(function(i) { return i.status === 'Paid' }), function(i) { return i.date }, function(i) { return i.eur_amount || 0 })
-  const expMap  = aggByMonth(DATA.expenses, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
+  const expMap  = aggByMonth(DATA.expenses.filter(function(e) { return e.status !== 'DDE' }), function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
   const payMap  = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
   const months  = mergedMonths(revMap, expMap, payMap)
   const labels  = months.map(monthLabel)
@@ -1079,21 +1195,22 @@ function renderInvoiceTable() {
 
 // ── RENDER: EXPENSES ──────────────────────────────────────────────────────────
 function renderExpenses() {
-  const year = new Date().getFullYear().toString()
-  const vendorTotal = DATA.expenses.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
-  const ytd         = DATA.expenses.filter(function(e) { return e.date && e.date.startsWith(year) }).reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
-  const count       = DATA.expenses.length
-  const avg         = count ? vendorTotal / count : 0
+  const invoiced     = DATA.expenses.filter(function(e) { return e.status !== 'DDE' })
+  const vendorTotal  = invoiced.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const payrollTotal = DATA.payroll.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
+  const payrollCur   = DATA.payroll.length && DATA.payroll[0].currency ? DATA.payroll[0].currency : 'USD'
 
   document.getElementById('exp-stats').innerHTML =
-    '<div class="stat-card"><div class="stat-label">Total Spend</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">All time (EUR)</div></div>' +
-    '<div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value negative">' + eur(ytd) + '</div><div class="stat-sub">YTD ' + year + '</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value accent">' + count + '</div><div class="stat-sub">Vendor invoices</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Avg per Invoice</div><div class="stat-value">' + eur(avg) + '</div><div class="stat-sub">All time</div></div>'
+    '<div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">All time (EUR)</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value negative">' + fmtAmt(payrollTotal, payrollCur) + '</div><div class="stat-sub">All time (' + payrollCur + ')</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">Vendor EUR + distribution</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value accent">' + invoiced.length + '</div><div class="stat-sub">Invoiced receipts</div></div>'
 
-  const expMap = aggByMonth(DATA.expenses, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
-  const months = Object.keys(expMap).sort()
-  const labels = months.map(monthLabel)
+  // Monthly expenses chart (vendor + payroll stacked) — exclude DDE items
+  const expMap  = aggByMonth(invoiced, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
+  const payMap  = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
+  const months  = mergedMonths(expMap, payMap)
+  const labels  = months.map(monthLabel)
 
   destroyChart('expenses')
   const ctx = document.getElementById('chart-expenses').getContext('2d')
@@ -1101,75 +1218,45 @@ function renderExpenses() {
     type: 'bar',
     data: {
       labels: labels,
-      datasets: [{
-        label: 'Vendor Expenses (€)',
-        data: months.map(function(m) { return expMap[m] || 0 }),
-        backgroundColor: 'rgba(239,68,68,0.65)',
-        borderColor: '#ef4444',
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
+      datasets: [
+        {
+          label: 'Vendor Expenses (€)',
+          data: months.map(function(m) { return expMap[m] || 0 }),
+          backgroundColor: 'rgba(239,68,68,0.65)',
+          borderColor: '#ef4444',
+          borderWidth: 1,
+          borderRadius: 3,
+          stack: 'costs',
+        },
+        {
+          label: 'Owner Distribution (' + payrollCur + ')',
+          data: months.map(function(m) { return payMap[m] || 0 }),
+          backgroundColor: 'rgba(245,158,11,0.65)',
+          borderColor: '#f59e0b',
+          borderWidth: 1,
+          borderRadius: 3,
+          stack: 'costs',
+        }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: chartPlugins(false),
-      scales: chartScales('€')
+      plugins: chartPlugins(true),
+      scales: Object.assign({}, chartScales('€'), { x: Object.assign({}, chartScales('€').x, { stacked: true }), y: Object.assign({}, chartScales('€').y, { stacked: true }) })
     }
   })
 
   renderExpenseTable()
-}
-
-// ── RENDER: OWNER DISTRIBUTION TAB ───────────────────────────────────────────
-function renderPayrollTab() {
-  const year = new Date().getFullYear().toString()
-  const rows = DATA.payroll
-  const cur  = rows.length && rows[0].currency ? rows[0].currency : 'EUR'
-  const total = rows.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
-  const ytd   = rows.filter(function(p) { const k = payrollKey(p); return k && k.startsWith(year) }).reduce(function(s, p) { return s + (p.amount || 0) }, 0)
-  const last  = rows.length ? rows[0] : null
-
-  document.getElementById('payroll-stats').innerHTML =
-    '<div class="stat-card"><div class="stat-label">Total Distributed</div><div class="stat-value negative">' + fmtAmt(total, cur) + '</div><div class="stat-sub">All time</div></div>' +
-    '<div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value negative">' + fmtAmt(ytd, cur) + '</div><div class="stat-sub">YTD ' + year + '</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Payments</div><div class="stat-value accent">' + rows.length + '</div><div class="stat-sub">All time</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Last Payment</div><div class="stat-value">' + (last ? fdate(last.payment_date || '') : '—') + '</div><div class="stat-sub">' + (last ? fmtAmt(last.amount, last.currency) : '') + '</div></div>'
-
-  const payMap = aggByMonth(DATA.payroll, payrollKey, function(p) { return p.amount || 0 })
-  const months = Object.keys(payMap).sort()
-  const labels = months.map(monthLabel)
-
-  destroyChart('payroll')
-  const ctx = document.getElementById('chart-payroll').getContext('2d')
-  CHARTS['payroll'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Owner Distribution (' + cur + ')',
-        data: months.map(function(m) { return payMap[m] || 0 }),
-        backgroundColor: 'rgba(245,158,11,0.65)',
-        borderColor: '#f59e0b',
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: chartPlugins(false),
-      scales: chartScales('€')
-    }
-  })
-
   renderPayrollTable()
+  renderDDETable()
 }
 
 function renderExpenseTable() {
   const cat  = document.getElementById('exp-cat-filter').value
   const q    = document.getElementById('exp-search').value.toLowerCase()
   const rows = DATA.expenses.filter(function(e) {
+    if (e.status === 'DDE') return false
     if (cat && e.category !== cat) return false
     if (q && !providerName(e.provider_id).toLowerCase().includes(q) && !(e.description || '').toLowerCase().includes(q) && !(e.invoice_number || '').toLowerCase().includes(q)) return false
     return true
@@ -1223,6 +1310,40 @@ function renderPayrollTable() {
       '<th>Payment Date</th><th>Employee</th><th>Period</th>' +
       '<th style="text-align:right">Amount</th><th>Currency</th><th>Status</th><th>Notes</th>' +
     '</tr></thead><tbody>' + tbody + '</tbody></table>'
+}
+
+function renderDDETable() {
+  const rows = DATA.expenses.filter(function(e) { return e.status === 'DDE' })
+  const countEl = document.getElementById('dde-count')
+  const wrapEl  = document.getElementById('dde-table-wrap')
+  if (!countEl || !wrapEl) return
+
+  countEl.textContent = rows.length ? rows.length + ' pending' : 'all clear'
+
+  if (!rows.length) {
+    wrapEl.innerHTML = '<div style="padding:20px 0; text-align:center; color:var(--muted); font-size:13px">No pending expenses — all Revolut transactions have receipts. ✓</div>'
+    return
+  }
+
+  const total = rows.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const tbody = rows.map(function(e) {
+    return '<tr>' +
+      '<td class="td-muted">' + fdate(e.date) + '</td>' +
+      '<td>' + (e.description || '—') + '</td>' +
+      '<td class="td-amount">' + eur(e.eur_equivalent) + '</td>' +
+      '<td><span class="badge badge-dde">Needs receipt</span></td>' +
+    '</tr>'
+  }).join('')
+
+  wrapEl.innerHTML =
+    '<table><thead><tr>' +
+      '<th>Date</th><th>Merchant (Revolut)</th><th style="text-align:right">EUR</th><th>Status</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody>' +
+    '<tfoot><tr>' +
+      '<td colspan="2" style="color:var(--muted)">Total outstanding</td>' +
+      '<td class="td-amount" style="color:var(--amber)">' + eur(total) + '</td>' +
+      '<td></td>' +
+    '</tr></tfoot></table>'
 }
 
 // ── PROVIDER MODAL ────────────────────────────────────────────────────────────
@@ -1376,6 +1497,8 @@ function bindFilters() {
   document.getElementById('inv-search').addEventListener('input', renderInvoiceTable)
   document.getElementById('exp-cat-filter').addEventListener('change', renderExpenseTable)
   document.getElementById('exp-search').addEventListener('input', renderExpenseTable)
+  document.getElementById('prov-search').addEventListener('input', renderProviders)
+  document.getElementById('prov-cat-filter').addEventListener('change', renderProviders)
 }
 
 // ── PROVIDER LINK DELEGATION ──────────────────────────────────────────────────
@@ -1407,7 +1530,7 @@ function showTab(name) {
   document.getElementById('perf-subnav').classList.toggle('visible', name === 'performance')
 }
 
-const PERF_TABS = ['dash', 'sales', 'expenses', 'payroll']
+const PERF_TABS = ['dash', 'sales', 'expenses']
 function showPerfTab(name) {
   PERF_TABS.forEach(function(t) {
     document.getElementById('subtab-' + t).classList.toggle('active', t === name)
@@ -1425,7 +1548,6 @@ document.getElementById('tab-todo').addEventListener('click',           function
 document.getElementById('subtab-dash').addEventListener('click',     function() { showPerfTab('dash') })
 document.getElementById('subtab-sales').addEventListener('click',    function() { showPerfTab('sales') })
 document.getElementById('subtab-expenses').addEventListener('click', function() { showPerfTab('expenses') })
-document.getElementById('subtab-payroll').addEventListener('click',  function() { showPerfTab('payroll') })
 </script>
 <input type="file" id="upload-file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
 
