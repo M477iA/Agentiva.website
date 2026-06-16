@@ -1235,9 +1235,7 @@ function renderExpenses() {
     '<div class="stat-card"><div class="stat-label">Avg per Invoice</div><div class="stat-value">' + eur(avg) + '</div><div class="stat-sub">All time</div></div>'
 
   // populate Owner Distribution stats card
-  const payrollTotal = DATA.payroll.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
-  const payrollCur   = DATA.payroll.length && DATA.payroll[0].currency ? DATA.payroll[0].currency : 'EUR'
-  const payrollYTD   = DATA.payroll.filter(function(p){return (payrollKey(p)||'').startsWith('2026')}).reduce(function(s,p){return s+(p.amount||0)},0)
+  const payrollYTD = DATA.payroll.filter(function(p){return (payrollKey(p)||'').startsWith('2026')}).reduce(function(s,p){return s+(p.amount||0)},0)
   const payMonths    = [...new Set(DATA.payroll.map(function(p){return (payrollKey(p)||'').slice(0,7)}))].length || 1
   if (document.getElementById('owner-stats')) {
     document.getElementById('owner-stats').innerHTML =
