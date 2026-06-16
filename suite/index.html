@@ -649,7 +649,10 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
   <div class="modal-backdrop" id="provider-modal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-client-name" id="prov-modal-name"></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="prov-modal-logo" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+          <div class="modal-client-name" id="prov-modal-name"></div>
+        </div>
         <button class="modal-close" id="prov-modal-close">✕</button>
       </div>
       <div class="modal-meta" id="prov-modal-meta"></div>
@@ -1375,6 +1378,14 @@ function openProviderModal(providerId) {
   const avg = provExps.length ? totalSpend / provExps.length : 0
 
   const meta = [provider.email, provider.phone, provider.default_category, provider.notes].filter(Boolean).join(' · ')
+  const logoEl = document.getElementById('prov-modal-logo')
+  if (provider.logo_url) {
+    logoEl.innerHTML = '<img src="' + provider.logo_url + '" alt="" style="max-width:40px;max-height:32px;width:auto;height:auto;object-fit:contain;" onerror="this.style.display=\'none\'">'
+  } else {
+    const initials = provider.name.split(' ').slice(0,2).map(function(w){ return w[0]||'' }).join('').toUpperCase()
+    const color = AVATAR_COLORS[provider.name.charCodeAt(0) % AVATAR_COLORS.length]
+    logoEl.innerHTML = '<div style="width:40px;height:40px;border-radius:8px;background:' + color + ';display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:700;color:white">' + initials + '</div>'
+  }
   document.getElementById('prov-modal-name').textContent = provider.name
   document.getElementById('prov-modal-meta').textContent = meta || 'No additional info'
   document.getElementById('prov-modal-stats').innerHTML =
