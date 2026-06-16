@@ -462,6 +462,7 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
     <button class="subtab-btn active" id="subtab-dash">Dashboard</button>
     <button class="subtab-btn" id="subtab-sales">Sales</button>
     <button class="subtab-btn" id="subtab-expenses">Expenses</button>
+    <button class="subtab-btn" id="subtab-owner-dist">Owner Distribution</button>
   </div>
 
   <!-- ═══ PERFORMANCE TAB ═══════════════════════════ -->
@@ -520,9 +521,9 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
     <div class="subtab-content" id="subcontent-expenses">
       <div class="stats-grid" id="exp-stats">
         <div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
-        <div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
         <div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
         <div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Avg per Invoice</div><div class="stat-value"><span class="skeleton" style="width:60px"></span></div></div>
       </div>
       <div class="chart-card full">
         <span class="chart-title">Monthly Expenses</span>
@@ -541,22 +542,11 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
         </select>
         <input class="filter-input" type="text" id="exp-search" placeholder="Search provider or description…">
       </div>
-      <div class="expenses-split">
-        <div class="expenses-col">
-          <div class="section-header">
-            <div class="section-title">Vendor Expenses</div>
-            <div class="row-count" id="exp-count"></div>
-          </div>
-          <div class="table-wrap" id="expenses-table-wrap"></div>
-        </div>
-        <div class="payroll-col">
-          <div class="section-header">
-            <div class="section-title">Owner Distribution</div>
-            <div class="row-count" id="payroll-count"></div>
-          </div>
-          <div class="table-wrap" id="payroll-table-wrap"></div>
-        </div>
+      <div class="section-header">
+        <div class="section-title">Vendor Expenses</div>
+        <div class="row-count" id="exp-count"></div>
       </div>
+      <div class="table-wrap" id="expenses-table-wrap"></div>
 
       <div style="margin-top:40px; border-top:1px solid var(--border2); padding-top:28px">
         <div class="section-header">
@@ -568,6 +558,21 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
         </div>
         <div class="table-wrap" id="dde-table-wrap"></div>
       </div>
+    </div>
+
+    <!-- ── Owner Distribution sub-view ── -->
+    <div class="subtab-content" id="subcontent-owner-dist">
+      <div class="stats-grid" id="owner-stats">
+        <div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value"><span class="skeleton" style="width:100px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value"><span class="skeleton" style="width:80px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Payments</div><div class="stat-value"><span class="skeleton" style="width:40px"></span></div></div>
+        <div class="stat-card"><div class="stat-label">Avg per Month</div><div class="stat-value"><span class="skeleton" style="width:60px"></span></div></div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Owner Distribution</div>
+        <div class="row-count" id="payroll-count"></div>
+      </div>
+      <div class="table-wrap" id="payroll-table-wrap"></div>
     </div>
 
   </div><!-- /content-performance -->
@@ -1222,11 +1227,25 @@ function renderExpenses() {
   const payrollTotal = DATA.payroll.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
   const payrollCur   = DATA.payroll.length && DATA.payroll[0].currency ? DATA.payroll[0].currency : 'USD'
 
+  const avg = invoiced.length ? vendorTotal / invoiced.length : 0
   document.getElementById('exp-stats').innerHTML =
-    '<div class="stat-card"><div class="stat-label">Vendor Expenses</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">All time (EUR)</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value negative">' + fmtAmt(payrollTotal, payrollCur) + '</div><div class="stat-sub">All time (' + payrollCur + ')</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Total Costs</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">Vendor EUR + distribution</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value accent">' + invoiced.length + '</div><div class="stat-sub">Invoiced receipts</div></div>'
+    '<div class="stat-card"><div class="stat-label">Total Spend</div><div class="stat-value negative">' + eur(vendorTotal) + '</div><div class="stat-sub">All time (EUR)</div></div>' +
+    '<div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value negative">' + eur(invoiced.filter(function(e){return (e.date||'').startsWith('2026')}).reduce(function(s,e){return s+(e.eur_equivalent||0)},0)) + '</div><div class="stat-sub">YTD 2026</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Expense Count</div><div class="stat-value accent">' + invoiced.length + '</div><div class="stat-sub">Vendor invoices</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Avg per Invoice</div><div class="stat-value">' + eur(avg) + '</div><div class="stat-sub">All time</div></div>'
+
+  // populate Owner Distribution stats card
+  const payrollTotal = DATA.payroll.reduce(function(s, p) { return s + (p.amount || 0) }, 0)
+  const payrollCur   = DATA.payroll.length && DATA.payroll[0].currency ? DATA.payroll[0].currency : 'EUR'
+  const payrollYTD   = DATA.payroll.filter(function(p){return (payrollKey(p)||'').startsWith('2026')}).reduce(function(s,p){return s+(p.amount||0)},0)
+  const payMonths    = [...new Set(DATA.payroll.map(function(p){return (payrollKey(p)||'').slice(0,7)}))].length || 1
+  if (document.getElementById('owner-stats')) {
+    document.getElementById('owner-stats').innerHTML =
+      '<div class="stat-card"><div class="stat-label">Owner Distribution</div><div class="stat-value negative">' + fmtAmt(payrollTotal, payrollCur) + '</div><div class="stat-sub">All time (' + payrollCur + ')</div></div>' +
+      '<div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value negative">' + fmtAmt(payrollYTD, payrollCur) + '</div><div class="stat-sub">YTD 2026</div></div>' +
+      '<div class="stat-card"><div class="stat-label">Payments</div><div class="stat-value accent">' + DATA.payroll.length + '</div><div class="stat-sub">Total records</div></div>' +
+      '<div class="stat-card"><div class="stat-label">Avg per Month</div><div class="stat-value">' + fmtAmt(payrollTotal / payMonths, payrollCur) + '</div><div class="stat-sub">Historical avg</div></div>'
+  }
 
   // Monthly expenses chart (vendor + payroll stacked) — exclude DDE items
   const expMap  = aggByMonth(invoiced, function(e) { return e.date }, function(e) { return e.eur_equivalent || 0 })
@@ -1560,7 +1579,7 @@ function showTab(name) {
   document.getElementById('perf-subnav').classList.toggle('visible', name === 'performance')
 }
 
-const PERF_TABS = ['dash', 'sales', 'expenses']
+const PERF_TABS = ['dash', 'sales', 'expenses', 'owner-dist']
 function showPerfTab(name) {
   PERF_TABS.forEach(function(t) {
     document.getElementById('subtab-' + t).classList.toggle('active', t === name)
@@ -1575,9 +1594,10 @@ document.getElementById('tab-clients').addEventListener('click',        function
 document.getElementById('tab-contacts').addEventListener('click',       function() { showTab('contacts') })
 document.getElementById('tab-todo').addEventListener('click',           function() { showTab('todo') })
 
-document.getElementById('subtab-dash').addEventListener('click',     function() { showPerfTab('dash') })
-document.getElementById('subtab-sales').addEventListener('click',    function() { showPerfTab('sales') })
-document.getElementById('subtab-expenses').addEventListener('click', function() { showPerfTab('expenses') })
+document.getElementById('subtab-dash').addEventListener('click',       function() { showPerfTab('dash') })
+document.getElementById('subtab-sales').addEventListener('click',      function() { showPerfTab('sales') })
+document.getElementById('subtab-expenses').addEventListener('click',   function() { showPerfTab('expenses') })
+document.getElementById('subtab-owner-dist').addEventListener('click', function() { showPerfTab('owner-dist') })
 </script>
 <input type="file" id="upload-file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
 
