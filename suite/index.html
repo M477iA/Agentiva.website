@@ -283,6 +283,16 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 900px) { .charts-2col { grid-template-columns: 1fr; } }
+
+/* ── EXPENSES SPLIT LAYOUT ────────────────────────── */
+.expenses-split { display: flex; gap: 24px; align-items: flex-start; }
+.expenses-split .expenses-col { flex: 1.8; min-width: 0; }
+.expenses-split .payroll-col  { flex: 1;   min-width: 0; }
+@media (max-width: 900px) { .expenses-split { flex-direction: column; } .expenses-split .expenses-col, .expenses-split .payroll-col { flex: unset; width: 100%; } }
+
+/* ── PROVIDER LINK ────────────────────────────────── */
+.provider-link { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.provider-link:hover { opacity: .75; }
 @media (max-width: 768px) {
   header { padding: 14px 16px; }
   nav .tab-btn { padding: 12px 10px; font-size: 12px; }
@@ -515,17 +525,22 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
         </select>
         <input class="filter-input" type="text" id="exp-search" placeholder="Search provider or description…">
       </div>
-      <div class="section-header">
-        <div class="section-title">Vendor Expenses</div>
-        <div class="row-count" id="exp-count"></div>
+      <div class="expenses-split">
+        <div class="expenses-col">
+          <div class="section-header">
+            <div class="section-title">Vendor Expenses</div>
+            <div class="row-count" id="exp-count"></div>
+          </div>
+          <div class="table-wrap" id="expenses-table-wrap"></div>
+        </div>
+        <div class="payroll-col">
+          <div class="section-header">
+            <div class="section-title">Owner Distribution</div>
+            <div class="row-count" id="payroll-count"></div>
+          </div>
+          <div class="table-wrap" id="payroll-table-wrap"></div>
+        </div>
       </div>
-      <div class="table-wrap" id="expenses-table-wrap"></div>
-
-      <div class="section-header" style="margin-top:28px">
-        <div class="section-title">Owner Distribution</div>
-        <div class="row-count" id="payroll-count"></div>
-      </div>
-      <div class="table-wrap" id="payroll-table-wrap"></div>
     </div>
 
   </div><!-- /content-performance -->
@@ -569,6 +584,23 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
       <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       <div class="placeholder-title">To-Do</div>
       <div class="placeholder-sub">Tasks and action items. Coming in the next session.</div>
+    </div>
+  </div>
+
+  <!-- PROVIDER DETAIL MODAL -->
+  <div class="modal-backdrop" id="provider-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-client-name" id="prov-modal-name"></div>
+        <button class="modal-close" id="prov-modal-close">✕</button>
+      </div>
+      <div class="modal-meta" id="prov-modal-meta"></div>
+      <div class="modal-stats" id="prov-modal-stats" style="grid-template-columns:repeat(4,1fr)"></div>
+      <div class="section-header">
+        <div class="section-title">Expenses</div>
+        <div class="row-count" id="prov-modal-count"></div>
+      </div>
+      <div class="table-wrap" id="prov-modal-table"></div>
     </div>
   </div>
 
@@ -1107,9 +1139,9 @@ function renderExpenseTable() {
         return '<tr>' +
           '<td class="td-muted">' + fdate(e.date) + '</td>' +
           '<td class="td-mono">' + (e.invoice_number || '—') + '</td>' +
-          '<td>' + providerName(e.provider_id) + '</td>' +
+          '<td>' + (e.provider_id ? '<span class="provider-link" data-pid="' + e.provider_id + '">' + providerName(e.provider_id) + '</span>' : '—') + '</td>' +
           '<td>' + catBadge(e.category) + '</td>' +
-          '<td class="td-amount td-muted">' + eur(e.net) + '</td>' +
+          '<td class="td-amount td-muted">' + usd(e.net) + '</td>' +
           '<td class="td-amount">' + eur(e.eur_equivalent) + '</td>' +
           '<td>' + statusBadge(e.status) + '</td>' +
           '<td>' + (e.is_revolut ? '<span class="badge badge-revolut">Revolut</span>' : '') + '</td>' +
@@ -1120,7 +1152,7 @@ function renderExpenseTable() {
   document.getElementById('expenses-table-wrap').innerHTML =
     '<table><thead><tr>' +
       '<th>Date</th><th>Invoice #</th><th>Provider</th><th>Category</th>' +
-      '<th style="text-align:right">Net</th><th style="text-align:right">EUR Equiv</th>' +
+      '<th style="text-align:right">USD</th><th style="text-align:right">EUR Equiv</th>' +
       '<th>Status</th><th>Tags</th><th>File</th>' +
     '</tr></thead><tbody>' + tbody + '</tbody>' +
     '<tfoot><tr><td colspan="5" style="color:var(--muted)">Total (filtered)</td><td class="td-amount" style="color:var(--text)">' + eur(total) + '</td><td colspan="3"></td></tr></tfoot>' +
@@ -1149,6 +1181,52 @@ function renderPayrollTable() {
       '<th>Payment Date</th><th>Employee</th><th>Period</th>' +
       '<th style="text-align:right">Amount</th><th>Currency</th><th>Status</th><th>Notes</th>' +
     '</tr></thead><tbody>' + tbody + '</tbody></table>'
+}
+
+// ── PROVIDER MODAL ────────────────────────────────────────────────────────────
+function openProviderModal(providerId) {
+  const provider = DATA.providers.find(function(p) { return p.id === providerId })
+  if (!provider) return
+  const provExps = DATA.expenses.filter(function(e) { return e.provider_id === providerId && e.status !== 'DDE' })
+  const totalSpend = provExps.reduce(function(s, e) { return s + (e.eur_equivalent || 0) }, 0)
+  const lastExp = provExps.length ? provExps.reduce(function(a, b) { return (a.date || '') > (b.date || '') ? a : b }) : null
+  const avg = provExps.length ? totalSpend / provExps.length : 0
+
+  const meta = [provider.email, provider.phone, provider.default_category, provider.notes].filter(Boolean).join(' · ')
+  document.getElementById('prov-modal-name').textContent = provider.name
+  document.getElementById('prov-modal-meta').textContent = meta || 'No additional info'
+  document.getElementById('prov-modal-stats').innerHTML =
+    '<div class="modal-stat"><div class="modal-stat-label">Total Spend</div><div class="modal-stat-value negative">' + eur(totalSpend) + '</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-label">Invoices</div><div class="modal-stat-value accent">' + provExps.length + '</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-label">Last Transaction</div><div class="modal-stat-value">' + (lastExp ? fdate(lastExp.date) : '—') + '</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-label">Avg per Invoice</div><div class="modal-stat-value">' + eur(avg) + '</div></div>'
+  document.getElementById('prov-modal-count').textContent = provExps.length + ' records'
+
+  const tbody = provExps.length
+    ? provExps.map(function(e) {
+        return '<tr>' +
+          '<td class="td-muted">' + fdate(e.date) + '</td>' +
+          '<td class="td-mono">' + (e.invoice_number || '—') + '</td>' +
+          '<td>' + catBadge(e.category) + '</td>' +
+          '<td class="td-amount td-muted">' + usd(e.net) + '</td>' +
+          '<td class="td-amount">' + eur(e.eur_equivalent) + '</td>' +
+          '<td>' + statusBadge(e.status) + '</td>' +
+          '<td>' + fileLink(e.file_url) + '</td>' +
+        '</tr>'
+      }).join('')
+    : '<tr class="empty-row"><td colspan="7">No expenses for this provider</td></tr>'
+
+  document.getElementById('prov-modal-table').innerHTML =
+    '<table><thead><tr>' +
+    '<th>Date</th><th>Invoice #</th><th>Category</th>' +
+    '<th style="text-align:right">USD</th><th style="text-align:right">EUR Equiv</th>' +
+    '<th>Status</th><th>File</th>' +
+    '</tr></thead><tbody>' + tbody + '</tbody></table>'
+
+  document.getElementById('provider-modal').classList.add('open')
+}
+function closeProviderModal() {
+  document.getElementById('provider-modal').classList.remove('open')
 }
 
 // ── CLIENT LINKS ──────────────────────────────────────────────────────────────
@@ -1258,13 +1336,23 @@ function bindFilters() {
   document.getElementById('exp-search').addEventListener('input', renderExpenseTable)
 }
 
+// ── PROVIDER LINK DELEGATION ──────────────────────────────────────────────────
+document.getElementById('expenses-table-wrap').addEventListener('click', function(e) {
+  const link = e.target.closest('.provider-link')
+  if (link && link.dataset.pid) openProviderModal(link.dataset.pid)
+})
+
 // ── MODAL CLOSE ───────────────────────────────────────────────────────────────
 document.getElementById('modal-close-btn').addEventListener('click', closeClientModal)
 document.getElementById('client-modal').addEventListener('click', function(e) {
   if (e.target === this) closeClientModal()
 })
+document.getElementById('prov-modal-close').addEventListener('click', closeProviderModal)
+document.getElementById('provider-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeProviderModal()
+})
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeClientModal()
+  if (e.key === 'Escape') { closeClientModal(); closeProviderModal() }
 })
 
 // ── TAB NAVIGATION ────────────────────────────────────────────────────────────
