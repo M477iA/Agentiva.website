@@ -212,12 +212,13 @@ tfoot td { background: var(--surface2); border-top: 1px solid var(--border2); fo
 .badge-it      { background: rgba(59,130,246,.12);  color: #60a5fa; }
 
 /* ── PROVIDER LOGO ────────────────────────────────── */
-.prov-logo { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
-.prov-logo img { max-width: 36px; max-height: 28px; width: auto; height: auto; object-fit: contain; border-radius: 4px; }
-.prov-logo-fallback { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; }
+.prov-logo { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.prov-logo img { max-width: 28px; max-height: 22px; width: auto; height: auto; object-fit: contain; border-radius: 3px; }
+.prov-logo-fallback { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 11px; font-weight: 700; color: white; }
 .prov-row { cursor: pointer; }
+.prov-row td { padding: 7px 14px; }
 .prov-row:hover { background: rgba(99,102,241,0.06) !important; }
-.prov-name-cell { display: flex; align-items: center; gap: 10px; }
+.prov-name-cell { display: flex; align-items: center; gap: 9px; }
 
 /* ── FILE LINK ────────────────────────────────────── */
 .file-link { color: var(--accent); text-decoration: none; opacity: .7; transition: opacity .12s; display: inline-flex; align-items: center; }
