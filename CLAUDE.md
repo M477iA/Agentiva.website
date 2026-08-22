@@ -4,10 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Business context
 
-Agentiva is an Argentine AI-automation platform targeting SMBs.
-Four product lines: (1) customer service & conversational AI (WhatsApp-first),
-(2) administrative & fiscal tasks (AFIP/ARCA invoicing), (3) marketing & sales,
-(4) HR & talent management.
+Agentiva builds WhatsApp (and adjacent Facebook/Instagram Messenger)
+customer-service chatbots for Argentinian SMBs. Narrow specialist positioning
+(since 2026-08-17) — not a broad automation platform. Flagship proof point:
+Mayorista Omega, live WhatsApp bot, 160+ clients served, U$S 225/mo.
+Voice agents and a live chat widget are roadmap items, not part of the
+current pitch — don't reintroduce them as headline services.
 
 Language: Argentine Spanish (rioplatense). Dollar amounts → U$S (never USD or bare $).
 Copy style: punchy headlines, ≤2-sentence elaboration, no bullet lists on homepage,
@@ -22,9 +24,7 @@ Local dev fallback: `python -m http.server 8080` → `http://localhost:8080`.
 
 # Active integrations
 
-- **EmailJS**: wired but inactive — 3 constants need filling in the last `<script>` block:
-  `EMAILJS_PUBLIC_KEY`, `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`.
-  Requires `no-reply@agentiva.com.ar` mailbox on Zoho Mail first.
+- **EmailJS**: removed entirely in commit `44e3906` (2026-05-11) when auth moved to Supabase — it was a welcome-email-on-registration trigger, not a general contact form. No contact form currently exists; the site relies on the WhatsApp CTA + Google Calendar booking link instead (deliberate, not a gap).
 - **ElevenLabs voice agent**: ID `agent_0101kqe5t2hxf2gtf5y60pe4jtm7` ("Agentiva receptionist").
   Shadow-DOM patches via MutationObserver (branding hidden, UI in Spanish).
   Client tools: scroll-to-section, teal-pulse highlight, booking CTA.
@@ -54,9 +54,10 @@ Tweak defaults in `index.html` are wrapped in `/*EDITMODE-BEGIN*/ … /*EDITMODE
 
 - Nav/footer logo: `assets/images/logos/Agentiva Logo esteso.png` (horizontal wordmark)
 - Favicon: `assets/images/logos/agentiva-logo.png` — the "A" icon ONLY, never the wordmark
-- Partner logos: `assets/images/partners/` (12 files, all greyscale in carousel)
-- Client logos: `assets/images/clients/` (6 files — Campaso, D&A Tango, Fare, Mayorista Omega, Pacifican Group, Senor Tango)
+- Partner logos: `assets/images/partners/` (12 files on disk; carousel narrowed 2026-08-17 to 4 relevant ones — Claude, WhatsApp, Telegram, Google — unused files left in place, harmless)
+- Client logos: `assets/images/clients/` (7 files — Campaso, D&A Tango, Fare, Mayorista Omega, Pacifican Group, Senor Tango, Bronson Pizza — trust bar reframed 2026-08-17 as generic "empresas que confiaron en nosotros," not per-client service claims; only Mayorista Omega is an actual WhatsApp bot case study)
 - Hero background video: `assets/hero-bg.mp4`
+- Brand mark lockup (added 2026-08-21): `assets/images/logos/logo-mark-green.png` (light backgrounds — portal login screen) and `logo-mark-white.png` (dark chrome nav) — used by `portal/index.html`'s new nav/login design as a mark+wordtext lockup, distinct from the `Agentiva Logo esteso.png` wordmark above. Not yet used on the main `index.html`.
 
 # Non-obvious design rules
 
