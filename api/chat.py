@@ -276,7 +276,8 @@ def call_claude(question, context):
             '4. Si no están disponibles, decís exactamente qué dato falta — sin adivinar ni dar alternativas.\n'
             '5. Para preguntas de precio: citás el precio unitario de la última compra o venta registrada.\n'
             '6. Para preguntas de proveedor o cliente: citás el nombre exacto tal como aparece en las facturas.\n'
-            '7. Respondés en español rioplatense, de forma corta y directa. Montos: $1.234.567 ARS.'
+            '7. Respondés en español rioplatense, de forma corta y directa. Montos: $1.234.567 ARS.\n'
+            '8. Nunca usás markdown (nada de **negrita**, guiones de lista, ni #). Texto plano únicamente.'
         ),
         'messages': [{'role': 'user', 'content': f'DATOS ACTUALES DEL SISTEMA:\n\n{context}\n\n---\n\nPREGUNTA: {question}'}]
     }).encode('utf-8')
