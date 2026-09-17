@@ -97,6 +97,8 @@ body {
 .facturas-table .td-num { text-align: right; font-variant-numeric: tabular-nums; }
 .facturas-table .td-muted { color: var(--muted); }
 .facturas-empty { padding: 30px; text-align: center; color: var(--muted); }
+.file-link { color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.file-link:hover { text-decoration: underline; }
 .detail-row td { background: var(--surface); padding: 12px 18px; }
 .detail-item { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
 
@@ -443,12 +445,12 @@ async function loadFacturas(tipo) {
   const tbody = document.getElementById('facturas-tbody');
   const thead = document.getElementById('facturas-thead-row');
   thead.innerHTML = tipo === 'compra'
-    ? '<th>Fecha</th><th>N° factura</th><th>Proveedor</th><th class="td-num">Subtotal</th><th class="td-num">IVA</th><th class="td-num">Total</th>'
-    : '<th>Fecha</th><th>N° factura</th><th>Cliente</th><th class="td-num">Subtotal</th><th class="td-num">IVA</th><th class="td-num">Total</th>';
+    ? '<th>Fecha</th><th>N° factura</th><th>Proveedor</th><th class="td-num">Subtotal</th><th class="td-num">IVA</th><th class="td-num">Total</th><th>Archivo</th>'
+    : '<th>Fecha</th><th>N° factura</th><th>Cliente</th><th class="td-num">Subtotal</th><th class="td-num">IVA</th><th class="td-num">Total</th><th>Archivo</th>';
 
   if (_facturasCache[tipo]) { renderFacturasTable(tipo, _facturasCache[tipo]); return; }
 
-  tbody.innerHTML = '<tr><td colspan="6" class="facturas-empty">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="facturas-empty">Cargando...</td></tr>';
   try {
     const rows = tipo === 'compra'
       ? await sbGet(_authToken, 'invoices', { 'restaurant_id': `eq.${_restaurantId}`, 'select': '*,suppliers(name)', 'order': 'invoice_date.desc', 'limit': '300' })
@@ -456,14 +458,14 @@ async function loadFacturas(tipo) {
     _facturasCache[tipo] = rows;
     renderFacturasTable(tipo, rows);
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="6" class="facturas-empty">Error al cargar: ' + escAttr(err.message) + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="facturas-empty">Error al cargar: ' + escAttr(err.message) + '</td></tr>';
   }
 }
 
 function renderFacturasTable(tipo, rows) {
   const tbody = document.getElementById('facturas-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="facturas-empty">Sin facturas de ' + (tipo === 'compra' ? 'compra' : 'venta') + ' todavía.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="facturas-empty">Sin facturas de ' + (tipo === 'compra' ? 'compra' : 'venta') + ' todavía.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -475,11 +477,13 @@ function renderFacturasTable(tipo, rows) {
       + '<td class="td-num">' + fmtARS(r.subtotal) + '</td>'
       + '<td class="td-num">' + fmtARS(r.tax_amount) + '</td>'
       + '<td class="td-num">' + fmtARS(r.total) + '</td>'
+      + '<td>' + (r.file_url ? '<a class="file-link" href="' + escAttr(r.file_url) + '" target="_blank" rel="noopener">Ver ↗</a>' : '<span class="td-muted">—</span>') + '</td>'
       + '</tr>';
   }).join('');
 
   if (!tbody._hasListeners) {
     tbody.addEventListener('click', e => {
+      if (e.target.closest('a.file-link')) return;
       const row = e.target.closest('tr.invoice-row');
       if (row) toggleInvoiceDetail(row);
     });
@@ -495,7 +499,7 @@ async function toggleInvoiceDetail(row) {
   const detailRow = document.createElement('tr');
   detailRow.className = 'detail-row';
   const td = document.createElement('td');
-  td.colSpan = 6;
+  td.colSpan = 7;
   td.textContent = 'Cargando productos...';
   detailRow.appendChild(td);
   row.after(detailRow);
@@ -556,15 +560,29 @@ function appendTipoChoice() {
 
 function fieldLabel(tipo) { return tipo === 'compra' ? 'supplier_name' : 'client_name'; }
 
-function appendSummaryCard(tipo, data) {
+function appendSummaryCard(tipo, data, fileUrl) {
   const msgs = document.getElementById('chat-messages');
   const card = document.createElement('div');
   card.className = 'card-bubble';
 
+  const titleRow = document.createElement('div');
+  titleRow.style.display = 'flex';
+  titleRow.style.justifyContent = 'space-between';
+  titleRow.style.alignItems = 'baseline';
   const title = document.createElement('div');
   title.className = 'card-title';
   title.textContent = tipo === 'compra' ? 'Factura de compra detectada' : 'Factura de venta detectada';
-  card.appendChild(title);
+  titleRow.appendChild(title);
+  if (fileUrl) {
+    const link = document.createElement('a');
+    link.className = 'file-link';
+    link.href = fileUrl;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'Ver archivo ↗';
+    titleRow.appendChild(link);
+  }
+  card.appendChild(titleRow);
 
   const rows = [
     [tipo === 'compra' ? 'Proveedor' : 'Cliente', tipo === 'compra' ? data.supplier_name : data.client_name],
@@ -664,7 +682,7 @@ async function handleTipoChosen(tipo) {
     typing.remove();
     if (!res.ok) { appendBubble(data.error || 'No pude leer la factura.', 'ai'); return; }
     _pending = { tipo, extracted: data.extracted, fileUrl };
-    appendSummaryCard(tipo, data.extracted);
+    appendSummaryCard(tipo, data.extracted, fileUrl);
     updateUsage(data.usage);
   } catch (err) {
     typing.remove();
@@ -726,7 +744,7 @@ async function sendChat() {
       if (!res.ok) { appendBubble(data.error || 'No pude corregir eso.', 'ai'); }
       else {
         _pending.extracted = data.extracted;
-        appendSummaryCard(_pending.tipo, data.extracted);
+        appendSummaryCard(_pending.tipo, data.extracted, _pending.fileUrl);
         updateUsage(data.usage);
       }
       _awaitingCorrection = false;
