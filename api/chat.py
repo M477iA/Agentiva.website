@@ -56,7 +56,8 @@ def sb_post(path, body, token, prefer='return=representation'):
         method='POST',
     )
     with urllib.request.urlopen(req, timeout=15) as r:
-        return json.loads(r.read())
+        raw = r.read()
+        return json.loads(raw) if raw else None
 
 def sb_patch(path, params, body, token):
     url = f'{SB_URL}/rest/v1/{path}?' + urllib.parse.urlencode(params)
