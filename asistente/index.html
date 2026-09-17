@@ -102,6 +102,21 @@ body {
 
 /* ── Chat (right-hand dock) ──────────────────────────────────── */
 #chat-wrap { width: 400px; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid var(--border); background: var(--bg); }
+.chat-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.chat-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); color: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  animation: chat-avatar-pulse 1.3s ease-in-out infinite;
+}
+@keyframes chat-avatar-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45,212,191,0.45); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 7px rgba(45,212,191,0.12), 0 0 14px 4px rgba(45,212,191,0.5); transform: scale(1.08); }
+}
+.chat-header-title { font-size: 13.5px; font-weight: 700; }
+.chat-header-status { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-top: 1px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; animation: live-dot-pulse 1.3s ease-in-out infinite; }
+@keyframes live-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 #chat-messages { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
 .chat-bubble { max-width: 78%; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
 .chat-bubble.ai { background: var(--surface); align-self: flex-start; border: 1px solid var(--border); }
@@ -195,6 +210,15 @@ body {
   </div>
 
   <div id="chat-wrap">
+    <div class="chat-header">
+      <div class="chat-avatar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><circle cx="12" cy="2" r="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 10H1.5M3 15H1.5M21 10h1.5M21 15h1.5"/></svg>
+      </div>
+      <div>
+        <div class="chat-header-title">Asistente IA</div>
+        <div class="chat-header-status"><span class="live-dot"></span>En línea</div>
+      </div>
+    </div>
     <div id="chat-messages"></div>
     <div id="usage-note"></div>
     <div id="chat-input-row">
