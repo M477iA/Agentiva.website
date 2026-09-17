@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/assets/images/logos/agentiva-logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente IA — Agentiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+:root {
+  --bg:        #ffffff;
+  --surface:   #f8f9fa;
+  --surface2:  #eef0f2;
+  --border:    rgba(0,0,0,0.09);
+  --accent:    #2DD4BF;
+  --accent-bg: rgba(45,212,191,0.10);
+  --text:      #111827;
+  --muted:     #6b7280;
+  --danger:    #ef4444;
+  --font:      system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#loading { display: flex; align-items: center; justify-content: center; gap: 10px; height: 100vh; color: var(--muted); }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Login ──────────────────────────────────────────────────── */
+#login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(135deg, #f0fdf9 0%, #ffffff 60%);
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.login-title { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+.field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: var(--font); }
+.field input:focus { outline: none; border-color: var(--accent); }
+.btn-primary { width: 100%; padding: 11px; background: var(--accent); color: #06231f; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 4px; }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+#login-error { color: var(--danger); font-size: 12.5px; margin-top: 10px; min-height: 16px; }
+
+/* ── App shell ──────────────────────────────────────────────── */
+#app { display: flex; flex-direction: column; height: 100vh; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-brand img { height: 22px; width: auto; }
+.topbar-title { font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.topbar-user { font-size: 13px; color: var(--muted); }
+.btn-logout { padding: 7px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; font-size: 12.5px; cursor: pointer; color: var(--text); }
+
+.admin-picker { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.admin-picker select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+
+/* ── Chat (full page) ──────────────────────────────────────── */
+#chat-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; max-width: 760px; width: 100%; margin: 0 auto; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.chat-bubble { max-width: 78%; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+.chat-bubble.ai { background: var(--surface); align-self: flex-start; border: 1px solid var(--border); }
+.chat-bubble.user { background: var(--accent); color: #06231f; align-self: flex-end; font-weight: 500; }
+.chat-bubble.typing { color: var(--muted); font-style: italic; }
+
+.card-bubble { align-self: flex-start; max-width: 92%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; font-size: 13px; }
+.card-bubble .card-title { font-weight: 700; margin-bottom: 8px; font-size: 13.5px; }
+.card-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.card-row:last-of-type { border-bottom: none; }
+.card-row .k { color: var(--muted); }
+.card-row .v { font-weight: 600; text-align: right; }
+.card-items { margin-top: 10px; }
+.card-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+.card-item:last-child { border-bottom: none; }
+.card-actions { display: flex; gap: 8px; margin-top: 12px; }
+.card-actions button { flex: 1; padding: 8px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); }
+.btn-confirm { background: var(--accent); color: #06231f; border-color: var(--accent); }
+.btn-correct { background: var(--surface2); color: var(--text); }
+
+.tipo-choice { display: flex; gap: 8px; margin-top: 8px; }
+.tipo-choice button { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--accent); background: var(--accent-bg); color: #0d6b60; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+
+#chat-input-row { display: flex; align-items: center; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg); }
+#attach-btn { flex-shrink: 0; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+#chat-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 13.5px; font-family: var(--font); }
+#chat-input:focus { outline: none; border-color: var(--accent); }
+#chat-send { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--accent); color: #06231f; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#chat-send:disabled { opacity: 0.5; }
+#file-input { display: none; }
+#usage-note { font-size: 11px; color: var(--muted); text-align: center; padding: 4px 0 10px; }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div> Cargando...</div>
+
+<div id="login-screen" hidden>
+  <div class="login-card">
+    <div class="login-title">Bienvenido</div>
+    <p class="login-sub">Ingresá con tu cuenta para hablar con tu asistente IA.</p>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="hola@tunegocio.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="login-btn">Ingresar</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="topbar">
+    <div class="topbar-brand">
+      <img src="/assets/images/logos/Agentiva Logo esteso.png" alt="Agentiva">
+      <span class="topbar-title">Asistente IA</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="user-label"></span>
+      <button class="btn-logout" id="logout-btn">Salir</button>
+    </div>
+  </div>
+
+  <div class="admin-picker" id="admin-picker" hidden>
+    Ver como restaurante:
+    <select id="admin-restaurant-select"></select>
+  </div>
+
+  <div id="chat-wrap" hidden>
+    <div id="chat-messages"></div>
+    <div id="usage-note"></div>
+    <div id="chat-input-row">
+      <button id="attach-btn" title="Adjuntar factura (PDF)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <input type="file" id="file-input" accept="application/pdf,image/*">
+      <input type="text" id="chat-input" placeholder="Preguntá algo o adjuntá una factura...">
+      <button id="chat-send">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const SB_URL  = 'https://etetlzcsqucujqjkzsvm.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0ZXRsemNzcXVjdWpxamt6c3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTU3MzUsImV4cCI6MjA5NDI3MTczNX0.KMo40WJKxsLMu7OK5ksblxSkg61gTZLjpA4DIJOMJ8c';
+const SESSION_KEY = 'restaurant_platform_v1';
+const STORAGE_BUCKET = 'invoice-attachments';
+
+// ── Session ──────────────────────────────────────────────────────────────────
+function saveSession(data) { localStorage.setItem(SESSION_KEY, JSON.stringify(data)); }
+function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+async function login(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_ANON },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Error de autenticación');
+  return data;
+}
+
+async function logout() {
+  const session = getSession();
+  if (session?.access_token) {
+    await fetch(`${SB_URL}/auth/v1/logout`, {
+      method: 'POST',
+      headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${session.access_token}` },
+    }).catch(() => {});
+  }
+  clearSession();
+  location.reload();
+}
+
+// ── Supabase REST ────────────────────────────────────────────────────────────
+function sbHeaders(token) {
+  return { 'apikey': SB_ANON, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+}
+async function sbGet(token, endpoint, params = {}) {
+  const url = new URL(`${SB_URL}/rest/v1/${endpoint}`);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  const res = await fetch(url, { headers: sbHeaders(token) });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+async function sbPost(token, endpoint, body) {
+  const res = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
+    method: 'POST',
+    headers: { ...sbHeaders(token), 'Prefer': 'return=representation' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`POST ${endpoint}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+async function sbUploadFile(token, path, arrayBuffer, contentType) {
+  const res = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${token}`, 'Content-Type': contentType, 'x-upsert': 'true' },
+    body: arrayBuffer,
+  });
+  if (!res.ok) throw new Error(`Storage upload: ${res.status} ${await res.text()}`);
+  return `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
+}
+
+// ── Normalization helpers (ported from platform/index.html) ─────────────────
+function ivaFields(d) {
+  const rate = String(d.tax_rate || '').replace('%','').replace(',','.').trim();
+  if (!d.tax_amount || !rate) return {};
+  if (rate === '27')   return { iva_27: d.tax_amount };
+  if (rate === '21')   return { iva_21: d.tax_amount };
+  if (rate === '10.5') return { iva_10_5: d.tax_amount };
+  if (rate === '5')    return { iva_5: d.tax_amount };
+  if (rate === '2.5')  return { iva_2_5: d.tax_amount };
+  return { otros_tributos: d.tax_amount };
+}
+function toIsoDate(s) {
+  if (!s) return null;
+  const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : s;
+}
+function fmtARS(n) { return n == null ? '—' : 'AR$ ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n); }
+function safeFilename(name) { return String(name || 'factura.pdf').replace(/[^a-zA-Z0-9._-]/g, '-'); }
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(binary);
+}
+
+// ── Commit: compra ───────────────────────────────────────────────────────────
+async function insertPurchaseInvoice(token, restaurantId, d, fileUrl) {
+  let supplierId;
+  const supFilter = d.cuit
+    ? { 'cuit': `eq.${d.cuit}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' }
+    : { 'name': `eq.${d.supplier_name || ''}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' };
+  const existingSup = await sbGet(token, 'suppliers', supFilter);
+  if (existingSup.length > 0) {
+    supplierId = existingSup[0].id;
+  } else {
+    const [newSup] = await sbPost(token, 'suppliers', { restaurant_id: restaurantId, name: d.supplier_name || 'Desconocido', cuit: d.cuit || null });
+    supplierId = newSup.id;
+  }
+
+  const invoiceNumber = (d.invoice_number || '').replace(/-/g, '');
+  const dup = await sbGet(token, 'invoices', { 'restaurant_id': `eq.${restaurantId}`, 'invoice_number': `eq.${invoiceNumber}`, 'select': 'id', 'limit': '1' });
+  if (dup.length > 0) throw new Error('Esta factura ya existe en el sistema (N° ' + d.invoice_number + ').');
+
+  const [invoice] = await sbPost(token, 'invoices', {
+    restaurant_id: restaurantId, supplier_id: supplierId, invoice_number: invoiceNumber,
+    invoice_date: toIsoDate(d.invoice_date), subtotal: d.subtotal || null, tax_amount: d.tax_amount || null,
+    total: d.total || null, tipo_comprobante: d.tipo_comprobante || null, condicion_iva: d.condicion_iva || null,
+    payment_method: d.payment_method || null, payment_due_date: toIsoDate(d.payment_due_date), notes: d.notes || null,
+    file_url: fileUrl, ...ivaFields(d),
+  });
+
+  const catNames = [...new Set((d.line_items || []).map(li => li.category_name).filter(Boolean))];
+  const catMap = {};
+  if (catNames.length > 0) {
+    const catRows = await sbGet(token, 'categories', {
+      'restaurant_id': `eq.${restaurantId}`,
+      'name': `in.(${catNames.map(n => `"${n.replace(/"/g,'\\"')}"`).join(',')})`,
+      'select': 'id,name', 'limit': '200',
+    });
+    for (const r of catRows) catMap[r.name] = r.id;
+  }
+
+  for (const li of (d.line_items || [])) {
+    const qty = li.quantity || 0;
+    const price = li.unit_price || 0;
+    await sbPost(token, 'line_items', {
+      restaurant_id: restaurantId, invoice_id: invoice.id, supplier_id: supplierId,
+      category_id: li.category_name ? (catMap[li.category_name] || null) : null,
+      product_name: li.description || li.name || '', quantity: qty, unit: li.unit || null,
+      unit_content: li.unit_content || 1, unit_price: price, total: Math.round(qty * price * 100) / 100,
+    });
+  }
+  return invoice.id;
+}
+
+// ── Commit: venta ────────────────────────────────────────────────────────────
+async function insertSalesInvoice(token, restaurantId, d, fileUrl) {
+  let clientId;
+  const cliFilter = d.client_cuit
+    ? { 'cuit': `eq.${d.client_cuit}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' }
+    : { 'name': `eq.${d.client_name || ''}`, 'restaurant_id': `eq.${restaurantId}`, 'select': 'id', 'limit': '1' };
+  const existingCli = await sbGet(token, 'sales_clients', cliFilter);
+  if (existingCli.length > 0) {
+    clientId = existingCli[0].id;
+  } else {
+    const [newCli] = await sbPost(token, 'sales_clients', {
+      restaurant_id: restaurantId, name: d.client_name || 'Desconocido', cuit: d.client_cuit || null,
+      domicilio: d.client_domicilio || null, condicion_iva: d.condicion_iva || null,
+    });
+    clientId = newCli.id;
+  }
+
+  const invoiceNumber = (d.invoice_number || '').replace(/-/g, '');
+  const dup = await sbGet(token, 'sales_invoices', { 'restaurant_id': `eq.${restaurantId}`, 'invoice_number': `eq.${invoiceNumber}`, 'select': 'id', 'limit': '1' });
+  if (dup.length > 0) throw new Error('Esta factura de venta ya existe en el sistema (N° ' + d.invoice_number + ').');
+
+  const [invoice] = await sbPost(token, 'sales_invoices', {
+    restaurant_id: restaurantId, sales_client_id: clientId, invoice_number: invoiceNumber,
+    invoice_date: toIsoDate(d.invoice_date), subtotal: d.subtotal || null, tax_amount: d.tax_amount || null,
+    total: d.total || null, tipo_comprobante: d.tipo_comprobante || null, condicion_iva: d.condicion_iva || null,
+    payment_method: d.payment_method || null, payment_due_date: toIsoDate(d.payment_due_date), notes: d.notes || null,
+    file_url: fileUrl, ...ivaFields(d),
+  });
+
+  for (const li of (d.line_items || [])) {
+    const qty = li.quantity || 0;
+    const price = li.unit_price || 0;
+    await sbPost(token, 'sales_line_items', {
+      restaurant_id: restaurantId, sales_invoice_id: invoice.id, sales_client_id: clientId,
+      product_name: li.description || li.name || '', quantity: qty, unit: li.unit || null,
+      unit_content: li.unit_content || 1, unit_price: price, total: Math.round(qty * price * 100) / 100,
+    });
+  }
+  return invoice.id;
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+let _authToken = null;
+let _restaurantId = null;
+let _pending = null;        // { tipo, extracted, fileUrl }
+let _awaitingCorrection = false;
+
+function appendBubble(text, role) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-bubble ' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function appendTipoChoice() {
+  const msgs = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-bubble ai';
+  const label = document.createElement('div');
+  label.textContent = '¿Es una factura de venta o de compra?';
+  wrap.appendChild(label);
+  const choice = document.createElement('div');
+  choice.className = 'tipo-choice';
+  ['compra', 'venta'].forEach(tipo => {
+    const btn = document.createElement('button');
+    btn.textContent = tipo === 'compra' ? 'Factura de compra' : 'Factura de venta';
+    btn.addEventListener('click', () => {
+      wrap.remove();
+      appendBubble(btn.textContent, 'user');
+      handleTipoChosen(tipo);
+    });
+    choice.appendChild(btn);
+  });
+  wrap.appendChild(choice);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function fieldLabel(tipo) { return tipo === 'compra' ? 'supplier_name' : 'client_name'; }
+
+function appendSummaryCard(tipo, data) {
+  const msgs = document.getElementById('chat-messages');
+  const card = document.createElement('div');
+  card.className = 'card-bubble';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = tipo === 'compra' ? 'Factura de compra detectada' : 'Factura de venta detectada';
+  card.appendChild(title);
+
+  const rows = [
+    [tipo === 'compra' ? 'Proveedor' : 'Cliente', tipo === 'compra' ? data.supplier_name : data.client_name],
+    ['N° factura', data.invoice_number],
+    ['Fecha', data.invoice_date],
+    ['Tipo', data.tipo_comprobante],
+    ['Subtotal', fmtARS(data.subtotal)],
+    ['IVA (' + (data.tax_rate || '?') + ')', fmtARS(data.tax_amount)],
+    ['Total', fmtARS(data.total)],
+    ['Pago', data.payment_method || '—'],
+  ];
+  for (const [k, v] of rows) {
+    const row = document.createElement('div');
+    row.className = 'card-row';
+    const kEl = document.createElement('span'); kEl.className = 'k'; kEl.textContent = k;
+    const vEl = document.createElement('span'); vEl.className = 'v'; vEl.textContent = v || '—';
+    row.appendChild(kEl); row.appendChild(vEl);
+    card.appendChild(row);
+  }
+
+  if ((data.line_items || []).length > 0) {
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'card-items';
+    for (const li of data.line_items) {
+      const row = document.createElement('div');
+      row.className = 'card-item';
+      const nameEl = document.createElement('span'); nameEl.textContent = li.description || li.name || '—';
+      const qtyEl = document.createElement('span'); qtyEl.textContent = (li.quantity || 0) + ' ' + (li.unit || '');
+      row.appendChild(nameEl); row.appendChild(qtyEl);
+      itemsWrap.appendChild(row);
+    }
+    card.appendChild(itemsWrap);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'card-actions';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'btn-confirm';
+  confirmBtn.textContent = 'Confirmar';
+  confirmBtn.addEventListener('click', () => confirmPending(confirmBtn));
+  const correctBtn = document.createElement('button');
+  correctBtn.className = 'btn-correct';
+  correctBtn.textContent = 'Corregir';
+  correctBtn.addEventListener('click', () => {
+    _awaitingCorrection = true;
+    document.getElementById('chat-input').placeholder = 'Escribí qué está mal (ej: el total es...)';
+    document.getElementById('chat-input').focus();
+    appendBubble('Contame qué corregir y lo actualizo.', 'ai');
+  });
+  actions.appendChild(confirmBtn);
+  actions.appendChild(correctBtn);
+  card.appendChild(actions);
+
+  msgs.appendChild(card);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function confirmPending(btn) {
+  if (!_pending) return;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    const { tipo, extracted, fileUrl } = _pending;
+    if (tipo === 'compra') {
+      await insertPurchaseInvoice(_authToken, _restaurantId, extracted, fileUrl);
+    } else {
+      await insertSalesInvoice(_authToken, _restaurantId, extracted, fileUrl);
+    }
+    await sbPost(_authToken, 'tareas', {
+      restaurant_id: _restaurantId, status: 'approved', source: 'chat', tipo,
+      attachment_url: fileUrl, extracted_data: extracted, processed_at: new Date().toISOString(),
+    });
+    appendBubble('Listo, quedó guardada. ✅', 'ai');
+  } catch (err) {
+    appendBubble('No pude guardarla: ' + err.message, 'ai');
+  }
+  _pending = null;
+}
+
+async function handleTipoChosen(tipo) {
+  const file = _pendingFile;
+  if (!file) return;
+  const typing = appendBubble('Leyendo la factura…', 'ai typing');
+  try {
+    const buf = await file.arrayBuffer();
+    const path = `${_restaurantId}/${Date.now()}-${safeFilename(file.name)}`;
+    const [fileUrl, fileB64] = await Promise.all([
+      sbUploadFile(_authToken, path, buf, file.type || 'application/pdf'),
+      Promise.resolve(arrayBufferToBase64(buf)),
+    ]);
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'extract', fileBase64: fileB64, mimeType: file.type || 'application/pdf', tipo, token: _authToken, restaurantId: _restaurantId }),
+    });
+    const data = await res.json();
+    typing.remove();
+    if (!res.ok) { appendBubble(data.error || 'No pude leer la factura.', 'ai'); return; }
+    _pending = { tipo, extracted: data.extracted, fileUrl };
+    appendSummaryCard(tipo, data.extracted);
+    updateUsage(data.usage);
+  } catch (err) {
+    typing.remove();
+    appendBubble('Error al procesar el archivo: ' + err.message, 'ai');
+  }
+  _pendingFile = null;
+}
+
+function updateUsage(usage) {
+  if (!usage) return;
+  document.getElementById('usage-note').textContent = usage.remaining + ' consultas restantes este mes';
+}
+
+let _pendingFile = null;
+
+function initChat(token, restaurantId) {
+  _authToken = token;
+  _restaurantId = restaurantId;
+  document.getElementById('chat-wrap').hidden = false;
+  appendBubble('Hola! Soy tu asistente. Puedo responder preguntas sobre tus compras y ventas, y si me mandás una factura en PDF te ayudo a registrarla.', 'ai');
+
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  const attachBtn = document.getElementById('attach-btn');
+  const fileInput = document.getElementById('file-input');
+
+  sendBtn.addEventListener('click', sendChat);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
+  attachBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    _pendingFile = file;
+    appendBubble('📄 ' + file.name, 'user');
+    appendTipoChoice();
+    fileInput.value = '';
+  });
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  const question = input.value.trim();
+  if (!question || sendBtn.disabled) return;
+
+  appendBubble(question, 'user');
+  input.value = '';
+  sendBtn.disabled = true;
+  const typing = appendBubble('Pensando…', 'ai typing');
+
+  try {
+    if (_awaitingCorrection && _pending) {
+      const res = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'correct', extracted: _pending.extracted, correctionText: question, tipo: _pending.tipo, token: _authToken, restaurantId: _restaurantId }),
+      });
+      const data = await res.json();
+      typing.remove();
+      if (!res.ok) { appendBubble(data.error || 'No pude corregir eso.', 'ai'); }
+      else {
+        _pending.extracted = data.extracted;
+        appendSummaryCard(_pending.tipo, data.extracted);
+        updateUsage(data.usage);
+      }
+      _awaitingCorrection = false;
+      input.placeholder = 'Preguntá algo o adjuntá una factura...';
+    } else {
+      const res = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, token: _authToken, restaurantId: _restaurantId }),
+      });
+      const data = await res.json();
+      typing.remove();
+      if (res.status === 429) appendBubble(data.error, 'ai');
+      else { appendBubble(data.answer || data.error || 'Sin respuesta.', 'ai'); updateUsage(data.usage); }
+    }
+  } catch (err) {
+    typing.remove();
+    appendBubble('Error al conectar con el asistente. Intentá de nuevo.', 'ai');
+  }
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+async function boot() {
+  const session = getSession();
+  if (!session?.access_token) {
+    document.getElementById('loading').hidden = true;
+    document.getElementById('login-screen').hidden = false;
+    return;
+  }
+
+  try {
+    const [profile] = await sbGet(session.access_token, 'portal_users', { 'id': `eq.${session.user_id}`, 'select': 'role,restaurant_id' });
+    if (!profile) throw new Error('Sin perfil');
+
+    document.getElementById('loading').hidden = true;
+    document.getElementById('app').hidden = false;
+    _authToken = session.access_token;
+
+    if (profile.role === 'admin') {
+      const restaurants = await sbGet(session.access_token, 'restaurants', { 'select': 'id,name', 'order': 'name.asc' });
+      document.getElementById('user-label').textContent = 'Admin';
+      const picker = document.getElementById('admin-picker');
+      picker.hidden = false;
+      const select = document.getElementById('admin-restaurant-select');
+      select.innerHTML = '<option value="">Elegí un restaurante...</option>' +
+        restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+      select.addEventListener('change', () => {
+        if (select.value) initChat(session.access_token, select.value);
+      });
+    } else {
+      const [restaurant] = await sbGet(session.access_token, 'restaurants', { 'id': `eq.${profile.restaurant_id}`, 'select': 'name' });
+      document.getElementById('user-label').textContent = restaurant?.name || '';
+      initChat(session.access_token, profile.restaurant_id);
+    }
+  } catch (err) {
+    clearSession();
+    document.getElementById('loading').hidden = true;
+    document.getElementById('login-screen').hidden = false;
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  try {
+    const data = await login(email, password);
+    saveSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
+    location.reload();
+  } catch (e) {
+    err.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+  }
+});
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+boot().catch(console.error);
+</script>
+</body>
+</html>
