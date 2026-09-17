@@ -227,7 +227,7 @@ async function sbPost(token, endpoint, body) {
 async function sbUploadFile(token, path, arrayBuffer, contentType) {
   const res = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
     method: 'POST',
-    headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${token}`, 'Content-Type': contentType, 'x-upsert': 'true' },
+    headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${token}`, 'Content-Type': contentType },
     body: arrayBuffer,
   });
   if (!res.ok) throw new Error(`Storage upload: ${res.status} ${await res.text()}`);
