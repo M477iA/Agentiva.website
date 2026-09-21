@@ -1483,6 +1483,11 @@ function buildServiceCard(s) {
       <div class="meta-row">
         <span class="meta-label">Estado API</span>
         <span class="meta-value" style="color:${s.api_credit_ok ? 'var(--color-success)' : 'var(--color-error)'}">${s.api_credit_ok ? '✓ Activo' : '⚠ Sin crédito'}</span>
+      </div>` : ''}
+      ${s.api_credit_usd != null ? `
+      <div class="meta-row">
+        <span class="meta-label">Créditos API</span>
+        <span class="meta-value" style="color:${s.api_credit_usd < 2 ? 'var(--color-error)' : s.api_credit_usd < 5 ? 'var(--color-warning)' : 'var(--color-success)'}">~U$S ${Math.max(0, Number(s.api_credit_usd)).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} <span style="font-weight:400;font-size:11px;opacity:.65">estimado</span></span>
       </div>` : ''}` : ''}
     </div>
     ${s.viewer_url ? `
