@@ -456,6 +456,12 @@
   .overdue-icon { background: var(--color-error-highlight) !important; }
   .overdue-lbl  { color: var(--color-error) !important; }
   .overdue-amt  { color: var(--color-error) !important; }
+  .multi-banner .banner-row .banner-amount { font-size: 18px; }
+  .banner-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--color-error); }
+  .banner-total-label { font-size: 15px; font-weight: 700; color: var(--color-error); }
+  .banner-total-sub { font-size: 13px; color: var(--color-text-muted); margin-top: 2px; }
+  .banner-total .banner-amount { font-size: 28px; color: var(--color-error); }
 
   /* ── SERVICE CARDS ── */
   .services-grid {
@@ -691,6 +697,7 @@
 
     /* Payment banner */
     .payment-banner { padding: 14px 16px; margin-bottom: 24px; flex-direction: column; align-items: flex-start; }
+    .payment-banner.multi-banner { align-items: stretch; }
     .banner-amount  { font-size: 20px; }
     .banner-date    { font-size: 15px; }
     .banner-icon    { width: 32px; height: 32px; font-size: 14px; }
@@ -1405,9 +1412,20 @@ function renderBanner(pagos) {
 
   // Multiple pending: stacked rows inside the same banner
   const hasOverdue = overdue.length > 0;
+  // 2+ overdue: sum them per currency so the client sees the total owed at a glance
+  const overdueTotals = {};
+  overdue.forEach(p => { overdueTotals[p.moneda] = (overdueTotals[p.moneda] || 0) + Number(p.monto || 0); });
+  const totalHtml = overdue.length > 1 ? `
+      <div class="banner-total">
+        <div>
+          <div class="banner-total-label">Total adeudado</div>
+          <div class="banner-total-sub">${overdue.length} meses vencidos</div>
+        </div>
+        <div class="banner-amount">${Object.entries(overdueTotals).map(([m, t]) => fmtMonto(t, m)).join(' + ')}</div>
+      </div>` : '';
   container.innerHTML = `
     <div class="payment-banner${hasOverdue ? ' overdue' : ''} multi-banner">
-      <div class="banner-multi-label">${hasOverdue ? 'Pagos Pendientes' : 'Próximos Pagos'}</div>
+      <div class="banner-multi-label">${overdue.length > 1 ? `Pagos vencidos · ${overdue.length} meses` : hasOverdue ? 'Pagos Pendientes' : 'Próximos Pagos'}</div>
       ${allPending.map((p, i) => {
         const isOvd = p.fecha_vencimiento < today;
         const days  = isOvd ? null : daysDiff(today, p.fecha_vencimiento);
@@ -1427,6 +1445,7 @@ function renderBanner(pagos) {
           <div class="banner-amount${isOvd ? ' overdue-amt' : ''}">${fmtMonto(p.monto, p.moneda)}</div>
         </div>`;
       }).join('')}
+      ${totalHtml}
     </div>`;
 }
 
