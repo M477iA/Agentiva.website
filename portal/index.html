@@ -846,6 +846,260 @@
     .form-grid { grid-template-columns: 1fr; }
     .modal { padding: 20px 16px; }
   }
+
+  /* ══ ADMIN PANEL ═══════════════════════════════════════════════════════════
+     Order follows the research: KPIs → what needs action → reference tabs. */
+  .adm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .adm-head .page-sub::first-letter { text-transform: uppercase; }
+  .num { text-align: right !important; font-variant-numeric: tabular-nums; }
+
+  /* KPI strip: 4 equal tiles on the shared seamless-divider grid */
+  .adm-kpis {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px; background: var(--color-divider);
+    border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .adm-kpi {
+    background: var(--color-surface-2); padding: 20px 22px 18px;
+    display: flex; flex-direction: column; gap: 6px; min-width: 0;
+    text-align: left; border: none; font: inherit; color: inherit;
+  }
+  button.adm-kpi { cursor: pointer; transition: background var(--transition-interactive); }
+  button.adm-kpi:hover { background: var(--color-surface-offset); }
+  .adm-kpi-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .adm-kpi-value {
+    font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.05;
+    letter-spacing: -0.02em; color: var(--color-text); font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .adm-kpi-value small { font-size: 15px; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0; }
+  .adm-kpi-value.is-alert { color: var(--color-error); }
+  .adm-kpi-value.is-good { color: var(--color-success); }
+  .adm-kpi-sub { font-size: 12.5px; color: var(--color-text-muted); line-height: 1.4; }
+  .adm-kpi-sub strong { color: var(--color-text); font-weight: 600; }
+  .adm-kpi-sub.is-alert { color: var(--color-error); }
+  .adm-bar { height: 6px; border-radius: var(--radius-full); background: var(--color-surface-offset); overflow: hidden; margin-top: 4px; }
+  .adm-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+  .adm-costline {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 13px; color: var(--color-text-muted);
+    padding: 10px 4px 0; margin-bottom: 36px;
+  }
+  .adm-costline strong { color: var(--color-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .adm-costline .sep { color: var(--color-text-faint); }
+
+  .adm-link {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--color-primary);
+    text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    text-underline-offset: 3px;
+  }
+  .adm-link:hover { text-decoration-color: currentColor; }
+  [data-theme='dark'] .adm-link { color: var(--color-accent); }
+
+  .adm-section { margin-bottom: 40px; }
+  .adm-section-meta { font-size: 13px; color: var(--color-text-muted); }
+
+  /* Requiere atención */
+  .adm-attn { display: flex; flex-direction: column; gap: 10px; }
+  .adm-attn-card {
+    background: var(--color-surface-2); border: 1px solid var(--color-border);
+    border-left: 3px solid var(--attn, var(--color-warning));
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .adm-attn-card.is-overdue { --attn: var(--color-error); }
+  .adm-attn-headrow {
+    display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+    cursor: pointer; transition: background var(--transition-interactive);
+  }
+  .adm-attn-headrow:hover { background: var(--color-surface-offset); }
+  .adm-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--color-primary-highlight); color: var(--color-primary);
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  }
+  .adm-attn-who { flex: 1; min-width: 0; }
+  .adm-attn-name { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--color-text); }
+  .adm-attn-meta { font-size: 12.5px; color: var(--color-text-muted); margin-top: 1px; }
+  .adm-attn-card.is-overdue .adm-attn-meta { color: var(--color-error); }
+  .adm-attn-total { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--attn); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .adm-attn-rows { border-top: 1px solid var(--color-divider); }
+  .adm-line {
+    display: grid; grid-template-columns: minmax(130px, 1.2fr) minmax(0, 2fr) auto auto;
+    align-items: center; gap: 14px; padding: 9px 18px 9px 68px;
+    font-size: 13.5px; border-bottom: 1px solid var(--color-divider);
+  }
+  .adm-line:last-child { border-bottom: none; }
+  .adm-line-date { color: var(--color-text); font-weight: 500; }
+  .adm-line-date small { display: block; font-size: 11.5px; color: var(--color-text-muted); font-weight: 400; }
+  .adm-line-date.is-late small { color: var(--color-error); }
+  .adm-line-svc { color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adm-line-amt { font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .adm-allclear {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--color-surface-2); border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg); padding: 18px 20px;
+    font-size: 14px; color: var(--color-text-muted);
+  }
+  .adm-allclear-icon {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--color-success-highlight); color: var(--color-success); font-weight: 700;
+  }
+
+  /* Tabs (sub-tabs) */
+  .adm-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--color-divider); margin-bottom: 16px; }
+  .adm-tab {
+    position: relative; background: none; border: none; cursor: pointer;
+    font-family: var(--font-display); font-size: 14.5px; font-weight: 600;
+    color: var(--color-text-muted); padding: 10px 14px 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: color var(--transition-interactive);
+  }
+  .adm-tab:hover { color: var(--color-text); }
+  .adm-tab[aria-selected='true'] { color: var(--color-text); }
+  .adm-tab[aria-selected='true']::after {
+    content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px;
+    border-radius: 2px; background: var(--color-accent);
+  }
+  .adm-tab-count {
+    font-family: var(--font-body); font-size: 11.5px; font-weight: 600;
+    padding: 1px 7px; border-radius: var(--radius-full);
+    background: var(--color-surface-offset); color: var(--color-text-muted);
+  }
+  .adm-tab-count:empty { display: none; }
+
+  .adm-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .adm-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .adm-chip {
+    background: var(--color-surface-2); border: 1px solid var(--color-border); cursor: pointer;
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--color-text-muted);
+    padding: 5px 12px; border-radius: var(--radius-full);
+    transition: background var(--transition-interactive), color var(--transition-interactive), border-color var(--transition-interactive);
+  }
+  .adm-chip:hover { color: var(--color-text); border-color: var(--color-text-faint); }
+  .adm-chip[aria-pressed='true'] { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+  [data-theme='dark'] .adm-chip[aria-pressed='true'] { color: #05100b; }
+
+  /* Tables */
+  .adm-table td { vertical-align: middle; }
+  .adm-table tbody tr.is-clickable { cursor: pointer; }
+  .adm-table tbody tr.is-clickable:focus-visible td { background: var(--color-surface-offset); outline: none; }
+  .adm-cell-name { font-family: var(--font-display); font-weight: 600; color: var(--color-text); }
+  .adm-cell-sub { display: block; font-size: 12px; color: var(--color-text-muted); font-weight: 400; font-family: var(--font-body); }
+  .adm-money { font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .adm-money small { display: block; font-family: var(--font-body); font-size: 11.5px; font-weight: 400; color: var(--color-text-muted); }
+  .adm-money.is-alert { color: var(--color-error); }
+  .adm-dim { color: var(--color-text-faint); }
+  .adm-late { color: var(--color-error); font-weight: 500; }
+  .adm-footnote { font-size: 12px; color: var(--color-text-faint); margin-top: 10px; padding: 0 4px; }
+
+  /* Status pill: dot + text (never color alone) */
+  .adm-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 3px 10px 3px 8px; border-radius: var(--radius-full);
+    background: var(--st-bg); color: var(--st-fg); white-space: nowrap;
+  }
+  .adm-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st-vencido      { --st-bg: var(--color-error-highlight);   --st-fg: var(--color-error); }
+  .st-por-vencer   { --st-bg: var(--color-warning-highlight); --st-fg: var(--color-warning); }
+  .st-al-dia       { --st-bg: var(--color-success-highlight); --st-fg: var(--color-success); }
+  .st-pendiente    { --st-bg: var(--color-surface-offset);    --st-fg: var(--color-text-muted); }
+  .st-pagado       { --st-bg: var(--color-success-highlight); --st-fg: var(--color-success); }
+  .st-sin-servicios{ --st-bg: var(--color-surface-offset);    --st-fg: var(--color-text-faint); }
+
+  .adm-svc-chip {
+    display: inline-block; font-size: 11.5px; font-weight: 500; padding: 2px 9px; margin: 2px 4px 2px 0;
+    border-radius: var(--radius-full); background: var(--color-surface-offset); color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  /* Drawer */
+  .adm-drawer { position: fixed; inset: 0; z-index: 220; }
+  .adm-drawer[hidden] { display: none; }
+  .adm-drawer-backdrop { position: absolute; inset: 0; background: rgba(3, 9, 6, 0.45); animation: adm-fade 180ms ease-out; }
+  .adm-drawer-panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(480px, 100%);
+    background: var(--color-surface); border-left: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg); display: flex; flex-direction: column; outline: none;
+    animation: adm-slide 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes adm-fade { from { opacity: 0; } }
+  @keyframes adm-slide { from { transform: translateX(40px); opacity: 0; } }
+  .adm-drawer-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 22px 24px 18px; border-bottom: 1px solid var(--color-divider);
+  }
+  .adm-drawer-title { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--color-text); }
+  .adm-drawer-sub { font-size: 13px; color: var(--color-text-muted); margin-top: 3px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .adm-drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px 32px; }
+  .adm-dsum {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--color-divider);
+    border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 24px;
+  }
+  .adm-dsum > div { background: var(--color-surface-2); padding: 12px 14px; min-width: 0; }
+  .adm-dsum-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); }
+  .adm-dsum-value { font-family: var(--font-display); font-weight: 700; font-size: 17px; margin-top: 4px; font-variant-numeric: tabular-nums; color: var(--color-text); }
+  .adm-dsum-value.is-alert { color: var(--color-error); }
+  .adm-dsec-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-primary); margin: 0 0 10px; }
+  [data-theme='dark'] .adm-dsec-title { color: var(--color-accent); }
+  .adm-dlist { border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 24px; }
+  .adm-ditem { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--color-divider); font-size: 13.5px; }
+  .adm-ditem:last-child { border-bottom: none; }
+  .adm-ditem-main { flex: 1; min-width: 0; }
+  .adm-ditem-title { color: var(--color-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adm-ditem-sub { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+  .adm-ditem-sub.is-late { color: var(--color-error); }
+  .adm-ditem.is-inactive { opacity: 0.55; }
+  .adm-dempty { padding: 16px 14px; font-size: 13px; color: var(--color-text-muted); }
+
+  /* Undo snackbar */
+  .adm-snack {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 320;
+    display: flex; align-items: center; gap: 16px;
+    background: var(--color-chrome-bg); color: var(--color-chrome-text);
+    border-radius: var(--radius-md); padding: 12px 14px 12px 18px;
+    box-shadow: var(--shadow-lg); font-size: 14px; max-width: calc(100% - 32px);
+    animation: adm-snack-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .adm-snack[hidden] { display: none; }
+  @keyframes adm-snack-in { from { transform: translate(-50%, 12px); opacity: 0; } }
+  .adm-snack-btn {
+    background: none; border: 1px solid var(--color-chrome-border); color: #7ff0a8; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 13px; padding: 5px 12px; border-radius: var(--radius-full);
+  }
+  .adm-snack-btn:hover { background: var(--color-chrome-surface); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .adm-drawer-backdrop, .adm-drawer-panel, .adm-snack { animation: none; }
+    .adm-bar > span { transition: none; }
+  }
+
+  @media (max-width: 900px) {
+    .adm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .adm-head { margin-bottom: 20px; }
+    #adm-attn-meta { display: none; }
+    .adm-kpi { padding: 14px 14px 12px; }
+    .adm-kpi-value { font-size: 22px; }
+    .adm-kpi-value small { font-size: 12px; }
+    .adm-attn-headrow { padding: 12px 14px; gap: 10px; }
+    .adm-attn-total { font-size: 16px; }
+    .adm-line { grid-template-columns: 1fr auto; padding: 10px 14px; gap: 4px 10px; }
+    .adm-line-svc { grid-column: 1; grid-row: 2; }
+    .adm-line-amt { grid-column: 2; grid-row: 1; }
+    .adm-line .btn-mark-paid { grid-column: 2; grid-row: 2; justify-self: end; }
+    .adm-tab { padding: 10px 10px 12px; font-size: 14px; }
+    .adm-dsum { grid-template-columns: 1fr 1fr; }
+    .adm-drawer-head, .adm-drawer-body { padding-left: 16px; padding-right: 16px; }
+  }
 </style>
 </head>
 <body>
@@ -960,101 +1214,101 @@
 
     <!-- ── ADMIN DASHBOARD ── -->
     <div id="admin-view" hidden>
-      <div class="page-header">
-        <div class="page-eyebrow">Admin · Agentiva</div>
-        <h1 class="page-title">Panel de Control</h1>
-        <p class="page-sub">Clientes activos, servicios y cobros.</p>
+      <div class="adm-head">
+        <div>
+          <div class="page-eyebrow">Admin · Agentiva</div>
+          <h1 class="page-title">Panel de Control</h1>
+          <p class="page-sub" id="adm-today"></p>
+        </div>
+        <button class="btn btn-secondary" onclick="openAddClientModal()">+ Agregar cliente</button>
       </div>
 
-      <div class="stats-row" id="admin-stats"></div>
+      <div class="adm-kpis" id="adm-kpis"></div>
+      <div class="adm-costline" id="adm-costline"></div>
 
-      <div class="section">
+      <section class="adm-section" aria-labelledby="adm-attn-title">
         <div class="section-header">
-          <div class="section-title">Cobros Próximos (30 días)</div>
+          <div class="section-title" id="adm-attn-title">Requiere atención</div>
+          <span class="adm-section-meta" id="adm-attn-meta"></span>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Vencimiento</th>
-                <th>Monto</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="upcoming-body"></tbody>
-          </table>
-        </div>
-      </div>
+        <div id="adm-attn"></div>
+      </section>
 
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Todos los Clientes</div>
-          <button class="btn btn-secondary" onclick="openAddClientModal()">+ Agregar cliente</button>
+      <section class="adm-section">
+        <div class="adm-tabs" role="tablist" aria-label="Secciones del panel">
+          <button class="adm-tab" role="tab" data-adm-tab="clientes">Clientes <span class="adm-tab-count" id="adm-count-clientes"></span></button>
+          <button class="adm-tab" role="tab" data-adm-tab="pagos">Pagos <span class="adm-tab-count" id="adm-count-pagos"></span></button>
+          <button class="adm-tab" role="tab" data-adm-tab="costos">Costos <span class="adm-tab-count" id="adm-count-costos"></span></button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Empresa</th>
-                <th>Servicios Activos</th>
-                <th>Próximo Pago</th>
-                <th>MRR (USD)</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="admin-clients-body"></tbody>
-          </table>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Historial Completo de Pagos</div>
+        <div class="adm-panel" data-adm-panel="clientes">
+          <div class="table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Estado</th>
+                  <th>Servicios</th>
+                  <th class="num">Mensual</th>
+                  <th>Próximo vencimiento</th>
+                  <th class="num">Adeudado</th>
+                </tr>
+              </thead>
+              <tbody id="adm-clients-body"></tbody>
+            </table>
+          </div>
+          <p class="adm-footnote">Mensual = servicios activos; los anuales se dividen por 12 y los pagos únicos no cuentan. Hacé click en un cliente para ver el detalle.</p>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Vencimiento</th>
-                <th>Fecha de Pago</th>
-                <th>Monto</th>
-                <th>Estado</th>
-                <th>Método</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="admin-all-payments-body"></tbody>
-          </table>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Costos Operativos</div>
-          <button class="btn btn-secondary" onclick="openAddCostModal()">+ Agregar costo</button>
+        <div class="adm-panel" data-adm-panel="pagos" hidden>
+          <div class="adm-toolbar">
+            <div class="adm-chips" id="adm-pay-chips">
+              <button class="adm-chip" data-adm-payfilter="todos">Todos</button>
+              <button class="adm-chip" data-adm-payfilter="pendientes">Pendientes</button>
+              <button class="adm-chip" data-adm-payfilter="pagados">Pagados</button>
+            </div>
+            <button class="adm-link" id="adm-pay-window" data-adm-action="toggle-window"></button>
+          </div>
+          <div class="table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Vencimiento</th>
+                  <th>Cliente</th>
+                  <th>Servicio</th>
+                  <th class="num">Monto</th>
+                  <th>Estado</th>
+                  <th>Pagado el</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adm-payments-body"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Categoría</th>
-                <th>Descripción</th>
-                <th>Monto (USD)</th>
-                <th>Fecha</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="costs-body"></tbody>
-          </table>
+
+        <div class="adm-panel" data-adm-panel="costos" hidden>
+          <div class="adm-toolbar">
+            <span class="adm-section-meta">Costos operativos en USD (API, hosting, etc.)</span>
+            <button class="btn btn-secondary btn-sm" onclick="openAddCostModal()">+ Agregar costo</button>
+          </div>
+          <div class="table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Categoría</th>
+                  <th>Descripción</th>
+                  <th class="num">Monto (USD)</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="costs-body"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
 
   </main>
@@ -1108,7 +1362,15 @@
               <input type="text" id="ac-svc-desc" placeholder="Breve descripción del servicio">
             </div>
             <div class="field">
-              <label>Precio mensual</label>
+              <label>Facturación</label>
+              <select id="ac-svc-facturacion" onchange="syncBillingLabels()">
+                <option value="mensual">Mensual</option>
+                <option value="anual">Anual</option>
+                <option value="unico">Pago único</option>
+              </select>
+            </div>
+            <div class="field">
+              <label id="ac-svc-precio-label">Precio mensual</label>
               <input type="number" id="ac-svc-precio" placeholder="100" min="0" step="0.01" required>
             </div>
             <div class="field">
@@ -1149,8 +1411,8 @@
               <label>Fecha primer vencimiento</label>
               <input type="date" id="ac-pago-inicio" required>
             </div>
-            <div class="field">
-              <label>Meses a generar</label>
+            <div class="field" id="ac-pago-meses-field">
+              <label id="ac-pago-meses-label">Meses a generar</label>
               <input type="number" id="ac-pago-meses" value="3" min="1" max="24" required>
             </div>
           </div>
@@ -1216,6 +1478,27 @@
         </div>
       </form>
     </div>
+</div>
+
+<!-- ── ADMIN: CLIENT DRAWER ── -->
+<div id="adm-drawer" class="adm-drawer" hidden>
+  <div class="adm-drawer-backdrop" data-adm-action="close-drawer"></div>
+  <aside class="adm-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="adm-drawer-title" tabindex="-1">
+    <header class="adm-drawer-head">
+      <div>
+        <div class="adm-drawer-title" id="adm-drawer-title"></div>
+        <div class="adm-drawer-sub" id="adm-drawer-sub"></div>
+      </div>
+      <button class="btn-icon" data-adm-action="close-drawer" aria-label="Cerrar">&times;</button>
+    </header>
+    <div class="adm-drawer-body" id="adm-drawer-body"></div>
+  </aside>
+</div>
+
+<!-- ── ADMIN: UNDO SNACKBAR ── -->
+<div id="adm-snack" class="adm-snack" role="status" aria-live="polite" hidden>
+  <span id="adm-snack-text"></span>
+  <button class="adm-snack-btn" data-adm-action="undo">Deshacer</button>
 </div>
 
 <script>
@@ -1593,130 +1876,404 @@ function renderPayments(pagos, bodyId, showClient) {
 }
 
 // ── ADMIN VIEW ────────────────────────────────────────────────────────────────
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+// One data snapshot (_adm) feeds every admin view, so KPIs, attention list,
+// clients table and drawer always agree. Writes update the snapshot first
+// (optimistic) and re-render without refetching.
+const _adm = { P: [], S: [], G: [], C: [], costsError: null, tab: 'clientes', payFilter: 'todos', payAll: false, drawerId: null, undo: null };
+const PAID_STATES = new Set(['pagado', 'cubierto']);
+const SOON_DAYS = 7;
+const PAY_WINDOW_MONTHS = 6;
+
+const isPaid = p => PAID_STATES.has(p.estado);
+const isOpen = p => !isPaid(p);                        // pendiente (or a stored 'vencido')
+
 async function renderAdmin() {
   show('admin-view');
+  initAdminUI();
 
-  const [profiles, services, pagos, costs] = await Promise.all([
+  const [profiles, services, pagos] = await Promise.all([
     sbQuery('client_profiles', 'role=eq.client&order=nombre', currentToken),
     sbQuery('services', 'order=nombre', currentToken),
     sbQuery('pagos', 'select=*,services(nombre),client_profiles(nombre,empresa)&order=fecha_vencimiento.desc', currentToken),
-    sbQuery('agentiva_costs', 'select=*,client_profiles(nombre)&order=date.desc', currentToken).catch(() => []),
   ]);
+  let costs = [];
+  _adm.costsError = null;
+  try {
+    costs = await sbQuery('agentiva_costs', 'select=*,client_profiles(nombre)&order=date.desc', currentToken);
+    if (!Array.isArray(costs)) { _adm.costsError = (costs && costs.message) || 'Error'; costs = []; }
+  } catch (e) { _adm.costsError = e.message || 'Error'; }
 
-  const P = profiles || [];
-  const S = services || [];
-  const G = pagos   || [];
-  const today = today_date();
-
-  // Stats
-  const activeS  = S.filter(s => s.estado === 'activo');
-  const mrr      = activeS.reduce((acc, s) => acc + (s.moneda === 'USD' ? (s.precio || 0) : 0), 0);
-  const overdue  = G.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento < today);
-  const pendingG = G.filter(p => p.estado === 'pendiente');
-
-  const thisMonth    = today.slice(0, 7);
-  const C            = costs || [];
-  const monthCosts   = C.filter(c => c.date && c.date.startsWith(thisMonth));
-  const totalCostUsd = monthCosts.reduce((a, c) => a + Number(c.amount_usd || 0), 0);
-  const margin       = mrr - totalCostUsd;
-
-  $('admin-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Clientes</div>
-      <div class="stat-value">${P.length}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Servicios Activos</div>
-      <div class="stat-value">${activeS.length}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">MRR en USD</div>
-      <div class="stat-value teal">U$S ${mrr.toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:0})}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Cobros Vencidos</div>
-      <div class="stat-value ${overdue.length ? 'red' : ''}">${overdue.length}</div>
-      ${overdue.length ? '<div class="stat-sub" style="color:var(--color-error)">Requieren atención</div>' : '<div class="stat-sub">Al día</div>'}
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Costos del Mes</div>
-      <div class="stat-value ${totalCostUsd > 0 ? 'red' : ''}">U$S ${totalCostUsd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-      <div class="stat-sub">Este mes</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Margen del Mes</div>
-      <div class="stat-value ${margin >= 0 ? 'teal' : 'red'}">${margin < 0 ? '-' : ''}U$S ${Math.abs(margin).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-      <div class="stat-sub">MRR − costos</div>
-    </div>`;
-
-  // Upcoming payments (next 30 days + overdue)
-  const in30 = date_plus_days(today, 30);
-  const upcoming = G.filter(p => p.estado === 'pendiente' && p.fecha_vencimiento <= in30)
-                    .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
-
-  const upBody = $('upcoming-body');
-  if (!upcoming.length) {
-    upBody.innerHTML = '<tr class="empty-state"><td colspan="6">Sin cobros pendientes en los próximos 30 días.</td></tr>';
-  } else {
-    upBody.innerHTML = upcoming.map(p => {
-      const late = p.fecha_vencimiento < today;
-      return `<tr>
-        <td class="td-primary">${esc(p.client_profiles?.nombre || '—')}</td>
-        <td>${esc(p.services?.nombre || '—')}</td>
-        <td style="color:${late ? 'var(--color-error)' : 'var(--color-text)'}">${fmtDate(p.fecha_vencimiento)}</td>
-        <td class="td-mono">${fmtMonto(p.monto, p.moneda)}</td>
-        <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
-        <td><button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button></td>
-      </tr>`;
-    }).join('');
-  }
-
-  // All clients table
-  const clBody = $('admin-clients-body');
-  if (!P.length) {
-    clBody.innerHTML = '<tr class="empty-state"><td colspan="6">Sin clientes registrados.</td></tr>';
-  } else {
-    clBody.innerHTML = P.map(profile => {
-      const cs = S.filter(s => s.client_id === profile.id);
-      const activeCount = cs.filter(s => s.estado === 'activo').length;
-      const clientMrr   = cs.filter(s => s.estado === 'activo' && s.moneda === 'USD')
-                            .reduce((a, s) => a + (s.precio || 0), 0);
-      const nextPago = G.filter(p => p.client_id === profile.id && p.estado === 'pendiente' && p.fecha_vencimiento >= today)
-                        .sort((a,b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento))[0];
-      const isOverdue = G.some(p => p.client_id === profile.id && p.estado === 'pendiente' && p.fecha_vencimiento < today);
-
-      return `<tr>
-        <td class="td-primary">${esc(profile.nombre)}</td>
-        <td>${esc(profile.empresa || '—')}</td>
-        <td>${activeCount}</td>
-        <td>${nextPago ? fmtDate(nextPago.fecha_vencimiento) : '<span class="td-muted">—</span>'}</td>
-        <td class="td-mono">${clientMrr > 0 ? `U$S ${clientMrr.toLocaleString('es-AR')}` : '<span class="td-muted">—</span>'}</td>
-        <td><span class="badge badge-${isOverdue ? 'vencido' : 'activo'}">${isOverdue ? 'Vencido' : 'Al día'}</span></td>
-      </tr>`;
-    }).join('');
-  }
-
-  // All payments
-  renderPayments(G, 'admin-all-payments-body', true);
-
-  // Costs
-  _costProfiles = P;
-  renderCosts(C);
+  _adm.P = profiles || [];
+  const clientIds = new Set(_adm.P.map(p => p.id));
+  _adm.S = (services || []).filter(s => clientIds.has(s.client_id));   // only real clients' services
+  _adm.G = (pagos || []).filter(p => clientIds.has(p.client_id));
+  _adm.C = costs;
+  _costProfiles = _adm.P;
+  renderAdminViews();
 }
 
-async function markPaid(pagoId, btn) {
-  btn.disabled = true;
-  btn.textContent = '...';
-  const ok = await sbUpdate('pagos', `id=eq.${pagoId}`, { estado: 'pagado', fecha_pago: today_date() }, currentToken);
-  if (ok) {
-    const row = btn.closest('tr');
-    row.style.transition = 'opacity 0.25s';
-    row.style.opacity = '0.3';
-    setTimeout(() => row.remove(), 300);
+// ── Derived numbers ──
+function svcMonthly(s) {
+  if (s.estado !== 'activo') return 0;
+  const f = s.facturacion || 'mensual';
+  if (f === 'unico') return 0;
+  return Number(s.precio || 0) / (f === 'anual' ? 12 : 1);
+}
+function addTo(map, cur, n) { if (n) map[cur || 'USD'] = (map[cur || 'USD'] || 0) + n; return map; }
+function fmtMoneyMap(map, empty = '—') {
+  const order = ['USD', 'ARS', 'EUR'];
+  const parts = order.filter(c => map[c]).map(c => fmtMonto(Math.round(map[c] * 100) / 100, c));
+  return parts.length ? parts.join(' · ') : empty;
+}
+function monthsAgo(iso, n) { return add_months(iso.slice(0, 8) + '01', -n); }
+
+function clientSummary(profile) {
+  const today = today_date();
+  const soon = date_plus_days(today, SOON_DAYS);
+  const services = _adm.S.filter(s => s.client_id === profile.id);
+  const active = services.filter(s => s.estado === 'activo');
+  const pagos = _adm.G.filter(p => p.client_id === profile.id);
+  const open = pagos.filter(isOpen).sort((a, b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+  const overdue = open.filter(p => p.fecha_vencimiento < today);
+  const dueSoon = open.filter(p => p.fecha_vencimiento >= today && p.fecha_vencimiento <= soon);
+  const monthly = active.reduce((m, s) => addTo(m, s.moneda, svcMonthly(s)), {});
+  const owed = overdue.reduce((m, p) => addTo(m, p.moneda, Number(p.monto || 0)), {});
+  const nextDue = open.find(p => p.fecha_vencimiento >= today) || null;
+  const status = overdue.length ? 'vencido' : dueSoon.length ? 'por-vencer' : active.length ? 'al-dia' : 'sin-servicios';
+  return { profile, services, active, pagos, open, overdue, dueSoon, monthly, owed, nextDue, status,
+           oldestOverdue: overdue[0] || null, daysLate: overdue[0] ? daysDiff(overdue[0].fecha_vencimiento, today) : 0 };
+}
+const STATUS_LABEL = { 'vencido': 'Vencido', 'por-vencer': 'Por vencer', 'al-dia': 'Al día', 'sin-servicios': 'Sin servicios' };
+const STATUS_RANK  = { 'vencido': 0, 'por-vencer': 1, 'al-dia': 2, 'sin-servicios': 3 };
+const statusPill = st => `<span class="adm-status st-${st}">${STATUS_LABEL[st]}</span>`;
+const initials = name => (name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const FACT_LABEL = { mensual: 'Mensual', anual: 'Anual', unico: 'Pago único' };
+
+function payState(p) {
+  if (isPaid(p)) return 'pagado';
+  return p.fecha_vencimiento < today_date() ? 'vencido' : 'pendiente';
+}
+const PAY_LABEL = { pagado: 'Pagado', vencido: 'Vencido', pendiente: 'Pendiente' };
+
+// ── Render ──
+function renderAdminViews() {
+  const sums = _adm.P.map(clientSummary);
+  renderAdminKpis(sums);
+  renderAdminAttention(sums);
+  renderAdminClients(sums);
+  renderAdminPayments();
+  renderCosts(_adm.C);
+  $('adm-count-clientes').textContent = _adm.P.length || '';
+  $('adm-count-pagos').textContent = _adm.G.filter(isOpen).length || '';
+  $('adm-count-costos').textContent = _adm.C.length || '';
+  setAdminTab(_adm.tab);
+  if (_adm.drawerId) renderDrawer(_adm.drawerId);
+}
+
+function renderAdminKpis(sums) {
+  const today = today_date();
+  const month = today.slice(0, 7);
+  const monthName = new Date(today + 'T12:00:00').toLocaleDateString('es-AR', { month: 'long' });
+  $('adm-today').textContent = new Date(today + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  // MRR (per currency, never summed across currencies)
+  const mrr = sums.reduce((m, c) => { Object.entries(c.monthly).forEach(([k, v]) => addTo(m, k, v)); return m; }, {});
+  const usdMrr = mrr.USD || 0;
+  const others = ['ARS', 'EUR'].filter(c => mrr[c]).map(c => `+ ${fmtMonto(Math.round(mrr[c]), c)}/mes`);
+  const biggest = sums.filter(c => (c.monthly.USD || 0) > 0).sort((a, b) => (b.monthly.USD || 0) - (a.monthly.USD || 0))[0];
+  const share = biggest && usdMrr ? Math.round((biggest.monthly.USD / usdMrr) * 100) : 0;
+
+  // Cobrado este mes vs esperado (USD rows due this month, plus anything paid this month)
+  const dueThisMonth = _adm.G.filter(p => p.moneda === 'USD' && p.fecha_vencimiento.startsWith(month));
+  const expected = dueThisMonth.reduce((a, p) => a + Number(p.monto || 0), 0);
+  const collected = _adm.G.filter(p => p.moneda === 'USD' && isPaid(p) && (p.fecha_pago || '').startsWith(month))
+                          .reduce((a, p) => a + Number(p.monto || 0), 0);
+  const pct = expected ? Math.min(100, Math.round((collected / expected) * 100)) : (collected ? 100 : 0);
+
+  // Adeudado (overdue)
+  const owed = sums.reduce((m, c) => { Object.entries(c.owed).forEach(([k, v]) => addTo(m, k, v)); return m; }, {});
+  const owingClients = sums.filter(c => c.overdue.length).length;
+  const activeClients = sums.filter(c => c.active.length).length;
+  const fmtUsd = n => `U$S ${Math.round(n).toLocaleString('es-AR')}`;
+
+  $('adm-kpis').innerHTML = `
+    <div class="adm-kpi">
+      <div class="adm-kpi-label">Ingreso mensual (MRR)</div>
+      <div class="adm-kpi-value">${fmtUsd(usdMrr)}<small> /mes</small></div>
+      <div class="adm-kpi-sub">${others.length ? others.join(' · ') : 'Servicios activos recurrentes'}</div>
+    </div>
+    <div class="adm-kpi">
+      <div class="adm-kpi-label">Cobrado en ${esc(monthName)}</div>
+      <div class="adm-kpi-value ${expected && collected >= expected ? 'is-good' : ''}">${fmtUsd(collected)}<small> de ${fmtUsd(expected)}</small></div>
+      <div class="adm-bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+      <div class="adm-kpi-sub">${expected ? `${pct}% de lo que vence este mes` : 'Nada vence este mes'}</div>
+    </div>
+    <button class="adm-kpi" data-adm-action="show-overdue" title="Ver clientes con pagos vencidos">
+      <div class="adm-kpi-label">Adeudado</div>
+      <div class="adm-kpi-value ${owingClients ? 'is-alert' : 'is-good'}">${owingClients ? fmtMoneyMap(owed) : 'U$S 0'}</div>
+      <div class="adm-kpi-sub ${owingClients ? 'is-alert' : ''}">${owingClients ? `${owingClients} cliente${owingClients > 1 ? 's' : ''} con pagos vencidos` : 'Todo cobrado ✓'}</div>
+    </button>
+    <div class="adm-kpi">
+      <div class="adm-kpi-label">Clientes activos</div>
+      <div class="adm-kpi-value">${activeClients}</div>
+      <div class="adm-kpi-sub">${share >= 25 ? `<strong>${esc(biggest.profile.nombre)}</strong> = ${share}% del MRR` : `${_adm.S.filter(s => s.estado === 'activo').length} servicios activos`}</div>
+    </div>`;
+
+  // Costs line: margin only once real costs exist (research: margin with no costs = MRR repeated)
+  const monthCosts = _adm.C.filter(c => (c.date || '').startsWith(month));
+  const costUsd = monthCosts.reduce((a, c) => a + Number(c.amount_usd || 0), 0);
+  const line = $('adm-costline');
+  if (_adm.costsError) {
+    line.innerHTML = `<span>Costos: no se pudieron cargar (${esc(_adm.costsError)}).</span>`;
+  } else if (!monthCosts.length) {
+    line.innerHTML = `<span>Costos de ${esc(monthName)}: sin cargar</span><span class="sep">·</span><button class="adm-link" onclick="openAddCostModal()">Agregar costo</button><span class="sep">·</span><span>el margen aparece cuando haya costos.</span>`;
   } else {
-    btn.textContent = 'Error';
-    btn.style.color = 'var(--color-error)';
+    const margin = usdMrr - costUsd;
+    line.innerHTML = `<span>Costos de ${esc(monthName)}: <strong>${fmtMonto(Math.round(costUsd * 100) / 100, 'USD')}</strong></span><span class="sep">·</span><span>Margen: <strong style="color:${margin >= 0 ? 'var(--color-success)' : 'var(--color-error)'}">${margin < 0 ? '−' : ''}${fmtUsd(Math.abs(margin))}</strong> (${usdMrr ? Math.round((margin / usdMrr) * 100) : 0}%)</span>`;
   }
+}
+
+function renderAdminAttention(sums) {
+  const list = sums.filter(c => c.overdue.length || c.dueSoon.length)
+                   .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.daysLate - a.daysLate);
+  const box = $('adm-attn');
+  $('adm-attn-meta').textContent = list.length ? `Vencidos y lo que vence en los próximos ${SOON_DAYS} días` : '';
+  if (!list.length) {
+    box.innerHTML = `<div class="adm-allclear"><span class="adm-allclear-icon">✓</span>Todo al día. No hay pagos vencidos ni vencimientos en los próximos ${SOON_DAYS} días.</div>`;
+    return;
+  }
+  const today = today_date();
+  box.className = 'adm-attn';
+  box.innerHTML = list.map(c => {
+    const rows = [...c.overdue, ...c.dueSoon];
+    const total = rows.reduce((m, p) => addTo(m, p.moneda, Number(p.monto || 0)), {});
+    const meta = c.overdue.length
+      ? `${c.overdue.length} cuota${c.overdue.length > 1 ? 's' : ''} vencida${c.overdue.length > 1 ? 's' : ''} · la más antigua hace ${c.daysLate} día${c.daysLate !== 1 ? 's' : ''}`
+      : `Vence en ${daysDiff(today, c.dueSoon[0].fecha_vencimiento)} día${daysDiff(today, c.dueSoon[0].fecha_vencimiento) !== 1 ? 's' : ''}`;
+    return `
+      <div class="adm-attn-card ${c.overdue.length ? 'is-overdue' : ''}">
+        <div class="adm-attn-headrow" data-adm-action="open-client" data-id="${c.profile.id}">
+          <div class="adm-avatar">${esc(initials(c.profile.nombre))}</div>
+          <div class="adm-attn-who">
+            <div class="adm-attn-name">${esc(c.profile.nombre)}${c.profile.empresa ? ` <span class="adm-cell-sub" style="display:inline">· ${esc(c.profile.empresa)}</span>` : ''}</div>
+            <div class="adm-attn-meta">${meta}</div>
+          </div>
+          <div class="adm-attn-total">${fmtMoneyMap(total)}</div>
+        </div>
+        <div class="adm-attn-rows">${rows.map(p => payLine(p)).join('')}</div>
+      </div>`;
+  }).join('');
+}
+
+function payLine(p) {
+  const today = today_date();
+  const late = p.fecha_vencimiento < today;
+  const d = Math.abs(daysDiff(today, p.fecha_vencimiento));
+  const when = late ? `hace ${d} día${d !== 1 ? 's' : ''}` : d === 0 ? 'hoy' : `en ${d} día${d !== 1 ? 's' : ''}`;
+  return `
+    <div class="adm-line">
+      <div class="adm-line-date ${late ? 'is-late' : ''}">${fmtDateShort(p.fecha_vencimiento)}<small>${when}</small></div>
+      <div class="adm-line-svc">${esc(p.services?.nombre || '—')}</div>
+      <div class="adm-line-amt">${fmtMonto(p.monto, p.moneda)}</div>
+      <button class="btn-mark-paid" data-adm-action="mark-paid" data-id="${p.id}">Marcar pagado</button>
+    </div>`;
+}
+
+function renderAdminClients(sums) {
+  const body = $('adm-clients-body');
+  if (!sums.length) {
+    body.innerHTML = '<tr class="empty-state"><td colspan="6">Todavía no hay clientes. Usá “+ Agregar cliente”.</td></tr>';
+    return;
+  }
+  const rows = [...sums].sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status]
+                                       || (b.monthly.USD || 0) - (a.monthly.USD || 0)
+                                       || a.profile.nombre.localeCompare(b.profile.nombre));
+  body.innerHTML = rows.map(c => {
+    const svcNames = c.active.map(s => `<span class="adm-svc-chip">${esc(s.nombre)}</span>`).join('') || '<span class="adm-dim">—</span>';
+    const due = c.oldestOverdue
+      ? `<span class="adm-late">Vencido desde ${fmtDateShort(c.oldestOverdue.fecha_vencimiento)}</span>`
+      : c.nextDue ? fmtDateShort(c.nextDue.fecha_vencimiento) : '<span class="adm-dim">Sin cobros cargados</span>';
+    const owedTxt = fmtMoneyMap(c.owed, '');
+    return `
+      <tr class="is-clickable" tabindex="0" data-adm-action="open-client" data-id="${c.profile.id}">
+        <td><span class="adm-cell-name">${esc(c.profile.nombre)}</span>${c.profile.empresa ? `<span class="adm-cell-sub">${esc(c.profile.empresa)}</span>` : ''}</td>
+        <td>${statusPill(c.status)}</td>
+        <td style="white-space:normal;max-width:260px">${svcNames}</td>
+        <td class="num"><span class="adm-money">${fmtMoneyMap(c.monthly)}</span></td>
+        <td>${due}</td>
+        <td class="num">${owedTxt ? `<span class="adm-money is-alert">${owedTxt}</span>` : '<span class="adm-dim">—</span>'}</td>
+      </tr>`;
+  }).join('');
+}
+
+function renderAdminPayments() {
+  const today = today_date();
+  const from = monthsAgo(today, PAY_WINDOW_MONTHS);
+  let rows = [..._adm.G];
+  if (_adm.payFilter === 'pendientes') rows = rows.filter(isOpen);
+  if (_adm.payFilter === 'pagados') rows = rows.filter(isPaid);
+  const total = rows.length;
+  if (!_adm.payAll) rows = rows.filter(p => isOpen(p) || (p.fecha_pago || p.fecha_vencimiento) >= from);
+  rows.sort((a, b) => b.fecha_vencimiento.localeCompare(a.fecha_vencimiento));
+
+  document.querySelectorAll('[data-adm-payfilter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.admPayfilter === _adm.payFilter)));
+  const hidden = total - rows.length;
+  const winBtn = $('adm-pay-window');
+  winBtn.hidden = !_adm.payAll && !hidden;
+  winBtn.textContent = _adm.payAll ? `Ver solo últimos ${PAY_WINDOW_MONTHS} meses` : `Ver todo (${hidden} más antiguos)`;
+
+  const body = $('adm-payments-body');
+  if (!rows.length) {
+    body.innerHTML = '<tr class="empty-state"><td colspan="7">No hay pagos para este filtro.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(p => {
+    const st = payState(p);
+    return `
+      <tr>
+        <td class="${st === 'vencido' ? 'adm-late' : ''}">${fmtDateShort(p.fecha_vencimiento)}</td>
+        <td><span class="adm-cell-name">${esc(p.client_profiles?.nombre || '—')}</span></td>
+        <td class="td-muted">${esc(p.services?.nombre || '—')}</td>
+        <td class="num"><span class="adm-money">${fmtMonto(p.monto, p.moneda)}</span></td>
+        <td><span class="adm-status st-${st}">${PAY_LABEL[st]}</span></td>
+        <td class="td-muted">${p.fecha_pago ? fmtDateShort(p.fecha_pago) + (p.metodo ? ` · ${esc(p.metodo)}` : '') : '—'}</td>
+        <td class="num">${st !== 'pagado' ? `<button class="btn-mark-paid" data-adm-action="mark-paid" data-id="${p.id}">Marcar pagado</button>` : ''}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ── Drawer ──
+function openClientDrawer(id) {
+  _adm.drawerId = id;
+  _adm.drawerReturn = document.activeElement;
+  renderDrawer(id);
+  show('adm-drawer');
+  document.body.classList.add('modal-open');
+  document.querySelector('.adm-drawer-panel').focus();
+}
+function closeClientDrawer() {
+  _adm.drawerId = null;
+  hide('adm-drawer');
+  document.body.classList.remove('modal-open');
+  if (_adm.drawerReturn && _adm.drawerReturn.focus) _adm.drawerReturn.focus();
+}
+function renderDrawer(id) {
+  const profile = _adm.P.find(p => p.id === id);
+  if (!profile) { closeClientDrawer(); return; }
+  const c = clientSummary(profile);
+  $('adm-drawer-title').textContent = profile.nombre;
+  $('adm-drawer-sub').innerHTML = `${statusPill(c.status)}${profile.empresa ? `<span>${esc(profile.empresa)}</span>` : ''}${profile.email ? `<span>· ${esc(profile.email)}</span>` : ''}`;
+
+  const services = [...c.services].sort((a, b) => (a.estado === 'activo' ? 0 : 1) - (b.estado === 'activo' ? 0 : 1));
+  const pagos = [...c.pagos].sort((a, b) => b.fecha_vencimiento.localeCompare(a.fecha_vencimiento));
+  const svcHtml = services.length ? services.map(s => {
+    const f = s.facturacion || 'mensual';
+    const per = f === 'mensual' ? '/mes' : f === 'anual' ? '/año' : '';
+    return `
+      <div class="adm-ditem ${s.estado !== 'activo' ? 'is-inactive' : ''}">
+        <div class="adm-ditem-main">
+          <div class="adm-ditem-title">${esc(s.nombre)}</div>
+          <div class="adm-ditem-sub">${FACT_LABEL[f] || f}${s.fecha_inicio ? ` · desde ${fmtDateShort(s.fecha_inicio)}` : ''}${s.estado !== 'activo' ? ` · ${esc(cap(s.estado))}` : ''}</div>
+        </div>
+        <div class="adm-money">${s.precio != null ? fmtMonto(s.precio, s.moneda) + `<small style="display:inline"> ${per}</small>` : '—'}</div>
+      </div>`;
+  }).join('') : '<div class="adm-dempty">Sin servicios.</div>';
+
+  const payHtml = pagos.length ? pagos.map(p => {
+    const st = payState(p);
+    return `
+      <div class="adm-ditem">
+        <div class="adm-ditem-main">
+          <div class="adm-ditem-title">${fmtDateShort(p.fecha_vencimiento)} · ${esc(p.services?.nombre || '—')}</div>
+          <div class="adm-ditem-sub ${st === 'vencido' ? 'is-late' : ''}">${st === 'pagado' ? `Pagado ${p.fecha_pago ? 'el ' + fmtDateShort(p.fecha_pago) : ''}${p.metodo ? ' · ' + esc(p.metodo) : ''}` : PAY_LABEL[st]}</div>
+        </div>
+        <div class="adm-money">${fmtMonto(p.monto, p.moneda)}</div>
+        ${st !== 'pagado' ? `<button class="btn-mark-paid" data-adm-action="mark-paid" data-id="${p.id}">Marcar pagado</button>` : ''}
+      </div>`;
+  }).join('') : '<div class="adm-dempty">Sin pagos cargados.</div>';
+
+  $('adm-drawer-body').innerHTML = `
+    <div class="adm-dsum">
+      <div><div class="adm-dsum-label">Mensual</div><div class="adm-dsum-value">${fmtMoneyMap(c.monthly)}</div></div>
+      <div><div class="adm-dsum-label">Adeudado</div><div class="adm-dsum-value ${c.overdue.length ? 'is-alert' : ''}">${fmtMoneyMap(c.owed, '—')}</div></div>
+      <div><div class="adm-dsum-label">Próximo</div><div class="adm-dsum-value">${c.nextDue ? fmtDateShort(c.nextDue.fecha_vencimiento) : '—'}</div></div>
+    </div>
+    <div class="adm-dsec-title">Servicios</div>
+    <div class="adm-dlist">${svcHtml}</div>
+    <div class="adm-dsec-title">Pagos</div>
+    <div class="adm-dlist">${payHtml}</div>`;
+}
+
+// ── Tabs & events (delegated; no inline handlers on dynamic HTML) ──
+function setAdminTab(tab) {
+  _adm.tab = tab;
+  document.querySelectorAll('[data-adm-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.admTab === tab)));
+  document.querySelectorAll('[data-adm-panel]').forEach(p => { p.hidden = p.dataset.admPanel !== tab; });
+}
+let _admUiReady = false;
+function initAdminUI() {
+  if (_admUiReady) return;
+  _admUiReady = true;
+  document.addEventListener('click', e => {
+    const tabBtn = e.target.closest('[data-adm-tab]');
+    if (tabBtn) { setAdminTab(tabBtn.dataset.admTab); return; }
+    const chip = e.target.closest('[data-adm-payfilter]');
+    if (chip) { _adm.payFilter = chip.dataset.admPayfilter; renderAdminPayments(); return; }
+    const el = e.target.closest('[data-adm-action]');
+    if (!el) return;
+    const action = el.dataset.admAction;
+    if (action === 'mark-paid') { e.stopPropagation(); markPaid(el.dataset.id); }
+    else if (action === 'open-client') openClientDrawer(el.dataset.id);
+    else if (action === 'close-drawer') closeClientDrawer();
+    else if (action === 'undo') undoLastPayment();
+    else if (action === 'toggle-window') { _adm.payAll = !_adm.payAll; renderAdminPayments(); }
+    else if (action === 'show-overdue') {
+      setAdminTab('clientes');
+      document.querySelector('[data-adm-panel="clientes"]').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && _adm.drawerId) closeClientDrawer();
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('tr[data-adm-action="open-client"]')) {
+      e.preventDefault(); openClientDrawer(e.target.dataset.id);
+    }
+  });
+}
+
+// ── Mark paid (optimistic + undo) ──
+async function markPaid(pagoId) {
+  const p = _adm.G.find(x => x.id === pagoId);
+  if (!p || isPaid(p)) return;
+  const prev = { estado: p.estado, fecha_pago: p.fecha_pago || null };
+  p.estado = 'pagado'; p.fecha_pago = today_date();
+  renderAdminViews();
+  const ok = await sbUpdate('pagos', `id=eq.${pagoId}`, { estado: 'pagado', fecha_pago: p.fecha_pago }, currentToken);
+  if (!ok) {
+    Object.assign(p, prev);
+    renderAdminViews();
+    showToast('No se pudo marcar como pagado. Intentá de nuevo.', true);
+    return;
+  }
+  showUndo(`Pago de ${p.client_profiles?.nombre || 'cliente'} (${fmtDateShort(p.fecha_vencimiento)}) registrado`, { id: pagoId, prev });
+}
+function showUndo(text, undo) {
+  clearTimeout(_adm.undoTimer);
+  _adm.undo = undo;
+  $('adm-snack-text').textContent = text;
+  show('adm-snack');
+  _adm.undoTimer = setTimeout(() => { hide('adm-snack'); _adm.undo = null; }, 8000);
+}
+async function undoLastPayment() {
+  const u = _adm.undo;
+  if (!u) return;
+  clearTimeout(_adm.undoTimer);
+  hide('adm-snack');
+  _adm.undo = null;
+  const p = _adm.G.find(x => x.id === u.id);
+  const ok = await sbUpdate('pagos', `id=eq.${u.id}`, u.prev, currentToken);
+  if (ok && p) { Object.assign(p, u.prev); renderAdminViews(); showToast('Pago revertido a pendiente'); }
+  else showToast('No se pudo deshacer. Revisalo en la pestaña Pagos.', true);
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -1750,6 +2307,8 @@ async function doLogout() {
   if (currentToken) await sbSignOut(currentToken);
   currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
+  hide('adm-drawer'); hide('adm-snack'); document.body.classList.remove('modal-open');
+  _adm.drawerId = null; _adm.undo = null;
   show('login-view');
 }
 
@@ -1793,8 +2352,19 @@ function openAddClientModal() {
   const today = today_date();
   document.getElementById('ac-svc-inicio').value  = today;
   document.getElementById('ac-pago-inicio').value = today;
+  syncBillingLabels();
   show('add-client-modal');
   document.body.classList.add('modal-open');
+}
+
+// Price label + "how many charges" field follow the billing type
+function syncBillingLabels() {
+  const f = document.getElementById('ac-svc-facturacion').value;
+  document.getElementById('ac-svc-precio-label').textContent =
+    f === 'anual' ? 'Precio anual' : f === 'unico' ? 'Precio (pago único)' : 'Precio mensual';
+  document.getElementById('ac-pago-meses-label').textContent = f === 'anual' ? 'Años a generar' : 'Meses a generar';
+  document.getElementById('ac-pago-meses-field').hidden = f === 'unico';
+  document.getElementById('ac-pago-meses').value = f === 'anual' ? 1 : 3;
 }
 
 function closeAddClientModal() {
@@ -1836,8 +2406,9 @@ async function submitAddClient(e) {
     const svcMoneda = document.getElementById('ac-svc-moneda').value;
     const svcInicio = document.getElementById('ac-svc-inicio').value;
     const svcRam    = document.getElementById('ac-svc-ram').value || null;
+    const svcFact   = document.getElementById('ac-svc-facturacion').value;
     const pagoInicio = document.getElementById('ac-pago-inicio').value;
-    const pagoMeses  = parseInt(document.getElementById('ac-pago-meses').value, 10);
+    const pagoMeses  = svcFact === 'unico' ? 1 : parseInt(document.getElementById('ac-pago-meses').value, 10);
 
     btn.textContent = 'Creando usuario...';
     const uid = await sbCreateUser(email, password);
@@ -1856,18 +2427,18 @@ async function submitAddClient(e) {
       precio: svcPrecio, moneda: svcMoneda,
       fecha_inicio: svcInicio, estado: 'activo',
       ram_display: svcRam,
-      viewer_url: svcViewer
+      viewer_url: svcViewer,
+      facturacion: svcFact
     }, currentToken);
     const svcId = svcRows[0].id;
 
     btn.textContent = 'Generando cobros...';
+    const step = svcFact === 'anual' ? 12 : 1;            // months between charges
     const pagosData = [];
     for (let i = 0; i < pagoMeses; i++) {
-      const d = new Date(pagoInicio + 'T00:00:00');
-      d.setMonth(d.getMonth() + i);
       pagosData.push({
         client_id: uid, service_id: svcId,
-        fecha_vencimiento: d.toISOString().split('T')[0],
+        fecha_vencimiento: add_months(pagoInicio, i * step),
         monto: svcPrecio, moneda: svcMoneda, estado: 'pendiente'
       });
     }
@@ -1896,13 +2467,26 @@ function esc(s) {
 }
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
+// Dates are plain YYYY-MM-DD strings. "Today" is Buenos Aires local date (not UTC,
+// which flips to tomorrow after 21:00 ART); arithmetic runs in UTC so no TZ drift.
 function today_date() {
-  return new Date().toISOString().split('T')[0];
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date());
 }
 function date_plus_days(iso, n) {
-  const d = new Date(iso + 'T00:00:00');
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split('T')[0];
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+// Adds months keeping the day, clamped to the month's end (31 Jan + 1 → 28/29 Feb)
+function add_months(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const last = new Date(Date.UTC(y, m - 1 + n + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m - 1 + n, Math.min(d, last))).toISOString().slice(0, 10);
+}
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T12:00:00');
+  const sameYear = iso.slice(0, 4) === today_date().slice(0, 4);
+  return d.toLocaleDateString('es-AR', sameYear ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '');
 }
 function daysDiff(from, to) {
   return Math.round((new Date(to+'T00:00:00') - new Date(from+'T00:00:00')) / 86400000);

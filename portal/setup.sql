@@ -26,6 +26,10 @@ CREATE TABLE services (
   estado      TEXT        NOT NULL DEFAULT 'activo' CHECK (estado IN ('activo', 'pausado', 'cancelado')),
   fecha_inicio DATE,
   fecha_fin    DATE,
+  ram_display  TEXT,          -- card type: '512 MB'/'2 GB' = bot, 'mail', 'marketing', 'chat', NULL = website/CRM
+  viewer_url   TEXT,
+  -- How the price is billed. MRR = mensual + anual/12; 'unico' (one-off) is excluded.
+  facturacion  TEXT        NOT NULL DEFAULT 'mensual' CHECK (facturacion IN ('mensual', 'anual', 'unico')),
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -37,7 +41,9 @@ CREATE TABLE pagos (
   fecha_pago        DATE,
   monto             NUMERIC(10,2) NOT NULL,
   moneda            TEXT        NOT NULL DEFAULT 'USD' CHECK (moneda IN ('USD', 'ARS', 'EUR')),
-  estado            TEXT        NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'pagado', 'vencido')),
+  -- 'pagado' and 'cubierto' both mean paid (live data uses both). 'Vencido' is derived in the UI from the date.
+  estado            TEXT        NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'pagado', 'cubierto', 'vencido')),
+  metodo            TEXT,       -- free text: 'Cash', 'Transferencia', ...
   notas             TEXT,
   created_at        TIMESTAMPTZ DEFAULT NOW()
 );
@@ -130,3 +136,8 @@ CREATE POLICY "admin_only_costs" ON agentiva_costs
 --       );
 --
 -- ============================================================
+
+-- ── Migration 2026-10-22 (run on the live project) ──
+-- ALTER TABLE services ADD COLUMN IF NOT EXISTS facturacion TEXT NOT NULL DEFAULT 'mensual'
+--   CHECK (facturacion IN ('mensual', 'anual', 'unico'));
+-- GRANT ALL ON public.services, public.pagos, public.client_profiles, public.agentiva_costs TO service_role;
