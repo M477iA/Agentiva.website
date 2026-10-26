@@ -1297,32 +1297,118 @@
   .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
   .btn-outline:hover { background: var(--color-surface-offset); }
 
-  /* ── Horarios del local (store calendar, served by the bot) ── */
-  .hours-card { display: flex; flex-direction: column; }
+  /* ── Horarios de atención: "vos definís → el bot responde" ──
+     Left: the owner's week (what they control). Right: a live WhatsApp preview
+     of what the bot tells customers with exactly that data. The connector in
+     between is the point of the section: cause → effect. */
+  .hrs { margin-bottom: 40px; }
+  .hrs-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .hrs-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-text); }
+  .hrs-sub { font-size: 13px; color: var(--color-text-muted); margin-top: 3px; }
   .hours-pill {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
-    padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: var(--radius-full); white-space: nowrap;
     background: var(--color-surface-offset); color: var(--color-text-muted);
   }
   .hours-pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
   .hours-pill.is-open { background: var(--color-success-highlight); color: var(--color-success); }
-  .hours-today { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--color-text); letter-spacing: -0.01em; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
-  .hours-today small { font-size: 13px; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; margin-left: 6px; }
-  .hours-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 14px 0 4px; }
-  .hs-day {
-    border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface);
-    padding: 7px 4px 8px; text-align: center; min-width: 0;
+  .hours-pill.is-open::before { box-shadow: 0 0 6px oklch(from var(--color-success) l c h / 0.7); animation: pulse-green 2s infinite; }
+
+  .hrs-panel {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) 44px minmax(0, 1fr);
+    background: var(--color-surface-2); border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;
   }
-  .hs-wd { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-faint); }
-  .hs-n { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--color-text); margin: 1px 0 2px; }
-  .hs-h { font-size: 10.5px; line-height: 1.25; color: var(--color-text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .hs-day.is-closed { background: var(--color-surface-offset); }
-  .hs-day.is-closed .hs-h { color: var(--color-text-faint); }
-  .hs-day.is-special { border-color: var(--color-accent); background: var(--color-accent-highlight); }
-  .hs-day.is-special .hs-h { color: var(--color-primary); font-weight: 600; }
-  .hs-day.is-today { box-shadow: 0 0 0 2px var(--color-primary); }
-  .hours-legend { font-size: 11.5px; color: var(--color-text-faint); margin-bottom: 4px; }
-  .hours-foot { margin-top: auto; padding-top: 12px; }
+  .hrs-control { padding: 22px 24px 20px; min-width: 0; }
+  .hrs-step {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-primary);
+  }
+  [data-theme='dark'] .hrs-step { color: var(--color-accent); }
+  .hrs-step b {
+    width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--color-primary); color: #fff; font-size: 11px; letter-spacing: 0;
+  }
+  [data-theme='dark'] .hrs-step b { background: var(--color-accent); color: #05100b; }
+
+  .hrs-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
+  .hd {
+    position: relative; min-width: 0; text-align: center; padding: 10px 4px 11px;
+    border-radius: var(--radius-md); border: 1px solid var(--color-divider); background: var(--color-surface);
+    animation: hd-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes hd-in { from { opacity: 0; transform: translateY(6px); } }
+  .hd-wd { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-faint); }
+  .hd-n { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.15; color: var(--color-text); margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
+  .hd-h { font-size: 11.5px; line-height: 1.3; font-weight: 500; color: var(--color-text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .hd.is-closed {
+    background: repeating-linear-gradient(135deg, var(--color-surface-offset) 0 6px, transparent 6px 12px), var(--color-surface);
+  }
+  .hd.is-closed .hd-h { color: var(--color-text-faint); }
+  .hd.is-special { border-color: var(--color-accent); background: var(--color-accent-highlight); }
+  .hd.is-special .hd-h { color: var(--color-primary); font-weight: 700; }
+  [data-theme='dark'] .hd.is-special .hd-h { color: var(--color-accent); }
+  .hd-tag {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    padding: 1px 6px; border-radius: var(--radius-full); background: var(--color-accent); color: #05261a;
+  }
+  .hd.is-today { background: var(--color-primary); border-color: var(--color-primary); }
+  .hd.is-today .hd-wd, .hd.is-today .hd-h { color: color-mix(in srgb, #fff 78%, transparent); }
+  .hd.is-today .hd-n { color: #fff; }
+  [data-theme='dark'] .hd.is-today { background: var(--color-accent); border-color: var(--color-accent); }
+  [data-theme='dark'] .hd.is-today .hd-wd, [data-theme='dark'] .hd.is-today .hd-h, [data-theme='dark'] .hd.is-today .hd-n { color: #05100b; }
+
+  .hrs-habitual { font-size: 13px; color: var(--color-text-muted); margin: 16px 0 16px; line-height: 1.5; }
+  .hrs-habitual strong { color: var(--color-text); font-weight: 600; }
+  .hrs-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .hrs-actions .btn { width: auto; margin: 0; padding: 10px 20px; }
+  .hrs-who { font-size: 12.5px; color: var(--color-text-faint); }
+
+  /* connector: the "→" between owner and bot */
+  .hrs-link { position: relative; display: flex; align-items: center; justify-content: center; }
+  .hrs-link::before { content: ''; position: absolute; top: 22px; bottom: 22px; left: 50%; border-left: 1.5px dashed var(--color-border); }
+  .hrs-link span {
+    position: relative; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+  [data-theme='dark'] .hrs-link span { color: var(--color-accent); }
+
+  /* bot side: WhatsApp-style preview */
+  .hrs-bot {
+    --chat-bg: #efeae2; --bub-in: #ffffff; --bub-out: #d9fdd3; --bub-text: #111b21;
+    background: var(--chat-bg); padding: 22px 22px 18px; display: flex; flex-direction: column; min-width: 0;
+  }
+  [data-theme='dark'] .hrs-bot { --chat-bg: #0b141a; --bub-in: #202c33; --bub-out: #005c4b; --bub-text: #e9edef; }
+  .hrs-bot .hrs-step { color: #3b4a42; }
+  [data-theme='dark'] .hrs-bot .hrs-step { color: #8696a0; }
+  .hrs-bot .hrs-step b { background: #25d366; color: #05261a; }
+  .bub {
+    max-width: 92%; padding: 8px 11px 6px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; color: var(--bub-text);
+    box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13); margin-bottom: 8px; animation: hd-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .bub.in { background: var(--bub-in); align-self: flex-start; border-top-left-radius: 2px; animation-delay: 300ms; }
+  .bub.out { background: var(--bub-out); align-self: flex-end; border-top-right-radius: 2px; animation-delay: 650ms; }
+  .bub-meta { display: block; text-align: right; font-size: 10.5px; opacity: 0.6; margin-top: 2px; }
+  .hrs-bot-note { margin-top: auto; padding-top: 8px; font-size: 11.5px; color: #54656f; text-align: center; }
+  [data-theme='dark'] .hrs-bot-note { color: #8696a0; }
+
+  @media (max-width: 900px) {
+    .hrs-panel { grid-template-columns: 1fr; }
+    .hrs-link { height: 40px; }
+    .hrs-link::before { top: 0; bottom: 0; }
+    .hrs-link span { transform: rotate(90deg); }
+  }
+  @media (max-width: 640px) {
+    .hrs-control, .hrs-bot { padding: 18px 14px 16px; }
+    .hrs-week { gap: 4px; }
+    .hd { padding: 8px 2px 9px; }
+    .hd-n { font-size: 16px; }
+    .hd-h { font-size: 10px; }
+    .hd-tag { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hd, .bub { animation: none; } }
 
   /* ── Novedades ── */
   .news-list { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
@@ -1433,6 +1519,17 @@
         <h1 class="page-title" id="client-greeting">Hola</h1>
         <p class="page-sub" id="client-empresa"></p>
       </div>
+
+      <section class="hrs" id="hours-section" hidden aria-labelledby="hrs-title">
+        <div class="hrs-head">
+          <div>
+            <div class="hrs-title" id="hrs-title">Horarios de atención</div>
+            <div class="hrs-sub">Vos los definís. El bot de WhatsApp les responde a tus clientes con estos horarios.</div>
+          </div>
+          <span id="hrs-pill"></span>
+        </div>
+        <div id="hours-panel"></div>
+      </section>
 
       <div class="section">
         <div class="section-header">
@@ -2204,7 +2301,7 @@ function renderServices(services, withTeam) {
 
   let html = '';
   if (mainSvcs.length) {
-    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}${withTeam ? teamCardShell() + hoursCardShell() : ''}</div>`;
+    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}${withTeam ? teamCardShell() : ''}</div>`;
   }
   if (mktSvcs.length) {
     html += `
@@ -2690,7 +2787,7 @@ async function doLogout() {
   currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
   hide('adm-drawer'); hide('adm-snack'); document.body.classList.remove('modal-open');
-  hide('team-drawer'); hide('team-add-modal'); hide('news-section');
+  hide('team-drawer'); hide('team-add-modal'); hide('news-section'); hide('hours-section');
   _adm.drawerId = null; _adm.undo = null;
   Object.assign(_team, { ownerId: null, mount: null, members: [], filters: {}, sessions: [], openId: null, draft: null, created: null });
   show('login-view');
@@ -3573,9 +3670,8 @@ document.addEventListener('click', e => {
 const CLOCK_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 const WD_SHORT_ES = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
-function hoursCardShell() {
-  return `<div class="service-card hours-card" id="hours-card"><div class="team-skel"></div><div class="team-skel"></div></div>`;
-}
+const WD_LONG_ES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+const ARROW_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function hm(t) { const [h, m] = t.split(':'); return `${+h}:${m}`; }
 function hmShort(t) { const [h, m] = t.split(':'); return m === '00' ? `${+h}` : `${+h}:${m}`; }
 function hoursText(iv) { return iv.map(([a, b]) => `${hm(a)}–${hm(b)}`).join(' y '); }
@@ -3591,9 +3687,10 @@ function timeAgo(iso) {
 }
 
 async function initStoreHours(services) {
-  const card = $('hours-card');
+  const section = $('hours-section');
   const bot = services.find(isBotService);
-  if (!card || !bot) return;
+  section.hidden = true;
+  if (!bot) return;
   try {
     const base = new URL(bot.viewer_url).origin;
     const today = today_date();
@@ -3603,52 +3700,87 @@ async function initStoreHours(services) {
     });
     if (!res.ok) throw new Error(`calendar ${res.status}`);
     const data = await res.json();
-    renderHoursCard(card, data, bot.viewer_url.split('#')[0]);
+    renderHoursSection(data, bot.viewer_url.split('#')[0]);
+    section.hidden = false;
     renderNews(data.changes || []);
   } catch (err) {
-    console.error('hours:', err);
-    card.remove();
+    console.error('hours:', err);   // no bot calendar → the section simply doesn't appear
   }
 }
 
-function renderHoursCard(card, data, viewerUrl) {
-  const days = data.days.slice(0, 7);
-  const today = days[0];
-  const now = data.now;
+// "Lun a vie 9:00–17:30 · Sáb 9:30–14:00 · Dom cerrado" (consecutive equal days grouped)
+function weeklySummary(weekly) {
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const groups = [];
+  weekly.forEach(({ weekday, intervals }) => {
+    const key = JSON.stringify(intervals), last = groups[groups.length - 1];
+    if (last && last.key === key) last.to = weekday; else groups.push({ from: weekday, to: weekday, key, intervals });
+  });
+  return groups.map(g => {
+    const label = g.from === g.to ? cap(WD_SHORT_ES[g.from])
+      : `${cap(WD_SHORT_ES[g.from])} ${g.to === g.from + 1 ? 'y' : 'a'} ${WD_SHORT_ES[g.to]}`;
+    return `<strong>${label}</strong> ${g.intervals.length ? esc(hoursText(g.intervals)) : 'cerrado'}`;
+  }).join(' · ');
+}
+
+// What the bot would answer right now to "¿hasta qué hora están hoy?" — built from the same data
+function botPreviewText(data) {
+  const days = data.days, today = days[0], now = data.now;
+  const dayName = d => `el ${WD_LONG_ES[isoWeekday(d.date)]} ${+d.date.slice(8)}/${+d.date.slice(5, 7)}`;
   const cur = today.intervals.find(([a, b]) => now >= a && now < b);
   const later = today.intervals.find(([a]) => now < a);
-  let pill;
-  if (cur) pill = `<span class="hours-pill is-open">Abierto · cierra ${hm(cur[1])}</span>`;
-  else if (later) pill = `<span class="hours-pill">Abre hoy ${hm(later[0])}</span>`;
-  else {
-    const next = data.days.slice(1).find(d => d.intervals.length);
-    pill = `<span class="hours-pill">Cerrado${next ? ` · abre ${WD_SHORT_ES[isoWeekday(next.date)]} ${hm(next.intervals[0][0])}` : ''}</span>`;
-  }
-  const closedLbl = d => d.source === 'holiday' ? 'Feriado' : 'Cerrado';
-  const strip = days.map((d, i) => {
+  const next = days.slice(1).find(d => d.intervals.length);
+  const spoken = iv => iv.map(([a, b]) => `de ${hm(a)} a ${hm(b)}`).join(' y ');
+  let msg;
+  if (cur) msg = `¡Hola! Hoy estamos abiertos hasta las ${hm(cur[1])} 🙌`;
+  else if (later) msg = `¡Hola! Hoy abrimos a las ${hm(later[0])} y cerramos a las ${hm(today.intervals[today.intervals.length - 1][1])} 🙌`;
+  else if (today.intervals.length) msg = `¡Hola! Por hoy ya cerramos. Volvemos a abrir ${next ? `${dayName(next)} a las ${hm(next.intervals[0][0])}` : 'pronto'}.`;
+  else msg = `¡Hola! Hoy el local está cerrado. Volvemos a abrir ${next ? `${dayName(next)} a las ${hm(next.intervals[0][0])}` : 'pronto'}.`;
+  const special = days.slice(1, 8).find(d => d.source === 'override');
+  if (special) msg += ` Ojo: ${dayName(special)} ${special.intervals.length ? `abrimos ${spoken(special.intervals)}` : 'el local está cerrado'}.`;
+  return msg;
+}
+
+function renderHoursSection(data, viewerUrl) {
+  const days = data.days.slice(0, 7);
+  const today = days[0], now = data.now;
+  const cur = today.intervals.find(([a, b]) => now >= a && now < b);
+  const later = today.intervals.find(([a]) => now < a);
+  const next = data.days.slice(1).find(d => d.intervals.length);
+  $('hrs-pill').innerHTML = cur ? `<span class="hours-pill is-open">Abierto ahora · cierra ${hm(cur[1])}</span>`
+    : later ? `<span class="hours-pill">Abre hoy a las ${hm(later[0])}</span>`
+    : `<span class="hours-pill">Cerrado${next ? ` · abre ${WD_SHORT_ES[isoWeekday(next.date)]} ${hm(next.intervals[0][0])}` : ''}</span>`;
+
+  const week = days.map((d, i) => {
     const closed = !d.intervals.length, special = d.source === 'override';
-    return `<div class="hs-day${closed ? ' is-closed' : ''}${special ? ' is-special' : ''}${i === 0 ? ' is-today' : ''}"
-        title="${esc(fmtDate(d.date))}${d.changed_by ? ' · cambiado por ' + esc(d.changed_by) : ''}">
-      <div class="hs-wd">${i === 0 ? 'hoy' : WD_SHORT_ES[isoWeekday(d.date)]}</div>
-      <div class="hs-n">${+d.date.slice(8)}</div>
-      <div class="hs-h">${closed ? closedLbl(d) : esc(hoursShort(d.intervals))}</div>
+    const tip = `${fmtDate(d.date)}${special ? ' · horario especial' : ''}${d.changed_by ? ' · cambiado por ' + d.changed_by : ''}`;
+    return `<div class="hd${closed ? ' is-closed' : ''}${special ? ' is-special' : ''}${i === 0 ? ' is-today' : ''}" title="${esc(tip)}" style="animation-delay:${i * 45}ms">
+      ${special && i !== 0 ? '<span class="hd-tag">especial</span>' : ''}
+      <div class="hd-wd">${i === 0 ? 'Hoy' : WD_SHORT_ES[isoWeekday(d.date)]}</div>
+      <div class="hd-n">${+d.date.slice(8)}</div>
+      <div class="hd-h">${closed ? (d.source === 'holiday' ? 'Feriado' : 'Cerrado') : esc(hoursShort(d.intervals))}</div>
     </div>`;
   }).join('');
-  const specialNext = days.some(d => d.source === 'override');
-  card.innerHTML = `
-    <div class="service-card-header">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="team-icon-wrap">${CLOCK_SVG}</div>
-        <div class="service-name">Horarios del local</div>
+
+  $('hours-panel').innerHTML = `
+    <div class="hrs-panel">
+      <div class="hrs-control">
+        <div class="hrs-step"><b>1</b> Vos definís</div>
+        <div class="hrs-week">${week}</div>
+        <p class="hrs-habitual">Horario habitual: ${weeklySummary(data.weekly)}</p>
+        <div class="hrs-actions">
+          <a class="btn btn-primary" href="${esc(viewerUrl)}" target="_blank" rel="noopener"
+             data-bot-viewer="${esc(viewerUrl)}" data-open="calendar">Editar horarios</a>
+          <span class="hrs-who">Un día puntual (feriado, inventario, horario reducido) o el horario de siempre.</span>
+        </div>
       </div>
-      ${pill}
-    </div>
-    <div class="hours-today">Hoy ${today.intervals.length ? esc(hoursText(today.intervals)) : 'cerrado'}${today.source === 'override' ? '<small>horario especial</small>' : ''}</div>
-    <div class="hours-strip">${strip}</div>
-    <div class="hours-legend">${specialNext ? 'En verde: días con horario especial. ' : ''}Es lo que el bot les dice a los clientes.</div>
-    <div class="hours-foot">
-      <a class="btn-add-dashed" style="text-decoration:none" href="${esc(viewerUrl)}" target="_blank" rel="noopener"
-         data-bot-viewer="${esc(viewerUrl)}" data-open="calendar">Ver y editar el calendario →</a>
+      <div class="hrs-link" aria-hidden="true"><span>${ARROW_SVG}</span></div>
+      <div class="hrs-bot">
+        <div class="hrs-step"><b>2</b> El bot responde</div>
+        <div class="bub in">¿Hasta qué hora están hoy?<span class="bub-meta">${esc(now)}</span></div>
+        <div class="bub out">${esc(botPreviewText(data))}<span class="bub-meta">${esc(now)} ✓✓</span></div>
+        <div class="hrs-bot-note">Vista previa con los horarios de arriba</div>
+      </div>
     </div>`;
 }
 
