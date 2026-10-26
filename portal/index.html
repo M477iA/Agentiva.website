@@ -1849,7 +1849,8 @@ function getSession() {
   try {
     const s = JSON.parse(localStorage.getItem(SESSION_LS));
     if (!s || !s.access_token) return null;
-    if (s.expires_at && s.expires_at < Math.floor(Date.now() / 1000)) {
+    // Expired but renewable → keep it; authToken() renews on the first request
+    if (s.expires_at && s.expires_at < Math.floor(Date.now() / 1000) && !s.refresh_token) {
       localStorage.removeItem(SESSION_LS); return null;
     }
     return s;
@@ -1876,7 +1877,32 @@ async function sbSignOut(token) {
   localStorage.removeItem(SESSION_LS);
 }
 
+// Access tokens last 1 h. Renew with the refresh token shortly before expiry so a tab
+// left open (or reopened later) keeps working instead of silently failing every write.
+let _renewing = null;
+async function renewSession(s) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+    body: JSON.stringify({ refresh_token: s.refresh_token })
+  });
+  if (!res.ok) throw new Error('Tu sesión venció. Volvé a ingresar.');
+  const data = await res.json();
+  localStorage.setItem(SESSION_LS, JSON.stringify(data));
+  currentToken = data.access_token;
+  return data;
+}
+async function authToken(token) {
+  if (!token || token !== currentToken) return token;
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(SESSION_LS)); } catch {}
+  if (!s || !s.refresh_token || (s.expires_at || 0) - Date.now() / 1000 > 120) return token;
+  if (!_renewing) _renewing = renewSession(s).finally(() => { _renewing = null; });
+  return (await _renewing).access_token;
+}
+
 async function sbQuery(table, params, token) {
+  token = await authToken(token);
   const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
   });
@@ -1885,6 +1911,7 @@ async function sbQuery(table, params, token) {
 }
 
 async function sbUpdate(table, filter, data, token) {
+  token = await authToken(token).catch(() => token);
   const res = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
@@ -2621,6 +2648,7 @@ async function doLogout() {
 // ── ADD CLIENT ────────────────────────────────────────────────────────────────
 
 async function sbInsert(table, data, token) {
+  token = await authToken(token);
   const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
@@ -2927,14 +2955,19 @@ function isBotService(s) {
 }
 
 async function sbDelete(table, filter, token) {
+  token = await authToken(token);
   const res = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
     method: 'DELETE',
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' }
   });
-  if (!res.ok) throw new Error(`Error borrando en ${table}: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(res.status === 401 ? 'Tu sesión venció. Volvé a ingresar.' : (err.message || `Error borrando en ${table}: ${res.status}`));
+  }
 }
 
 async function sbRpc(fn, token, args = {}) {
+  token = await authToken(token);
   const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -2945,10 +2978,11 @@ async function sbRpc(fn, token, args = {}) {
 }
 
 async function teamApi(action, payload = {}) {
+  const token = await authToken(currentToken);
   const res = await fetch(TEAM_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, token: currentToken, ...payload })
+    body: JSON.stringify({ action, token, ...payload })
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Error inesperado. Intentá de nuevo.');
@@ -3275,7 +3309,8 @@ async function saveTeamFilters(btn) {
     refreshTeamViews();
     showToast('✓ Permisos guardados');
   } catch (err) {
-    showToast('No se pudieron guardar los permisos. Intentá de nuevo.', true);
+    console.error('save filters:', err);
+    showToast(`No se pudieron guardar los permisos: ${err.message}`, true);
   } finally {
     btn.disabled = false; btn.textContent = 'Guardar cambios';
   }
