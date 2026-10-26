@@ -1297,6 +1297,49 @@
   .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
   .btn-outline:hover { background: var(--color-surface-offset); }
 
+  /* ── Horarios del local (store calendar, served by the bot) ── */
+  .hours-card { display: flex; flex-direction: column; }
+  .hours-pill {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap;
+    background: var(--color-surface-offset); color: var(--color-text-muted);
+  }
+  .hours-pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .hours-pill.is-open { background: var(--color-success-highlight); color: var(--color-success); }
+  .hours-today { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--color-text); letter-spacing: -0.01em; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
+  .hours-today small { font-size: 13px; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; margin-left: 6px; }
+  .hours-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 14px 0 4px; }
+  .hs-day {
+    border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface);
+    padding: 7px 4px 8px; text-align: center; min-width: 0;
+  }
+  .hs-wd { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-faint); }
+  .hs-n { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--color-text); margin: 1px 0 2px; }
+  .hs-h { font-size: 10.5px; line-height: 1.25; color: var(--color-text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .hs-day.is-closed { background: var(--color-surface-offset); }
+  .hs-day.is-closed .hs-h { color: var(--color-text-faint); }
+  .hs-day.is-special { border-color: var(--color-accent); background: var(--color-accent-highlight); }
+  .hs-day.is-special .hs-h { color: var(--color-primary); font-weight: 600; }
+  .hs-day.is-today { box-shadow: 0 0 0 2px var(--color-primary); }
+  .hours-legend { font-size: 11.5px; color: var(--color-text-faint); margin-bottom: 4px; }
+  .hours-foot { margin-top: auto; padding-top: 12px; }
+
+  /* ── Novedades ── */
+  .news-list { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+  .news-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--color-divider); }
+  .news-item:last-child { border-bottom: 0; }
+  .news-icon {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+    background: var(--color-primary-highlight); color: var(--color-primary);
+  }
+  [data-theme='dark'] .news-icon { color: var(--color-accent); }
+  .news-text { flex: 1; min-width: 0; font-size: 14px; color: var(--color-text-muted); line-height: 1.45; }
+  .news-text strong { color: var(--color-text); font-weight: 600; }
+  .news-time { font-size: 12px; color: var(--color-text-faint); white-space: nowrap; }
+  .news-empty { padding: 18px 16px; font-size: 13.5px; color: var(--color-text-muted); }
+  .news-more { display: block; width: 100%; border: 0; border-top: 1px solid var(--color-divider); background: none; padding: 10px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--color-primary); }
+  .news-more:hover { background: var(--color-surface-offset); }
+
   /* Admin drawer: team block */
   .adm-team-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .adm-team-head .adm-dsec-title { margin: 0; }
@@ -1396,6 +1439,13 @@
           <div class="section-title">Mis Servicios</div>
         </div>
         <div id="services-container"></div>
+      </div>
+
+      <div class="section" id="news-section" hidden>
+        <div class="section-header">
+          <div class="section-title">Novedades</div>
+        </div>
+        <div id="news-container"></div>
       </div>
 
       <div id="next-payment-container"></div>
@@ -1978,6 +2028,7 @@ async function renderClient(profile) {
   const allPagos = pagos || [];
   renderServices(services || [], (services || []).some(isBotService));
   initOwnerTeam(profile);
+  initStoreHours(services || []);
   renderBanner(allPagos);
 
   // Client view: show all non-pending rows + only the next pending row
@@ -2153,7 +2204,7 @@ function renderServices(services, withTeam) {
 
   let html = '';
   if (mainSvcs.length) {
-    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}${withTeam ? teamCardShell() : ''}</div>`;
+    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}${withTeam ? teamCardShell() + hoursCardShell() : ''}</div>`;
   }
   if (mktSvcs.length) {
     html += `
@@ -2639,7 +2690,7 @@ async function doLogout() {
   currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
   hide('adm-drawer'); hide('adm-snack'); document.body.classList.remove('modal-open');
-  hide('team-drawer'); hide('team-add-modal');
+  hide('team-drawer'); hide('team-add-modal'); hide('news-section');
   _adm.drawerId = null; _adm.undo = null;
   Object.assign(_team, { ownerId: null, mount: null, members: [], filters: {}, sessions: [], openId: null, draft: null, created: null });
   show('login-view');
@@ -3194,14 +3245,15 @@ function teamSummaryHtml(m) {
   const reasons = TEAM_REASONS.filter(([v]) => d.has('handoff_reason:' + v)).map(r => r[2]);
   const classes = TEAM_CLASSES.filter(([v]) => d.has('classification:' + v)).map(c => c[2]);
   const who = `<strong>${esc(teamFirst(m))}</strong>`;
+  const hoursNote = d.has('permission:edit_hours') ? ' También puede editar los horarios del local.' : '';
   if (!reasons.length && !classes.length) {
-    return `<div class="perm-summary is-empty" id="team-summary">${WARN_SVG}<span>${who} todavía no ve ninguna conversación. Elegí al menos un motivo o una clasificación.</span></div>`;
+    return `<div class="perm-summary is-empty" id="team-summary">${WARN_SVG}<span>${who} todavía no ve ninguna conversación. Elegí al menos un motivo o una clasificación.${hoursNote}</span></div>`;
   }
   const parts = [];
   if (reasons.length) parts.push(`las derivaciones por <strong>${listEs(reasons)}</strong>`);
   if (classes.length) parts.push(`las conversaciones <strong>${listEs(classes)}</strong>`);
   const paused = d.has('scope:paused_only') ? ', solo mientras estén pausadas' : '';
-  return `<div class="perm-summary" id="team-summary">${EYE_SVG}<span>${who} va a ver ${parts.join(' y ')}${paused}.</span></div>`;
+  return `<div class="perm-summary" id="team-summary">${EYE_SVG}<span>${who} va a ver ${parts.join(' y ')}${paused}.${hoursNote}</span></div>`;
 }
 function teamPermsHtml(m) {
   return `
@@ -3229,6 +3281,15 @@ function teamPermsHtml(m) {
           <span class="perm-hint" style="display:block;margin-bottom:0">Ve únicamente las que están esperando que responda una persona.</span>
         </span>
         <input type="checkbox" class="switch" data-team-filter="scope:paused_only"${_team.draft.has('scope:paused_only') ? ' checked' : ''}>
+      </label>
+    </div>
+    <div class="perm-group">
+      <label class="switch-row">
+        <span>
+          <span class="perm-title" style="display:block">Puede editar los horarios del local</span>
+          <span class="perm-hint" style="display:block;margin-bottom:0">Cambiar el calendario desde el visor (el bot informa ese horario). Verlo lo pueden todos.</span>
+        </span>
+        <input type="checkbox" class="switch" data-team-filter="permission:edit_hours"${_team.draft.has('permission:edit_hours') ? ' checked' : ''}>
       </label>
     </div>
     ${teamDangerHtml(m)}`;
@@ -3501,7 +3562,115 @@ document.addEventListener('click', e => {
   if (!a) return;
   const s = getSession();
   if (!s) return;
-  a.href = `${a.dataset.botViewer}#at=${encodeURIComponent(s.access_token)}&rt=${encodeURIComponent(s.refresh_token || '')}`;
+  a.href = `${a.dataset.botViewer}#at=${encodeURIComponent(s.access_token)}&rt=${encodeURIComponent(s.refresh_token || '')}` +
+    (a.dataset.open ? `&open=${encodeURIComponent(a.dataset.open)}` : '');
+});
+
+// ── HORARIOS DEL LOCAL + NOVEDADES ───────────────────────────────────────────
+// The store calendar lives in the bot (it's what the bot tells customers); the
+// card reads it with the owner's session. Editing happens in the viewer's
+// calendar ("one calendar, two doors"). No bot calendar → no card, no section.
+const CLOCK_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const WD_SHORT_ES = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+
+function hoursCardShell() {
+  return `<div class="service-card hours-card" id="hours-card"><div class="team-skel"></div><div class="team-skel"></div></div>`;
+}
+function hm(t) { const [h, m] = t.split(':'); return `${+h}:${m}`; }
+function hmShort(t) { const [h, m] = t.split(':'); return m === '00' ? `${+h}` : `${+h}:${m}`; }
+function hoursText(iv) { return iv.map(([a, b]) => `${hm(a)}–${hm(b)}`).join(' y '); }
+function hoursShort(iv) { return iv.map(([a, b]) => `${hmShort(a)}–${hmShort(b)}`).join(' ') ; }
+function isoWeekday(iso) { return (new Date(iso + 'T12:00:00Z').getUTCDay() + 6) % 7; }
+function timeAgo(iso) {
+  const s = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return 'recién';
+  if (s < 3600) return `hace ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `hace ${Math.floor(s / 3600)} h`;
+  if (s < 172800) return 'ayer';
+  return `hace ${Math.floor(s / 86400)} días`;
+}
+
+async function initStoreHours(services) {
+  const card = $('hours-card');
+  const bot = services.find(isBotService);
+  if (!card || !bot) return;
+  try {
+    const base = new URL(bot.viewer_url).origin;
+    const today = today_date();
+    const token = await authToken(currentToken);
+    const res = await fetch(`${base}/api/calendar?from=${today}&to=${date_plus_days(today, 13)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error(`calendar ${res.status}`);
+    const data = await res.json();
+    renderHoursCard(card, data, bot.viewer_url.split('#')[0]);
+    renderNews(data.changes || []);
+  } catch (err) {
+    console.error('hours:', err);
+    card.remove();
+  }
+}
+
+function renderHoursCard(card, data, viewerUrl) {
+  const days = data.days.slice(0, 7);
+  const today = days[0];
+  const now = data.now;
+  const cur = today.intervals.find(([a, b]) => now >= a && now < b);
+  const later = today.intervals.find(([a]) => now < a);
+  let pill;
+  if (cur) pill = `<span class="hours-pill is-open">Abierto · cierra ${hm(cur[1])}</span>`;
+  else if (later) pill = `<span class="hours-pill">Abre hoy ${hm(later[0])}</span>`;
+  else {
+    const next = data.days.slice(1).find(d => d.intervals.length);
+    pill = `<span class="hours-pill">Cerrado${next ? ` · abre ${WD_SHORT_ES[isoWeekday(next.date)]} ${hm(next.intervals[0][0])}` : ''}</span>`;
+  }
+  const closedLbl = d => d.source === 'holiday' ? 'Feriado' : 'Cerrado';
+  const strip = days.map((d, i) => {
+    const closed = !d.intervals.length, special = d.source === 'override';
+    return `<div class="hs-day${closed ? ' is-closed' : ''}${special ? ' is-special' : ''}${i === 0 ? ' is-today' : ''}"
+        title="${esc(fmtDate(d.date))}${d.changed_by ? ' · cambiado por ' + esc(d.changed_by) : ''}">
+      <div class="hs-wd">${i === 0 ? 'hoy' : WD_SHORT_ES[isoWeekday(d.date)]}</div>
+      <div class="hs-n">${+d.date.slice(8)}</div>
+      <div class="hs-h">${closed ? closedLbl(d) : esc(hoursShort(d.intervals))}</div>
+    </div>`;
+  }).join('');
+  const specialNext = days.some(d => d.source === 'override');
+  card.innerHTML = `
+    <div class="service-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="team-icon-wrap">${CLOCK_SVG}</div>
+        <div class="service-name">Horarios del local</div>
+      </div>
+      ${pill}
+    </div>
+    <div class="hours-today">Hoy ${today.intervals.length ? esc(hoursText(today.intervals)) : 'cerrado'}${today.source === 'override' ? '<small>horario especial</small>' : ''}</div>
+    <div class="hours-strip">${strip}</div>
+    <div class="hours-legend">${specialNext ? 'En verde: días con horario especial. ' : ''}Es lo que el bot les dice a los clientes.</div>
+    <div class="hours-foot">
+      <a class="btn-add-dashed" style="text-decoration:none" href="${esc(viewerUrl)}" target="_blank" rel="noopener"
+         data-bot-viewer="${esc(viewerUrl)}" data-open="calendar">Ver y editar el calendario →</a>
+    </div>`;
+}
+
+function renderNews(changes) {
+  const section = $('news-section');
+  section.hidden = false;
+  const item = c => `
+    <div class="news-item">
+      <span class="news-icon">${CLOCK_SVG}</span>
+      <div class="news-text"><strong>${esc((c.actor_name || '').split(' ')[0] || 'Alguien')}</strong> ${esc(c.summary)}</div>
+      <span class="news-time">${timeAgo(c.created_at)}</span>
+    </div>`;
+  const first = changes.slice(0, 5), rest = changes.slice(5);
+  $('news-container').innerHTML = `<div class="news-list">${changes.length
+    ? first.map(item).join('') + (rest.length ? `<div id="news-rest" hidden>${rest.map(item).join('')}</div><button type="button" class="news-more" data-news-more>Ver ${rest.length} más</button>` : '')
+    : '<div class="news-empty">Sin novedades por ahora. Acá vas a ver cuándo alguien del equipo cambia los horarios del local.</div>'}</div>`;
+}
+document.addEventListener('click', e => {
+  const more = e.target.closest('[data-news-more]');
+  if (!more) return;
+  $('news-rest').hidden = false;
+  more.remove();
 });
 
 // Members never see the portal: send them straight to their owner's viewer
