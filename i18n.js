@@ -134,7 +134,7 @@ window.AGENTIVA_I18N = {
     'auth.eyebrowLogin': 'Acceso',
     'auth.loginTitle': 'Bienvenido',
     'auth.loginSub': 'Ingresá con tu cuenta de Agentiva.',
-    'auth.emailLabel': 'Email',
+    'auth.emailLabel': 'Email o usuario',
     'auth.passLabel': 'Contraseña',
     'auth.submitLogin': 'Ingresar',
     'auth.errorFallback': 'Email o contraseña incorrectos.',

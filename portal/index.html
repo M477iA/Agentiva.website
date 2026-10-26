@@ -1100,6 +1100,216 @@
     .adm-dsum { grid-template-columns: 1fr 1fr; }
     .adm-drawer-head, .adm-drawer-body { padding-left: 16px; padding-right: 16px; }
   }
+
+  /* ══ MI EQUIPO ══════════════════════════════════════════════════════════════
+     Owner-facing team management. Card sits beside the bot card in
+     .services-grid; member detail opens in the same drawer shell as admin. */
+  .team-card { display: flex; flex-direction: column; }
+  .team-icon-wrap {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--color-primary-highlight); border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm); color: var(--color-primary);
+  }
+  [data-theme='dark'] .team-icon-wrap { color: var(--color-accent); }
+  .team-count {
+    font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full);
+    background: var(--color-surface-offset); color: var(--color-text-muted); white-space: nowrap;
+  }
+  .team-list { display: flex; flex-direction: column; margin: 2px -10px 0; }
+  .team-row {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 9px 10px; border: 0; border-radius: var(--radius-md);
+    background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+    transition: background var(--transition-interactive);
+  }
+  .team-row:hover { background: var(--color-surface-offset); }
+  .team-row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+  .team-row.is-off { opacity: 0.55; }
+  .team-who { flex: 1; min-width: 0; }
+  .team-name { display: block; font-family: var(--font-display); font-weight: 600; font-size: 14.5px; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-user { display: block; font-size: 12px; color: var(--color-text-muted); }
+  #team-add-modal { z-index: 240; }   /* above the drawers (220) — can be opened from the admin drawer */
+  .team-state { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .team-state.is-online { color: var(--color-success); font-weight: 500; }
+  .team-state.is-online::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+    box-shadow: 0 0 6px oklch(from var(--color-success) l c h / 0.7); animation: pulse-green 2s infinite;
+  }
+  .team-pill {
+    font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: var(--radius-full); white-space: nowrap;
+    background: var(--color-warning-highlight); color: var(--color-warning);
+  }
+  .team-pill.is-off { background: var(--color-surface-offset); color: var(--color-text-faint); }
+  .team-foot { margin-top: auto; padding-top: 14px; }
+  .btn-add-dashed {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px; border: 1px dashed var(--color-border); border-radius: var(--radius-md);
+    background: transparent; color: var(--color-primary); cursor: pointer;
+    font-family: var(--font-display); font-weight: 600; font-size: 13.5px;
+    transition: background var(--transition-interactive), border-color var(--transition-interactive);
+  }
+  .btn-add-dashed:hover { border-style: solid; border-color: var(--color-accent); background: var(--color-accent-highlight); }
+  [data-theme='dark'] .btn-add-dashed { color: var(--color-accent); }
+  .team-empty { text-align: center; padding: 14px 8px 4px; }
+  .team-empty-title { font-family: var(--font-display); font-weight: 600; font-size: 14.5px; color: var(--color-text); margin-bottom: 4px; }
+  .team-empty-sub { font-size: 13px; color: var(--color-text-muted); line-height: 1.5; max-width: 320px; margin: 0 auto; }
+  .team-skel { height: 52px; border-radius: var(--radius-md); margin: 4px 0;
+    background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface) 50%, var(--color-surface-offset) 75%);
+    background-size: 200% 100%; animation: team-shimmer 1.2s linear infinite; }
+  @keyframes team-shimmer { to { background-position: -200% 0; } }
+
+  /* Avatar: initials on a deterministic tint (mixed with the surface → works in both themes) */
+  .avatar {
+    --av: #0f766e;
+    position: relative; flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in oklch, var(--av) 16%, var(--color-surface));
+    color: var(--av); font-family: var(--font-display); font-weight: 700; font-size: 12.5px; letter-spacing: 0.02em;
+  }
+  [data-theme='dark'] .avatar { color: color-mix(in oklch, var(--av) 55%, white); background: color-mix(in oklch, var(--av) 30%, var(--color-surface)); }
+  .avatar.lg { width: 46px; height: 46px; font-size: 16px; }
+  .avatar.is-online::after {
+    content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%;
+    background: var(--color-success); border: 2px solid var(--color-surface-2);
+  }
+  .av-0 { --av: #0f766e; } .av-1 { --av: #1f8a4c; } .av-2 { --av: #b5650a; }
+  .av-3 { --av: #6d28d9; } .av-4 { --av: #be185d; } .av-5 { --av: #0369a1; }
+
+  /* Member drawer */
+  .team-dhead { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .team-dtabs { padding: 0 24px; margin-bottom: 0; }
+  .perm-group {
+    border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
+    background: var(--color-surface-2); padding: 16px 16px 14px; margin-bottom: 12px;
+  }
+  .perm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .perm-title { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--color-text); }
+  .perm-hint { font-size: 12.5px; color: var(--color-text-muted); margin: 3px 0 12px; line-height: 1.45; }
+  .perm-bulk { font-size: 12px; }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toggle-chip {
+    position: relative; display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 13px 7px 9px; border-radius: var(--radius-full);
+    border: 1px solid var(--color-border); background: var(--color-surface);
+    font-size: 13px; font-weight: 600; color: var(--color-text-muted); cursor: pointer; user-select: none;
+    transition: background var(--transition-interactive), border-color var(--transition-interactive), color var(--transition-interactive);
+  }
+  .toggle-chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .tc-box {
+    width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--color-text-faint); display: grid; place-items: center; color: #fff;
+    transition: background var(--transition-interactive), border-color var(--transition-interactive);
+  }
+  .tc-box svg { width: 10px; height: 10px; opacity: 0; transform: scale(0.5); transition: opacity 160ms, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .tc-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dot, var(--color-text-faint)); }
+  .toggle-chip:hover { color: var(--color-text); border-color: var(--color-text-faint); }
+  .toggle-chip:has(input:checked) { background: var(--color-accent-highlight); border-color: var(--color-accent); color: var(--color-primary); }
+  [data-theme='dark'] .toggle-chip:has(input:checked) { color: var(--color-accent); }
+  .toggle-chip:has(input:checked) .tc-box { background: var(--color-accent); border-color: var(--color-accent); }
+  [data-theme='dark'] .toggle-chip:has(input:checked) .tc-box { color: #05100b; }
+  .toggle-chip:has(input:checked) .tc-box svg { opacity: 1; transform: scale(1); }
+  .toggle-chip:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+  .switch {
+    appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; cursor: pointer;
+    width: 40px; height: 23px; border-radius: var(--radius-full); background: var(--color-border);
+    transition: background var(--transition-interactive);
+  }
+  .switch::before {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 17px; height: 17px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .switch:checked { background: var(--color-accent); }
+  .switch:checked::before { transform: translateX(17px); }
+  .switch:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .perm-summary {
+    display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius-md);
+    background: var(--color-surface-offset); font-size: 13px; line-height: 1.5; color: var(--color-text-muted); margin-bottom: 14px;
+  }
+  .perm-summary strong { color: var(--color-text); font-weight: 600; }
+  .perm-summary svg { flex-shrink: 0; margin-top: 2px; color: var(--color-success); }
+  .perm-summary.is-empty { background: var(--color-warning-highlight); color: var(--color-warning); }
+  .perm-summary.is-empty svg { color: var(--color-warning); }
+  .team-dfoot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 24px; border-top: 1px solid var(--color-divider); background: var(--color-surface);
+    animation: team-rise 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .team-dfoot[hidden] { display: none; }
+  .team-dfoot-text { font-size: 13px; color: var(--color-text-muted); }
+  .team-dfoot .btn { width: auto; margin: 0; padding: 9px 20px; }
+  @keyframes team-rise { from { transform: translateY(100%); opacity: 0; } }
+
+  /* Activity */
+  .week-bars {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end;
+    height: 132px; padding: 14px 14px 10px; margin-bottom: 24px;
+    border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: var(--color-surface-2);
+  }
+  .wb-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; height: 100%; min-width: 0; }
+  .wb-val { font-size: 10.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wb-bar {
+    width: 100%; max-width: 30px; min-height: 3px; border-radius: 6px 6px 3px 3px;
+    background: var(--color-accent); transform-origin: bottom; animation: wb-grow 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .wb-bar.is-zero { background: var(--color-divider); }
+  .wb-day { font-size: 11px; font-weight: 600; color: var(--color-text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .wb-col.is-today .wb-day { color: var(--color-text); }
+  @keyframes wb-grow { from { transform: scaleY(0); } }
+  .team-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-full); white-space: nowrap;
+    background: var(--color-surface-offset); color: var(--color-text-muted);
+  }
+  .team-tag.is-live { background: var(--color-success-highlight); color: var(--color-success); }
+  .team-danger { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 18px; margin-top: 8px; border-top: 1px solid var(--color-divider); }
+  .team-danger .btn-secondary { padding: 7px 14px; font-size: 13px; }
+  .team-danger .btn-danger { padding: 7px 14px; font-size: 13px; font-family: var(--font-display); font-weight: 600; }
+  .team-danger .btn-danger.is-confirm { background: var(--color-error); border-color: var(--color-error); color: #fff; }
+
+  /* Add-member modal + credential card */
+  .modal.modal-sm { max-width: 480px; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; }
+  .label-row .adm-link { font-size: 12px; text-transform: none; letter-spacing: 0; }
+  .field-hint { font-size: 12.5px; color: var(--color-text-faint); min-height: 18px; display: flex; align-items: center; gap: 6px; }
+  .field-hint.is-ok { color: var(--color-success); }
+  .field-hint.is-bad { color: var(--color-error); }
+  .cred-card {
+    border: 1px solid var(--color-accent); background: var(--color-accent-highlight);
+    border-radius: var(--radius-md); padding: 6px 16px; margin: 4px 0 18px;
+  }
+  .cred-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent); }
+  .cred-line:last-child { border-bottom: none; }
+  .cred-k { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); }
+  .cred-v { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 14.5px; font-weight: 600; color: var(--color-text); word-break: break-all; text-align: right; }
+  .success-mark {
+    width: 44px; height: 44px; border-radius: 50%; margin-bottom: 14px;
+    display: grid; place-items: center; background: var(--color-success-highlight); color: var(--color-success);
+    animation: team-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes team-pop { from { transform: scale(0.4); opacity: 0; } }
+  .modal-lead { font-size: 14px; color: var(--color-text-muted); line-height: 1.5; margin: -12px 0 18px; }
+  .stack-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stack-actions .btn { width: 100%; margin: 0; padding: 10px 14px; }
+  .stack-actions .btn-full { grid-column: 1 / -1; }
+  .btn-wa { background: #25d366; color: #05100b; }
+  .btn-wa:hover { background: #1fbd59; }
+  .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+  .btn-outline:hover { background: var(--color-surface-offset); }
+
+  /* Admin drawer: team block */
+  .adm-team-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .adm-team-head .adm-dsec-title { margin: 0; }
+
+  @media (max-width: 640px) {
+    .team-state:not(.is-online) { display: none; }
+    .team-dtabs { padding: 0 16px; }
+    .team-dfoot { padding: 12px 16px; }
+    .stack-actions { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wb-bar, .team-dfoot, .success-mark, .team-skel { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -1125,8 +1335,8 @@
     <p class="login-sub">Ingresá con tu cuenta para ver tus servicios y pagos.</p>
     <form id="login-form">
       <div class="field">
-        <label for="p-email">Email</label>
-        <input type="email" id="p-email" placeholder="tu@email.com" required autocomplete="email">
+        <label for="p-email">Email o usuario</label>
+        <input type="text" id="p-email" placeholder="tu@email.com o usuario" required autocomplete="username" autocapitalize="none" spellcheck="false">
       </div>
       <div class="field">
         <label for="p-pass">Contraseña</label>
@@ -1495,6 +1705,87 @@
   </aside>
 </div>
 
+<!-- ── MI EQUIPO: ADD MEMBER MODAL (step 1 form → step 2 credentials) ── -->
+<div id="team-add-modal" class="portal-modal" hidden>
+  <div class="portal-modal-backdrop" data-close-modal="team-add-modal"></div>
+  <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="team-add-title">
+    <div id="team-add-step-form">
+      <div class="modal-header">
+        <div class="modal-title" id="team-add-title">Agregar miembro</div>
+        <button class="btn-icon" data-close-modal="team-add-modal" aria-label="Cerrar">&times;</button>
+      </div>
+      <p class="modal-lead">Va a ingresar con su propio usuario y contraseña. Hasta que le habilites permisos, no ve ninguna conversación.</p>
+      <form id="team-add-form" autocomplete="off">
+        <div class="field">
+          <label for="ta-nombre">Nombre</label>
+          <input type="text" id="ta-nombre" placeholder="Juan Pérez" required maxlength="60">
+        </div>
+        <div class="field">
+          <label for="ta-user">Usuario</label>
+          <input type="text" id="ta-user" placeholder="juan.omega" required maxlength="32" autocapitalize="none" spellcheck="false">
+          <div class="field-hint" id="ta-user-hint">Con esto ingresa en agentiva.com.ar</div>
+        </div>
+        <div class="field">
+          <div class="label-row">
+            <label for="ta-pass">Contraseña</label>
+            <button type="button" class="adm-link" id="ta-gen">Generar una</button>
+          </div>
+          <div class="field-pass-wrap">
+            <input type="password" id="ta-pass" placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password">
+            <button type="button" class="pass-toggle" data-pass-toggle="ta-pass" aria-label="Mostrar contraseña">
+              <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 4.22-5.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 7 11 7a20.3 20.3 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+            </button>
+          </div>
+        </div>
+        <p class="form-error" id="ta-error"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal="team-add-modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="ta-submit" style="width:auto">Crear acceso</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="team-add-step-done" hidden>
+      <div class="modal-header" style="margin-bottom:8px">
+        <div class="success-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <button class="btn-icon" data-close-modal="team-add-modal" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="modal-title" id="td-title" style="margin-bottom:6px"></div>
+      <p class="modal-lead" style="margin-top:0">Pasale estos datos. La contraseña no se vuelve a mostrar.</p>
+      <div class="cred-card" id="td-cred"></div>
+      <div class="stack-actions">
+        <button type="button" class="btn btn-outline" id="td-copy">Copiar acceso</button>
+        <a class="btn btn-wa" id="td-wa" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+        <button type="button" class="btn btn-primary btn-full" id="td-perms">Configurar permisos →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MI EQUIPO: MEMBER DRAWER ── -->
+<div id="team-drawer" class="adm-drawer" hidden>
+  <div class="adm-drawer-backdrop" data-team-action="close"></div>
+  <aside class="adm-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="team-d-name" tabindex="-1">
+    <header class="adm-drawer-head">
+      <div class="team-dhead" id="team-d-head"></div>
+      <button class="btn-icon" data-team-action="close" aria-label="Cerrar">&times;</button>
+    </header>
+    <div class="adm-tabs team-dtabs" role="tablist">
+      <button class="adm-tab" role="tab" data-team-tab="permisos" aria-selected="true">Permisos</button>
+      <button class="adm-tab" role="tab" data-team-tab="actividad" aria-selected="false">Actividad</button>
+    </div>
+    <div class="adm-drawer-body" id="team-d-body"></div>
+    <div class="team-dfoot" id="team-d-foot" hidden>
+      <span class="team-dfoot-text">Cambios sin guardar</span>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn-secondary" data-team-action="discard" style="padding:8px 16px">Descartar</button>
+        <button type="button" class="btn btn-primary" data-team-action="save">Guardar cambios</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
 <!-- ── ADMIN: UNDO SNACKBAR ── -->
 <div id="adm-snack" class="adm-snack" role="status" aria-live="polite" hidden>
   <span id="adm-snack-text"></span>
@@ -1507,6 +1798,8 @@ const SB_URL = 'https://cyczjwnqrzxbngiqhzcj.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
 const SESSION_LS = 'agentiva_portal_v1';
 const THEME_LS = 'agentiva_portal_theme';
+const MEMBER_DOMAIN = 'team.agentiva.com.ar';
+const TEAM_API = '/api/team';
 
 // ── THEME ────────────────────────────────────────────────────────────────────
 function initTheme() {
@@ -1543,6 +1836,7 @@ document.addEventListener('click', (e) => {
   const id = closer.getAttribute('data-close-modal');
   if (id === 'add-client-modal') closeAddClientModal();
   else if (id === 'add-cost-modal') closeAddCostModal();
+  else if (id === 'team-add-modal') closeTeamAdd();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
@@ -1610,6 +1904,12 @@ let currentProfile = null;
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function init() {
   initTheme();
+  // Viewer "Volver a ingresar" lands here: drop the old session instead of
+  // bouncing a team member straight back into the viewer
+  if (new URLSearchParams(location.search).has('logout')) {
+    localStorage.removeItem(SESSION_LS);
+    history.replaceState({}, '', location.pathname);
+  }
   const session = getSession();
   hide('loading');
   if (!session) { show('login-view'); return; }
@@ -1624,6 +1924,7 @@ async function loadDashboard() {
     const profile = profiles[0];
     if (!profile) { show('login-view'); return; }
     currentProfile = profile;
+    if (profile.role === 'member') { await routeMember(profile); return; }
     $('nav-name').textContent = profile.nombre;
     $('nav-role').textContent = profile.role === 'admin' ? 'Admin' : 'Cliente';
     show('dashboard-view');
@@ -1648,7 +1949,8 @@ async function renderClient(profile) {
   ]);
 
   const allPagos = pagos || [];
-  renderServices(services || []);
+  renderServices(services || [], (services || []).some(isBotService));
+  initOwnerTeam(profile);
   renderBanner(allPagos);
 
   // Client view: show all non-pending rows + only the next pending row
@@ -1793,7 +2095,7 @@ function buildServiceCard(s) {
       </div>` : ''}` : ''}
     </div>
     ${s.viewer_url ? `
-    <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link">
+    <a href="${esc(s.viewer_url)}" target="_blank" rel="noopener" class="service-viewer-link"${isBotService(s) ? ` data-bot-viewer="${esc(s.viewer_url.split('#')[0])}"` : ''}>
       ${isMail
         ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>`
         : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>`}
@@ -1810,7 +2112,7 @@ function buildServiceCard(s) {
   </div>`;
 }
 
-function renderServices(services) {
+function renderServices(services, withTeam) {
   const container = $('services-container');
   // Split: marketing folder vs regular service cards
   const mainSvcs = services.filter(s => s.viewer_url && s.ram_display !== 'marketing')
@@ -1824,7 +2126,7 @@ function renderServices(services) {
 
   let html = '';
   if (mainSvcs.length) {
-    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}</div>`;
+    html += `<div class="services-grid">${mainSvcs.map(buildServiceCard).join('')}${withTeam ? teamCardShell() : ''}</div>`;
   }
   if (mktSvcs.length) {
     html += `
@@ -2202,7 +2504,8 @@ function renderDrawer(id) {
     <div class="adm-dsec-title">Servicios</div>
     <div class="adm-dlist">${svcHtml}</div>
     <div class="adm-dsec-title">Pagos</div>
-    <div class="adm-dlist">${payHtml}</div>`;
+    <div class="adm-dlist">${payHtml}</div>
+    ${adminTeamBlock(profile, c.services)}`;
 }
 
 // ── Tabs & events (delegated; no inline handlers on dynamic HTML) ──
@@ -2279,7 +2582,8 @@ async function undoLastPayment() {
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = $('p-email').value.trim();
+  let email = $('p-email').value.trim().toLowerCase();
+  if (email && !email.includes('@')) email = `${email}@${MEMBER_DOMAIN}`;   // team member username
   const pass  = $('p-pass').value;
   const btn   = $('login-btn');
   const err   = $('login-error');
@@ -2308,7 +2612,9 @@ async function doLogout() {
   currentToken = null; currentUser = null; currentProfile = null;
   hide('dashboard-view'); hide('client-view'); hide('admin-view');
   hide('adm-drawer'); hide('adm-snack'); document.body.classList.remove('modal-open');
+  hide('team-drawer'); hide('team-add-modal');
   _adm.drawerId = null; _adm.undo = null;
+  Object.assign(_team, { ownerId: null, mount: null, members: [], filters: {}, sessions: [], openId: null, draft: null, created: null });
   show('login-view');
 }
 
@@ -2584,6 +2890,600 @@ async function deleteCost(costId, btn) {
     btn.textContent = 'Error';
     btn.style.color = 'var(--color-error)';
   }
+}
+
+// ── MI EQUIPO ─────────────────────────────────────────────────────────────────
+// Team members = client_profiles rows with role 'member' and owner_id = client.
+// Logins are created/reset/disabled by /api/team (needs the service key); member
+// list, filters and sessions are read/written here under RLS.
+const TEAM_REASONS = [   // [value, chip label, phrase for the summary line]
+  ['urgency',               'Urgencia',            'urgencia'],
+  ['human_request',         'Pide una persona',    'pedido de una persona'],
+  ['needs_help',            'Necesita ayuda',      'pedido de ayuda'],
+  ['ready_to_buy',          'Quiere comprar',      'intención de compra'],
+  ['pickup_order',          'Pedido para retirar', 'pedido para retirar'],
+  ['reservation_confusion', 'Quiere reservar',     'reserva'],
+];
+const TEAM_CLASSES = [   // [value, chip label, summary phrase, dot color]
+  ['needs_attention', 'A revisar', 'a revisar',   'var(--color-warning)'],
+  ['unsuccessful',    'Sin éxito', 'sin éxito',   'var(--color-error)'],
+  ['successful',      'Exitosa',   'exitosas',    'var(--color-success)'],
+  ['other',           'Otro',      'de tipo otro', '#3b82f6'],
+];
+const ONLINE_MS = 3 * 60 * 1000;   // viewer heartbeats every 60 s → 3 min of silence = offline
+const CHECK_SVG = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.3 2.3 4.7-5"/></svg>';
+const USERS_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.2.7 3.5 2.8 3.5 5.7"/></svg>';
+const EYE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>';
+const WARN_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l9.5 17h-19z" stroke-linejoin="round"/><path d="M12 10v4M12 17.5v.01"/></svg>';
+
+const _team = {
+  ownerId: null, empresa: '', mount: null,   // mount: 'client' (owner's card) | 'admin' (client drawer)
+  members: [], filters: {}, sessions: [],
+  openId: null, tab: 'permisos', draft: null, created: null, userTouched: false,
+};
+
+function isBotService(s) {
+  return !!(s.viewer_url && s.ram_display && !['mail', 'chat', 'marketing'].includes(s.ram_display));
+}
+
+async function sbDelete(table, filter, token) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' }
+  });
+  if (!res.ok) throw new Error(`Error borrando en ${table}: ${res.status}`);
+}
+
+async function sbRpc(fn, token, args = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  });
+  if (!res.ok) throw new Error(`Error en ${fn}: ${res.status}`);
+  return res.json();
+}
+
+async function teamApi(action, payload = {}) {
+  const res = await fetch(TEAM_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, token: currentToken, ...payload })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Error inesperado. Intentá de nuevo.');
+  return data;
+}
+
+async function loadTeam(ownerId, mount, empresa) {
+  _team.ownerId = ownerId; _team.mount = mount; _team.empresa = empresa || '';
+  const members = await sbQuery('client_profiles',
+    `owner_id=eq.${ownerId}&role=eq.member&select=id,nombre,username,activo,created_at&order=created_at.asc`, currentToken);
+  _team.members = members;
+  await loadTeamDetail();
+}
+
+async function loadTeamDetail() {
+  const ids = _team.members.map(m => m.id);
+  const since = encodeURIComponent(new Date(Date.now() - 35 * 86400000).toISOString());
+  const [filters, sessions] = ids.length ? await Promise.all([
+    sbQuery('team_member_filters', `member_id=in.(${ids.join(',')})&select=member_id,filter_type,value`, currentToken),
+    sbQuery('team_sessions', `owner_id=eq.${_team.ownerId}&started_at=gte.${since}&order=started_at.desc`, currentToken),
+  ]) : [[], []];
+  _team.filters = {};
+  ids.forEach(id => { _team.filters[id] = new Set(); });
+  filters.forEach(f => _team.filters[f.member_id] && _team.filters[f.member_id].add(`${f.filter_type}:${f.value}`));
+  _team.sessions = sessions;
+}
+
+// ── helpers ──
+function teamInitials(n) {
+  const p = (n || '?').trim().split(/\s+/);
+  return ((p[0][0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() || '?';
+}
+function teamTint(id) { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % 6; }
+function teamFirst(m) { return (m.nombre || '').trim().split(/\s+/)[0] || m.username; }
+function hasAccess(set) { return !!set && [...set].some(k => k.startsWith('handoff_reason:') || k.startsWith('classification:')); }
+function memberSessions(id) { return _team.sessions.filter(s => s.member_id === id); }
+function sessionLive(s) { return !!s && !s.ended_at && (Date.now() - new Date(s.last_seen_at)) < ONLINE_MS; }
+function isOnline(id) { return sessionLive(memberSessions(id)[0]); }
+function baDay(d) { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(d)); }
+function baTime(d) {
+  return new Date(d).toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function fmtDur(sec) {
+  sec = Math.round(sec || 0);
+  if (sec < 60) return sec ? '<1m' : '0m';
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+  return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`;
+}
+function activeOn(id, day) {
+  return memberSessions(id).filter(s => baDay(s.started_at) === day).reduce((a, s) => a + (s.active_seconds || 0), 0);
+}
+function lastSeenLabel(id) {
+  const s = memberSessions(id)[0];
+  if (!s) return 'Nunca ingresó';
+  const end = s.ended_at || s.last_seen_at;
+  const day = baDay(end), today = today_date();
+  if (day === today) return `Hoy ${baTime(end)}`;
+  if (day === date_plus_days(today, -1)) return `Ayer ${baTime(end)}`;
+  return fmtDateShort(day);
+}
+function listEs(a) { return a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} o ${a[a.length - 1]}`; }
+function slugify(s) { return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+function suggestUsername(nombre) {
+  const first = slugify((nombre || '').trim().split(/\s+/)[0]);
+  const emp = slugify((_team.empresa || '').trim().split(/\s+/).pop());
+  return first ? (emp ? `${first}.${emp}` : first).slice(0, 32) : '';
+}
+function genPassword() {
+  const L = 'abcdefghjkmnpqrstuvwxyz', D = '23456789';
+  const r = n => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+  const part = () => L[r(L.length)].toUpperCase() + L[r(L.length)] + L[r(L.length)] + D[r(D.length)];
+  return `${part()}-${part()}`;
+}
+function credText(username, password) {
+  return `¡Hola! Te creé un acceso para atender las conversaciones de WhatsApp${_team.empresa ? ' de ' + _team.empresa : ''}.\n\n` +
+    `Entrá a https://agentiva.com.ar → "Ingresar"\nUsuario: ${username}\nContraseña: ${password}`;
+}
+function credLines(u, p) {
+  return `<div class="cred-line"><span class="cred-k">Usuario</span><span class="cred-v">${esc(u)}</span></div>
+    <div class="cred-line"><span class="cred-k">Contraseña</span><span class="cred-v">${esc(p)}</span></div>
+    <div class="cred-line"><span class="cred-k">Ingreso</span><span class="cred-v" style="font-family:var(--font-body)">agentiva.com.ar → Ingresar</span></div>`;
+}
+
+// ── owner card ──
+function teamCardHead(n) {
+  return `
+    <div class="service-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="team-icon-wrap">${USERS_SVG}</div>
+        <div class="service-name">Mi Equipo</div>
+      </div>
+      ${n != null ? `<span class="team-count">${n} ${n === 1 ? 'miembro' : 'miembros'}</span>` : ''}
+    </div>`;
+}
+function teamCardShell() {
+  return `<div class="service-card team-card" id="team-card">${teamCardHead(null)}<div class="team-skel"></div><div class="team-skel"></div></div>`;
+}
+function teamRow(m) {
+  const online = m.activo && isOnline(m.id);
+  const state = !m.activo ? '<span class="team-pill is-off">Desactivado</span>'
+    : !hasAccess(_team.filters[m.id]) ? '<span class="team-pill">Sin permisos</span>'
+    : online ? `<span class="team-state is-online">En línea · ${fmtDur(activeOn(m.id, today_date()))} hoy</span>`
+    : `<span class="team-state">${lastSeenLabel(m.id)}</span>`;
+  return `
+    <button type="button" class="team-row${m.activo ? '' : ' is-off'}" data-team-action="open" data-id="${m.id}">
+      <span class="avatar av-${teamTint(m.id)}${online ? ' is-online' : ''}">${esc(teamInitials(m.nombre))}</span>
+      <span class="team-who"><span class="team-name">${esc(m.nombre)}</span><span class="team-user">@${esc(m.username)}</span></span>
+      ${state}
+    </button>`;
+}
+function renderTeamCard() {
+  const card = $('team-card');
+  if (!card || _team.mount !== 'client') return;
+  const ms = _team.members;
+  card.innerHTML = teamCardHead(ms.length) + (ms.length
+    ? `<p class="service-desc" style="margin-bottom:8px">Quién atiende las conversaciones que el bot deriva.</p>
+       <div class="team-list">${ms.map(teamRow).join('')}</div>`
+    : `<div class="team-empty">
+         <div class="team-empty-title">Sumá a tu equipo</div>
+         <p class="team-empty-sub">Cada persona entra con su propio usuario y ve solo las conversaciones que vos le habilites.</p>
+       </div>`) +
+    `<div class="team-foot"><button type="button" class="btn-add-dashed" data-team-action="add">
+       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+       Agregar miembro</button></div>`;
+}
+async function initOwnerTeam(profile) {
+  if (!$('team-card')) return;
+  try {
+    await loadTeam(profile.id, 'client', profile.empresa);
+    renderTeamCard();
+  } catch (err) {
+    console.error('team:', err);
+    $('team-card').remove();   // migration not run yet / no access → no card, no noise
+  }
+}
+
+// ── admin drawer block ──
+function adminTeamBlock(profile, services) {
+  if (!services.some(isBotService)) return '';
+  if (_team.mount === 'admin' && _team.ownerId === profile.id) return `<div id="adm-team-block">${adminTeamInner()}</div>`;
+  setTimeout(async () => {
+    try { await loadTeam(profile.id, 'admin', profile.empresa); refreshAdminTeam(); }
+    catch (err) { console.error('team:', err); const el = $('adm-team-block'); if (el) el.innerHTML = '<div class="adm-dempty">Equipo no disponible (¿migración pendiente?).</div>'; }
+  });
+  return `<div id="adm-team-block"><div class="adm-dsec-title">Equipo</div><div class="team-skel"></div></div>`;
+}
+function adminTeamInner() {
+  return `
+    <div class="adm-team-head">
+      <div class="adm-dsec-title">Equipo</div>
+      <button type="button" class="adm-link" data-team-action="add">+ Agregar miembro</button>
+    </div>
+    <div class="adm-dlist" style="padding:4px">${_team.members.length
+      ? `<div class="team-list" style="margin:0">${_team.members.map(teamRow).join('')}</div>`
+      : '<div class="adm-dempty">Sin miembros.</div>'}</div>`;
+}
+function refreshAdminTeam() {
+  const el = $('adm-team-block');
+  if (el && _team.mount === 'admin') el.innerHTML = adminTeamInner();
+}
+function refreshTeamViews() { renderTeamCard(); refreshAdminTeam(); if (_team.openId) renderTeamDrawer(); }
+
+// ── member drawer ──
+function openTeamDrawer(id, tab = 'permisos') {
+  _team.openId = id; _team.tab = tab;
+  _team.draft = new Set(_team.filters[id] || []);
+  renderTeamDrawer();
+  show('team-drawer');
+  document.body.classList.add('modal-open');
+  document.querySelector('#team-drawer .adm-drawer-panel').focus();
+}
+function closeTeamDrawer(force) {
+  if (!force && teamDirty() && !confirm('Tenés cambios sin guardar en los permisos. ¿Descartarlos?')) return;
+  _team.openId = null; _team.draft = null;
+  hide('team-drawer');
+  if ($('adm-drawer').hidden) document.body.classList.remove('modal-open');
+}
+function teamDirty() {
+  const saved = _team.filters[_team.openId], d = _team.draft;
+  if (!saved || !d) return false;
+  return saved.size !== d.size || [...d].some(k => !saved.has(k));
+}
+function renderTeamDrawer() {
+  const m = _team.members.find(x => x.id === _team.openId);
+  if (!m) { closeTeamDrawer(true); return; }
+  const online = m.activo && isOnline(m.id);
+  $('team-d-head').innerHTML = `
+    <span class="avatar lg av-${teamTint(m.id)}${online ? ' is-online' : ''}">${esc(teamInitials(m.nombre))}</span>
+    <div style="min-width:0">
+      <div class="adm-drawer-title" id="team-d-name">${esc(m.nombre)}</div>
+      <div class="adm-drawer-sub"><span>@${esc(m.username)}</span>${
+        !m.activo ? '<span class="team-pill is-off">Desactivado</span>'
+        : online ? '<span class="team-state is-online">En línea</span>'
+        : `<span>· ${lastSeenLabel(m.id)}</span>`}</div>
+    </div>`;
+  document.querySelectorAll('[data-team-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.teamTab === _team.tab)));
+  $('team-d-body').innerHTML = _team.tab === 'permisos' ? teamPermsHtml(m) : teamActivityHtml(m);
+  syncTeamFoot();
+}
+function syncTeamFoot() { $('team-d-foot').hidden = !(_team.tab === 'permisos' && teamDirty()); }
+
+function teamChip(key, label, dot) {
+  return `<label class="toggle-chip"><input type="checkbox" data-team-filter="${key}"${_team.draft.has(key) ? ' checked' : ''}>
+    <span class="tc-box">${CHECK_SVG}</span>${dot ? `<span class="tc-dot" style="--dot:${dot}"></span>` : ''}${esc(label)}</label>`;
+}
+function bulkLabel(type, list) { return list.every(([v]) => _team.draft.has(`${type}:${v}`)) ? 'Ninguna' : 'Todas'; }
+function teamSummaryHtml(m) {
+  const d = _team.draft;
+  const reasons = TEAM_REASONS.filter(([v]) => d.has('handoff_reason:' + v)).map(r => r[2]);
+  const classes = TEAM_CLASSES.filter(([v]) => d.has('classification:' + v)).map(c => c[2]);
+  const who = `<strong>${esc(teamFirst(m))}</strong>`;
+  if (!reasons.length && !classes.length) {
+    return `<div class="perm-summary is-empty" id="team-summary">${WARN_SVG}<span>${who} todavía no ve ninguna conversación. Elegí al menos un motivo o una clasificación.</span></div>`;
+  }
+  const parts = [];
+  if (reasons.length) parts.push(`las derivaciones por <strong>${listEs(reasons)}</strong>`);
+  if (classes.length) parts.push(`las conversaciones <strong>${listEs(classes)}</strong>`);
+  const paused = d.has('scope:paused_only') ? ', solo mientras estén pausadas' : '';
+  return `<div class="perm-summary" id="team-summary">${EYE_SVG}<span>${who} va a ver ${parts.join(' y ')}${paused}.</span></div>`;
+}
+function teamPermsHtml(m) {
+  return `
+    ${teamSummaryHtml(m)}
+    <div class="perm-group">
+      <div class="perm-head">
+        <div class="perm-title">Derivaciones del bot</div>
+        <button type="button" class="adm-link perm-bulk" data-team-bulk="handoff_reason">${bulkLabel('handoff_reason', TEAM_REASONS)}</button>
+      </div>
+      <p class="perm-hint">Conversaciones que el bot pasó a una persona, según el motivo.</p>
+      <div class="chip-grid">${TEAM_REASONS.map(([v, l]) => teamChip('handoff_reason:' + v, l)).join('')}</div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-head">
+        <div class="perm-title">Clasificación</div>
+        <button type="button" class="adm-link perm-bulk" data-team-bulk="classification">${bulkLabel('classification', TEAM_CLASSES)}</button>
+      </div>
+      <p class="perm-hint">Según cómo terminó la conversación. El bot las clasifica cada 3 horas.</p>
+      <div class="chip-grid">${TEAM_CLASSES.map(([v, l, , dot]) => teamChip('classification:' + v, l, dot)).join('')}</div>
+    </div>
+    <div class="perm-group">
+      <label class="switch-row">
+        <span>
+          <span class="perm-title" style="display:block">Solo conversaciones pausadas</span>
+          <span class="perm-hint" style="display:block;margin-bottom:0">Ve únicamente las que están esperando que responda una persona.</span>
+        </span>
+        <input type="checkbox" class="switch" data-team-filter="scope:paused_only"${_team.draft.has('scope:paused_only') ? ' checked' : ''}>
+      </label>
+    </div>
+    ${teamDangerHtml(m)}`;
+}
+function onTeamFilterChange() {
+  const m = _team.members.find(x => x.id === _team.openId);
+  if (!m) return;
+  $('team-summary').outerHTML = teamSummaryHtml(m);
+  document.querySelector('[data-team-bulk="handoff_reason"]').textContent = bulkLabel('handoff_reason', TEAM_REASONS);
+  document.querySelector('[data-team-bulk="classification"]').textContent = bulkLabel('classification', TEAM_CLASSES);
+  syncTeamFoot();
+}
+
+function teamActivityHtml(m) {
+  const today = today_date();
+  const days = Array.from({ length: 7 }, (_, i) => date_plus_days(today, i - 6));
+  const vals = days.map(d => activeOn(m.id, d));
+  const max = Math.max(...vals, 1);
+  const week = vals.reduce((a, b) => a + b, 0);
+  const month = memberSessions(m.id).filter(s => baDay(s.started_at).startsWith(today.slice(0, 7)))
+    .reduce((a, s) => a + (s.active_seconds || 0), 0);
+  const wd = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const sess = memberSessions(m.id).slice(0, 20);
+  return `
+    <div class="adm-dsum">
+      <div><div class="adm-dsum-label">Hoy</div><div class="adm-dsum-value">${fmtDur(vals[6])}</div></div>
+      <div><div class="adm-dsum-label">Últimos 7 días</div><div class="adm-dsum-value">${fmtDur(week)}</div></div>
+      <div><div class="adm-dsum-label">Este mes</div><div class="adm-dsum-value">${fmtDur(month)}</div></div>
+    </div>
+    <div class="adm-dsec-title">Tiempo activo por día</div>
+    <div class="week-bars">${days.map((d, i) => `
+      <div class="wb-col${i === 6 ? ' is-today' : ''}" title="${fmtDateShort(d)}: ${fmtDur(vals[i])} activo">
+        <span class="wb-val">${vals[i] ? fmtDur(vals[i]) : ''}</span>
+        <span class="wb-bar${vals[i] ? '' : ' is-zero'}" style="height:${vals[i] ? Math.max(4, Math.round(vals[i] / max * 72)) : 3}%;animation-delay:${i * 45}ms"></span>
+        <span class="wb-day">${wd[new Date(d + 'T12:00:00').getDay()]}</span>
+      </div>`).join('')}
+    </div>
+    <div class="adm-dsec-title">Sesiones</div>
+    <div class="adm-dlist">${sess.length ? sess.map(teamSessionRow).join('') : '<div class="adm-dempty">Todavía no ingresó al visor.</div>'}</div>
+    <p class="adm-footnote" style="margin:-12px 0 8px">El tiempo activo cuenta solo mientras tiene el visor abierto y lo está usando: más de 2 minutos sin actividad no suman, y a los 60 minutos la sesión se cierra sola.</p>
+    ${teamDangerHtml(m)}`;
+}
+function teamSessionRow(s) {
+  const live = sessionLive(s);
+  const end = s.ended_at || s.last_seen_at;
+  const connected = (new Date(end) - new Date(s.started_at)) / 1000;
+  const idle = s.end_reason === 'idle' || (!s.ended_at && !live);
+  return `
+    <div class="adm-ditem">
+      <div class="adm-ditem-main">
+        <div class="adm-ditem-title">${fmtDateShort(baDay(s.started_at))} · ${baTime(s.started_at)} → ${live ? 'ahora' : baTime(end)}</div>
+        <div class="adm-ditem-sub">${fmtDur(s.active_seconds)} activo · ${fmtDur(connected)} conectado</div>
+      </div>
+      ${live ? '<span class="team-tag is-live">En curso</span>' : idle ? '<span class="team-tag">Por inactividad</span>' : ''}
+    </div>`;
+}
+function teamDangerHtml(m) {
+  return `
+    <div class="team-danger">
+      <button type="button" class="btn-secondary" data-team-action="reset-pass">Restablecer contraseña</button>
+      <button type="button" class="btn-secondary" data-team-action="toggle-active">${m.activo ? 'Desactivar acceso' : 'Reactivar acceso'}</button>
+      <button type="button" class="btn-danger" data-team-action="delete">Eliminar</button>
+    </div>
+    <div id="team-reset-out"></div>`;
+}
+
+async function saveTeamFilters(btn) {
+  const id = _team.openId;
+  const rows = [..._team.draft].map(k => {
+    const i = k.indexOf(':');
+    return { member_id: id, filter_type: k.slice(0, i), value: k.slice(i + 1) };
+  });
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    await sbDelete('team_member_filters', `member_id=eq.${id}`, currentToken);
+    if (rows.length) await sbInsert('team_member_filters', rows, currentToken);
+    _team.filters[id] = new Set(_team.draft);
+    refreshTeamViews();
+    showToast('✓ Permisos guardados');
+  } catch (err) {
+    showToast('No se pudieron guardar los permisos. Intentá de nuevo.', true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+}
+
+async function teamMemberAction(action, btn) {
+  const m = _team.members.find(x => x.id === _team.openId);
+  if (!m) return;
+  if (action === 'reset-pass') {
+    const password = genPassword();
+    btn.disabled = true;
+    try {
+      await teamApi('reset_password', { member_id: m.id, password });
+      $('team-reset-out').innerHTML = `
+        <div class="cred-card" style="margin-top:14px">${credLines(m.username, password)}</div>
+        <div class="stack-actions">
+          <button type="button" class="btn btn-outline" data-team-action="copy-reset" data-text="${esc(credText(m.username, password))}">Copiar acceso</button>
+          <a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(credText(m.username, password))}">Enviar por WhatsApp</a>
+        </div>`;
+      showToast('✓ Contraseña nueva generada');
+    } catch (err) { showToast(err.message, true); }
+    btn.disabled = false;
+  } else if (action === 'toggle-active') {
+    btn.disabled = true;
+    try {
+      const r = await teamApi('set_active', { member_id: m.id, activo: !m.activo });
+      m.activo = r.activo;
+      refreshTeamViews();
+      showToast(m.activo ? `✓ ${teamFirst(m)} puede volver a ingresar` : `${teamFirst(m)} ya no puede ingresar`);
+    } catch (err) { showToast(err.message, true); btn.disabled = false; }
+  } else if (action === 'delete') {
+    if (!btn.classList.contains('is-confirm')) {   // two-step confirm
+      btn.classList.add('is-confirm'); btn.textContent = '¿Eliminar? Confirmar';
+      setTimeout(() => { if (btn.isConnected) { btn.classList.remove('is-confirm'); btn.textContent = 'Eliminar'; } }, 4000);
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Eliminando…';
+    try {
+      await teamApi('delete', { member_id: m.id });
+      _team.members = _team.members.filter(x => x.id !== m.id);
+      delete _team.filters[m.id];
+      closeTeamDrawer(true);
+      refreshTeamViews();
+      showToast(`${m.nombre} fue eliminado del equipo`);
+    } catch (err) { showToast(err.message, true); btn.disabled = false; btn.textContent = 'Eliminar'; }
+  }
+}
+
+// ── add-member modal ──
+function openTeamAdd() {
+  $('team-add-form').reset();
+  $('ta-pass').type = 'password';
+  $('ta-error').textContent = '';
+  teamHint('Con esto ingresa en agentiva.com.ar');
+  _team.userTouched = false;
+  show('team-add-step-form'); hide('team-add-step-done');
+  const b = $('ta-submit'); b.disabled = false; b.textContent = 'Crear acceso';
+  show('team-add-modal');
+  document.body.classList.add('modal-open');
+  setTimeout(() => $('ta-nombre').focus(), 30);
+}
+function closeTeamAdd() {
+  hide('team-add-modal');
+  if ($('team-drawer').hidden && $('adm-drawer').hidden) document.body.classList.remove('modal-open');
+}
+function teamHint(text, kind) {
+  const h = $('ta-user-hint');
+  h.textContent = text;
+  h.className = 'field-hint' + (kind ? ' is-' + kind : '');
+}
+let _taTimer = null, _taSeq = 0;
+function checkUsernameSoon() {
+  clearTimeout(_taTimer);
+  const seq = ++_taSeq;
+  const u = $('ta-user').value.trim().toLowerCase();
+  if (!u) { teamHint('Con esto ingresa en agentiva.com.ar'); return; }
+  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(u)) { teamHint('3 a 32 caracteres: letras, números, punto o guion', 'bad'); return; }
+  teamHint('Verificando…');
+  _taTimer = setTimeout(async () => {
+    try {
+      const r = await teamApi('check_username', { username: u });
+      if (seq !== _taSeq) return;
+      teamHint(r.available ? `✓ Disponible: va a ingresar como «${u}»` : 'Ya está en uso, probá con otro', r.available ? 'ok' : 'bad');
+    } catch { if (seq === _taSeq) teamHint('Con esto ingresa en agentiva.com.ar'); }
+  }, 400);
+}
+async function submitTeamAdd(e) {
+  e.preventDefault();
+  const btn = $('ta-submit');
+  const nombre = $('ta-nombre').value.trim();
+  const username = $('ta-user').value.trim().toLowerCase();
+  const password = $('ta-pass').value;
+  $('ta-error').textContent = '';
+  btn.disabled = true; btn.textContent = 'Creando…';
+  try {
+    const payload = { nombre, username, password };
+    if (_team.mount === 'admin') payload.owner_id = _team.ownerId;
+    const { member } = await teamApi('create', payload);
+    _team.members.push(member);
+    _team.filters[member.id] = new Set();
+    _team.created = { member, password };
+    refreshTeamViews();
+    hide('team-add-step-form'); show('team-add-step-done');
+    $('td-title').textContent = `Acceso creado para ${teamFirst(member)}`;
+    $('td-cred').innerHTML = credLines(member.username, password);
+    $('td-wa').href = 'https://wa.me/?text=' + encodeURIComponent(credText(member.username, password));
+    $('td-copy').textContent = 'Copiar acceso';
+  } catch (err) {
+    $('ta-error').textContent = err.message;
+    btn.disabled = false; btn.textContent = 'Crear acceso';
+  }
+}
+
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); } catch { return showToast('No se pudo copiar', true); }
+  const prev = btn.textContent;
+  btn.textContent = '✓ Copiado';
+  setTimeout(() => { if (btn.isConnected) btn.textContent = prev; }, 1800);
+}
+
+// Owner card: refresh online state / active time while the page stays open
+setInterval(async () => {
+  if (_team.mount !== 'client' || document.hidden || !$('team-card')) return;
+  try { await loadTeamDetail(); renderTeamCard(); if (_team.openId && _team.tab === 'actividad') renderTeamDrawer(); }
+  catch { /* transient — next tick retries */ }
+}, 60000);
+
+// ── team events (delegated) ──
+document.addEventListener('click', e => {
+  const tab = e.target.closest('[data-team-tab]');
+  if (tab) { _team.tab = tab.dataset.teamTab; renderTeamDrawer(); return; }
+  const bulk = e.target.closest('[data-team-bulk]');
+  if (bulk) {
+    const type = bulk.dataset.teamBulk;
+    const list = type === 'handoff_reason' ? TEAM_REASONS : TEAM_CLASSES;
+    const turnOn = bulkLabel(type, list) === 'Todas';
+    list.forEach(([v]) => { turnOn ? _team.draft.add(`${type}:${v}`) : _team.draft.delete(`${type}:${v}`); });
+    document.querySelectorAll(`[data-team-filter^="${type}:"]`).forEach(i => { i.checked = turnOn; });
+    onTeamFilterChange();
+    return;
+  }
+  const el = e.target.closest('[data-team-action]');
+  if (!el) return;
+  const a = el.dataset.teamAction;
+  if (a === 'add') openTeamAdd();
+  else if (a === 'open') openTeamDrawer(el.dataset.id);
+  else if (a === 'close') closeTeamDrawer();
+  else if (a === 'discard') { _team.draft = new Set(_team.filters[_team.openId]); renderTeamDrawer(); }
+  else if (a === 'save') saveTeamFilters(el);
+  else if (a === 'copy-reset') copyText(el.dataset.text, el);
+  else teamMemberAction(a, el);
+});
+document.addEventListener('change', e => {
+  const f = e.target.closest('[data-team-filter]');
+  if (!f || !_team.draft) return;
+  f.checked ? _team.draft.add(f.dataset.teamFilter) : _team.draft.delete(f.dataset.teamFilter);
+  onTeamFilterChange();
+});
+// Capture phase: the top-most team layer handles Escape so the admin drawer below stays open
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('team-add-modal').hidden) { closeTeamAdd(); e.stopImmediatePropagation(); }
+  else if (!$('team-drawer').hidden) { closeTeamDrawer(); e.stopImmediatePropagation(); }
+}, true);
+$('team-add-form').addEventListener('submit', submitTeamAdd);
+$('ta-nombre').addEventListener('input', () => {
+  if (_team.userTouched) return;
+  $('ta-user').value = suggestUsername($('ta-nombre').value);
+  checkUsernameSoon();
+});
+$('ta-user').addEventListener('input', () => { _team.userTouched = true; checkUsernameSoon(); });
+$('ta-gen').addEventListener('click', () => {
+  const p = $('ta-pass');
+  p.value = genPassword(); p.type = 'text';
+  document.querySelector('[data-pass-toggle="ta-pass"]').classList.add('is-visible');
+});
+$('td-copy').addEventListener('click', e => _team.created && copyText(credText(_team.created.member.username, _team.created.password), e.currentTarget));
+$('td-perms').addEventListener('click', () => {
+  const id = _team.created && _team.created.member.id;
+  closeTeamAdd();
+  if (id) openTeamDrawer(id);
+});
+
+// Bot viewer links carry the current session in the URL fragment so the viewer
+// knows who is acting (fragment never reaches server logs). Set at click time.
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-bot-viewer]');
+  if (!a) return;
+  const s = getSession();
+  if (!s) return;
+  a.href = `${a.dataset.botViewer}#at=${encodeURIComponent(s.access_token)}&rt=${encodeURIComponent(s.refresh_token || '')}`;
+});
+
+// Members never see the portal: send them straight to their owner's viewer
+async function routeMember(profile) {
+  let url = null;
+  try { url = await sbRpc('get_my_viewer_url', currentToken); } catch (err) { console.error('viewer url:', err); }
+  const s = getSession();
+  if (!profile.activo || !url || !s) {
+    await sbSignOut(currentToken);
+    currentToken = null; currentUser = null;
+    show('login-view');
+    $('login-error').textContent = !profile.activo
+      ? 'Tu acceso está desactivado. Hablá con tu responsable.'
+      : 'Tu cuenta todavía no tiene un visor asignado. Hablá con tu responsable.';
+    return;
+  }
+  window.location.replace(`${url}#at=${encodeURIComponent(s.access_token)}&rt=${encodeURIComponent(s.refresh_token || '')}`);
 }
 
 // ── GO ────────────────────────────────────────────────────────────────────────

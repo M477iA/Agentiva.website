@@ -141,3 +141,6 @@ CREATE POLICY "admin_only_costs" ON agentiva_costs
 -- ALTER TABLE services ADD COLUMN IF NOT EXISTS facturacion TEXT NOT NULL DEFAULT 'mensual'
 --   CHECK (facturacion IN ('mensual', 'anual', 'unico'));
 -- GRANT ALL ON public.services, public.pagos, public.client_profiles, public.agentiva_costs TO service_role;
+
+-- ── Migration 2026-10-26 — "Mi Equipo" (team members, filters, sessions) ──
+-- See migration-2026-10-26-team.sql (also guards role/owner fields against self-escalation)

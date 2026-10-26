@@ -297,6 +297,7 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Y3pqd25xcnp4Ym5naXFoemNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjAwODAsImV4cCI6MjA5NDA5NjA4MH0.udWSMR11I7qayYnML1qxoukYK719QospuEZFKd-YZxE';
   var PORTAL_URL = '/portal/';
   var _SESS_KEY = 'agentiva_portal_v1';
+  var _MEMBER_DOMAIN = 'team.agentiva.com.ar';
 
   // Restaurant platform clients — authenticated against platform Supabase too, still redirected to PORTAL_URL
   var _PLATFORM_SB_URL = 'https://etetlzcsqucujqjkzsvm.supabase.co';
@@ -373,6 +374,8 @@
   function handleLogin(e) {
     e.preventDefault();
     var email = document.getElementById('login-email').value.trim().toLowerCase();
+    // Team members log in with a bare username → synthetic email (see api/team.py)
+    if (email && email.indexOf('@') === -1) email = email + '@' + _MEMBER_DOMAIN;
     var pass = document.getElementById('login-pass').value;
     var errEl = document.getElementById('login-error');
     var dict = window.AGENTIVA_I18N[currentLang] || window.AGENTIVA_I18N.es;
