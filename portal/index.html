@@ -1169,6 +1169,7 @@
   }
   [data-theme='dark'] .avatar { color: color-mix(in oklch, var(--av) 55%, white); background: color-mix(in oklch, var(--av) 30%, var(--color-surface)); }
   .avatar.lg { width: 46px; height: 46px; font-size: 16px; }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
   .avatar.is-online::after {
     content: ''; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%;
     background: var(--color-success); border: 2px solid var(--color-surface-2);
@@ -3102,7 +3103,7 @@ async function teamApi(action, payload = {}) {
 async function loadTeam(ownerId, mount, empresa) {
   _team.ownerId = ownerId; _team.mount = mount; _team.empresa = empresa || '';
   const members = await sbQuery('client_profiles',
-    `owner_id=eq.${ownerId}&role=eq.member&select=id,nombre,username,activo,created_at&order=created_at.asc`, currentToken);
+    `owner_id=eq.${ownerId}&role=eq.member&select=id,nombre,username,activo,avatar_url,created_at&order=created_at.asc`, currentToken);
   _team.members = members;
   await loadTeamDetail();
 }
@@ -3126,6 +3127,11 @@ function teamInitials(n) {
   return ((p[0][0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() || '?';
 }
 function teamTint(id) { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % 6; }
+// The member's own photo (uploaded from the viewer) or their initials on a tint
+function teamAvatar(m, online, lg) {
+  const inner = m.avatar_url ? `<img src="${esc(m.avatar_url)}" alt="">` : esc(teamInitials(m.nombre));
+  return `<span class="avatar${lg ? ' lg' : ''} av-${teamTint(m.id)}${online ? ' is-online' : ''}">${inner}</span>`;
+}
 function teamFirst(m) { return (m.nombre || '').trim().split(/\s+/)[0] || m.username; }
 function hasAccess(set) { return !!set && [...set].some(k => k.startsWith('handoff_reason:') || k.startsWith('classification:')); }
 function memberSessions(id) { return _team.sessions.filter(s => s.member_id === id); }
@@ -3182,9 +3188,9 @@ function teamCardHead(n) {
     <div class="service-card-header">
       <div style="display:flex;align-items:center;gap:8px;">
         <div class="team-icon-wrap">${USERS_SVG}</div>
-        <div class="service-name">Mi Equipo</div>
+        <div class="service-name">Personas</div>
       </div>
-      ${n != null ? `<span class="team-count">${n} ${n === 1 ? 'miembro' : 'miembros'}</span>` : ''}
+      ${n != null ? `<span class="team-count">${n} ${n === 1 ? 'persona' : 'personas'}</span>` : ''}
     </div>`;
 }
 function teamCardShell() {
@@ -3198,7 +3204,7 @@ function teamRow(m) {
     : `<span class="team-state">${lastSeenLabel(m.id)}</span>`;
   return `
     <button type="button" class="team-row${m.activo ? '' : ' is-off'}" data-team-action="open" data-id="${m.id}">
-      <span class="avatar av-${teamTint(m.id)}${online ? ' is-online' : ''}">${esc(teamInitials(m.nombre))}</span>
+      ${teamAvatar(m, online)}
       <span class="team-who"><span class="team-name">${esc(m.nombre)}</span><span class="team-user">@${esc(m.username)}</span></span>
       ${state}
     </button>`;
@@ -3216,7 +3222,7 @@ function renderTeamCard() {
        </div>`) +
     `<div class="team-foot"><button type="button" class="btn-add-dashed" data-team-action="add">
        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-       Agregar miembro</button></div>`;
+       Agregar persona</button></div>`;
 }
 async function initOwnerTeam(profile) {
   if (!$('team-card')) return;
@@ -3280,7 +3286,7 @@ function renderTeamDrawer() {
   if (!m) { closeTeamDrawer(true); return; }
   const online = m.activo && isOnline(m.id);
   $('team-d-head').innerHTML = `
-    <span class="avatar lg av-${teamTint(m.id)}${online ? ' is-online' : ''}">${esc(teamInitials(m.nombre))}</span>
+    ${teamAvatar(m, online, true)}
     <div style="min-width:0">
       <div class="adm-drawer-title" id="team-d-name">${esc(m.nombre)}</div>
       <div class="adm-drawer-sub"><span>@${esc(m.username)}</span>${

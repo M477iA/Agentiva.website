@@ -11,9 +11,11 @@ Actions (POST JSON, caller's portal access token in `token`):
   reset_password  {member_id, password}
   set_active      {member_id, activo}
   delete          {member_id}
+  set_avatar      {image (base64 JPEG) | remove: true}  → {avatar_url}
 
 Caller must be the member's owner (role 'client') or an admin. Admins pass
-`owner_id` on create; owners always create under themselves.
+`owner_id` on create; owners always create under themselves. set_avatar is
+the exception: anyone signed in (members included) sets their own photo.
 
 Members log in with a synthetic email <username>@team.agentiva.com.ar —
 the login modal maps a bare username to it.
@@ -23,13 +25,14 @@ Required env var in Vercel dashboard:
 """
 
 from http.server import BaseHTTPRequestHandler
-import json, os, re, urllib.request, urllib.error
+import base64, binascii, json, os, re, time, urllib.request, urllib.error
 
 SB_URL  = 'https://cyczjwnqrzxbngiqhzcj.supabase.co'
 MEMBER_DOMAIN = 'team.agentiva.com.ar'
 USERNAME_RE = re.compile(r'^[a-z0-9][a-z0-9._-]{2,31}$')
 UUID_RE = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
 BAN_FOREVER = '876000h'   # ~100 years — Supabase has no "disable", only bans
+AVATAR_MAX = 512 * 1024   # the browser sends a 256px JPEG (~20-40 KB); bucket limit matches
 
 
 class ApiError(Exception):
@@ -62,7 +65,19 @@ def service(method, path, body=None, prefer=None):
     return _req(method, path, h, body)
 
 
-def caller_profile(token):
+def storage(method, path, data, content_type):
+    key = os.environ['AGENTIVA_SUPABASE_SERVICE_KEY']
+    req = urllib.request.Request(SB_URL + '/storage/v1/object/' + path, data=data, method=method, headers={
+        'apikey': key, 'Authorization': f'Bearer {key}', 'Content-Type': content_type, 'x-upsert': 'true',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            r.read()
+    except urllib.error.HTTPError as e:
+        raise ApiError(e.code, e.read().decode(errors='replace')[:300])
+
+
+def caller_profile(token, roles=('client', 'admin')):
     if not token:
         raise ApiError(401, 'Sesión requerida')
     key = os.environ['AGENTIVA_SUPABASE_SERVICE_KEY']
@@ -71,7 +86,7 @@ def caller_profile(token):
     except ApiError:
         raise ApiError(401, 'Sesión vencida — volvé a ingresar')
     rows = service('GET', f"/rest/v1/client_profiles?id=eq.{user['id']}&select=id,role,empresa")
-    if not rows or rows[0]['role'] not in ('client', 'admin'):
+    if not rows or rows[0]['role'] not in roles:
         raise ApiError(403, 'No autorizado')
     return rows[0]
 
@@ -169,13 +184,40 @@ def do_delete(caller, body):
     return {'ok': True}
 
 
+def do_set_avatar(caller, body):
+    uid = caller['id']
+    path = f'avatars/{uid}.jpg'
+    if body.get('remove'):
+        try:
+            storage('DELETE', path, None, 'application/json')
+        except ApiError as e:
+            if e.status not in (400, 404):   # already gone is fine
+                raise
+        service('PATCH', f'/rest/v1/client_profiles?id=eq.{uid}', {'avatar_url': None})
+        return {'avatar_url': None}
+    try:
+        data = base64.b64decode(body.get('image') or '', validate=True)
+    except (binascii.Error, ValueError):
+        raise ApiError(400, 'Imagen inválida')
+    if not data.startswith(b'\xff\xd8\xff'):
+        raise ApiError(400, 'La imagen debe ser JPEG')
+    if len(data) > AVATAR_MAX:
+        raise ApiError(400, 'La imagen es demasiado grande')
+    storage('POST', path, data, 'image/jpeg')
+    url = f'{SB_URL}/storage/v1/object/public/{path}?v={int(time.time())}'
+    service('PATCH', f'/rest/v1/client_profiles?id=eq.{uid}', {'avatar_url': url})
+    return {'avatar_url': url}
+
+
 ACTIONS = {
     'check_username': do_check_username,
     'create': do_create,
     'reset_password': do_reset_password,
     'set_active': do_set_active,
     'delete': do_delete,
+    'set_avatar': do_set_avatar,
 }
+SELF_SERVICE = {'set_avatar'}   # any signed-in role, acts on the caller only
 
 
 class handler(BaseHTTPRequestHandler):
@@ -196,10 +238,12 @@ class handler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get('Content-Length', 0))
             body = json.loads(self.rfile.read(length) or b'{}')
-            fn = ACTIONS.get(body.get('action'))
+            action = body.get('action')
+            fn = ACTIONS.get(action)
             if not fn:
                 raise ApiError(400, 'Acción inválida')
-            caller = caller_profile(body.get('token', ''))
+            roles = ('client', 'admin', 'member') if action in SELF_SERVICE else ('client', 'admin')
+            caller = caller_profile(body.get('token', ''), roles)
             self._send(200, fn(caller, body))
         except ApiError as e:
             self._send(e.status, {'error': e.msg})
