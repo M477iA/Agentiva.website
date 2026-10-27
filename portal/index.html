@@ -1301,9 +1301,8 @@
      The next two weeks as the bot sees them (one row on desktop, 2×7 below
      900px), plus the usual hours and the edit button. */
   .hrs { margin-bottom: 40px; }
-  .hrs-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .hrs-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
   .hrs-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-text); }
-  .hrs-sub { font-size: 13px; color: var(--color-text-muted); margin-top: 3px; }
   .hours-pill {
     display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600;
     padding: 5px 12px; border-radius: var(--radius-full); white-space: nowrap;
@@ -1365,6 +1364,9 @@
     .hd-tag { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { .hd { animation: none; } }
+
+  /* ── Inventario: placeholder until the bot's stock source is connected ── */
+  .inv-empty { padding: 28px 16px; text-align: center; font-size: 13.5px; color: var(--color-text-faint); }
 
   /* ── Novedades ── */
   .news-list { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
@@ -1478,13 +1480,17 @@
 
       <section class="hrs" id="hours-section" hidden aria-labelledby="hrs-title">
         <div class="hrs-head">
-          <div>
-            <div class="hrs-title" id="hrs-title">Horarios de atención</div>
-            <div class="hrs-sub">Vos los definís. El bot de WhatsApp les responde a tus clientes con estos horarios.</div>
-          </div>
+          <div class="hrs-title" id="hrs-title">Horarios de atención</div>
           <span id="hrs-pill"></span>
         </div>
         <div id="hours-panel"></div>
+      </section>
+
+      <section class="hrs" id="inventory-section" hidden aria-labelledby="inv-title">
+        <div class="hrs-head">
+          <div class="hrs-title" id="inv-title">Inventario</div>
+        </div>
+        <div class="hrs-panel inv-empty">Listo para conectar</div>
       </section>
 
       <div class="section">
@@ -3644,6 +3650,7 @@ async function initStoreHours(services) {
   const section = $('hours-section');
   const bot = services.find(isBotService);
   section.hidden = true;
+  $('inventory-section').hidden = !bot;
   if (!bot) return;
   try {
     const base = new URL(bot.viewer_url).origin;
