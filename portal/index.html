@@ -615,6 +615,16 @@
     white-space: nowrap;
   }
   tr:last-child td { border-bottom: none; }
+  tbody[hidden] { display: none; }
+  .pay-toggle {
+    display: block; width: 100%; padding: 12px 16px;
+    background: var(--color-surface-offset); border: none;
+    border-top: 1px solid var(--color-divider);
+    font: inherit; font-size: 13px; font-weight: 600;
+    color: var(--color-text-muted); cursor: pointer; text-align: center;
+  }
+  .pay-toggle:hover { color: var(--color-text); }
+  .pay-toggle[hidden] { display: none; }
   tbody tr:hover td { background: var(--color-surface-offset); }
   .td-primary { font-family: var(--font-display); font-weight: 600; color: var(--color-text); }
   .td-mono { font-family: var(--font-display); font-weight: 500; }
@@ -1527,7 +1537,9 @@
               </tr>
             </thead>
             <tbody id="client-payments-body"></tbody>
+            <tbody id="client-payments-more" hidden></tbody>
           </table>
+          <button type="button" class="pay-toggle" id="client-payments-toggle" aria-expanded="false" hidden></button>
         </div>
       </div>
     </div>
@@ -2302,7 +2314,7 @@ function renderPayments(pagos, bodyId, showClient) {
     tbody.innerHTML = `<tr class="empty-state"><td colspan="${cols}">Sin pagos registrados aún.</td></tr>`;
     return;
   }
-  tbody.innerHTML = pagos.map(p => `
+  const rowHtml = p => `
     <tr>
       ${showClient ? `<td class="td-primary">${esc(p.client_profiles?.nombre || '—')}</td>` : ''}
       <td>${esc(p.services?.nombre || '—')}</td>
@@ -2312,7 +2324,26 @@ function renderPayments(pagos, bodyId, showClient) {
       <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
       <td class="td-muted">${esc(p.metodo || '—')}</td>
       ${showClient ? `<td>${p.estado === 'pendiente' ? `<button class="btn-mark-paid" onclick="markPaid('${p.id}', this)">Marcar pagado</button>` : ''}</td>` : ''}
-    </tr>`).join('');
+    </tr>`;
+  // Client view: show only the latest 3, older ones live behind a toggle.
+  if (showClient || pagos.length <= 3) {
+    tbody.innerHTML = pagos.map(rowHtml).join('');
+    return;
+  }
+  tbody.innerHTML = pagos.slice(0, 3).map(rowHtml).join('');
+  const more = $('client-payments-more'), btn = $('client-payments-toggle');
+  const older = pagos.slice(3);
+  more.innerHTML = older.map(rowHtml).join('');
+  more.hidden = true;
+  btn.hidden = false;
+  const label = open => open ? 'Ocultar pagos anteriores' : `Ver pagos anteriores (${older.length})`;
+  btn.textContent = label(false);
+  btn.setAttribute('aria-expanded', 'false');
+  btn.onclick = () => {
+    more.hidden = !more.hidden;
+    btn.textContent = label(!more.hidden);
+    btn.setAttribute('aria-expanded', String(!more.hidden));
+  };
 }
 
 // ── ADMIN VIEW ────────────────────────────────────────────────────────────────
