@@ -1,1 +1,6 @@
-{}
+{
+  "redirects": [
+    { "source": "/suite", "destination": "https://crm.prolianxe.com", "permanent": true },
+    { "source": "/suite/:path*", "destination": "https://crm.prolianxe.com", "permanent": true }
+  ]
+}
